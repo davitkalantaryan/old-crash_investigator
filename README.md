@@ -1,2 +1,2 @@
-# crash_investigator
-The repository with sources for helping to investigate crashes
+# pitz-sps-private
+To have IDE files for PITZ SPS repository
