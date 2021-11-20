@@ -15,9 +15,11 @@ CONFIG += ordered
 
 SUBDIRS		+=	"$${repositoryRoot}/prj/crash_investigations/wcs_server_qt/wcs_server.pro"
 
-crashInvestigator {
-	SUBDIRS		+=	"$${repositoryRoot}/prj/core/crash_investigator_qt/crash_investigator.pro"
-}
+#crashInvestigatorLibs {
+	SUBDIRS		+=	"$${repositoryRoot}/prj/core/core_qt/crash_investigator_new.pro"
+	SUBDIRS		+=	"$${repositoryRoot}/prj/core/core_qt/crash_investigator_malloc.pro"
+	SUBDIRS		+=	"$${repositoryRoot}/prj/core/core_qt/crash_investigator_new_malloc.pro"
+#}
 
 includeCppUtils {
 	SUBDIRS		+=	"$${repositoryRoot}/contrib/cpputils/workspaces/cpputils_qt/cpputils.pro"

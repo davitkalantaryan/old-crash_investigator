@@ -5,7 +5,7 @@
 # 
 
 
-include($${PWD}/../../common/common_qt/sys_common.pri)
+include("$${PWD}/../../common/common_qt/sys_common.pri")
 
 QMAKE_CXXFLAGS += -pthread
 QMAKE_CFLAGS += -pthread
