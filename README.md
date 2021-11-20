@@ -16,7 +16,7 @@ With this developer will have [valgrind](http://valgrind.org/docs/manual/quick-s
 ## Methods  
   currently `C++` part is multiplatform. While `C` part (`malloc` and friends) is implemented only for Linux.    
   -- `operator new` and `operator delete`   all variants are overloaded (works for all platforms and hopefully for all compilers)  
-  -- `malloc` and friends are overloaded  
+  -- `malloc` and friends are currently overloaded only for Linux  
   
 For now system will find possible memory corruption and print log on it. Further details will be implemented
   
