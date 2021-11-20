@@ -24,7 +24,7 @@ enum class MemoryType : uint32_t{
 //CPPUTILS_ENUM_FAST_RAW(142,MemoryType,uint32_t,NotHandled,New,NewArr);
 
 CRASH_INVEST_DLL_PRIVATE void* TestOperatorNew  ( size_t a_count, MemoryType a_memoryType, bool a_bThrow );
-CRASH_INVEST_DLL_PRIVATE void TestOperatorDelete( void* a_ptr, MemoryType a_typeExpected ) CRASH_INVEST_NOEXCEPT;
+CRASH_INVEST_DLL_PRIVATE void  TestOperatorDelete( void* a_ptr, MemoryType a_typeExpected ) CRASH_INVEST_NOEXCEPT;
 CRASH_INVEST_DLL_PRIVATE void* TestOperatorReAlloc  ( void* a_ptr, size_t a_count );
 
 

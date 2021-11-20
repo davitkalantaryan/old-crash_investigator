@@ -9,14 +9,33 @@
 #ifndef CRASH_INVEST_DO_NOT_USE_AT_ALL
 
 #include "crash_investigator_alloc_dealloc.hpp"
-#include "crash_investigator_mallocn_freen.hpp"
 #include <cpputils/enums.hpp>
-#include <new>
 #include <unordered_map>
 #include <mutex>
 #include <stdio.h>
+#include <pthread.h>
+#include <stdlib.h>
+#ifdef CRASH_INVEST_DO_NOT_USE_MAL_FREE
+#include <malloc.h>
+#else
+#ifndef _GNU_SOURCE
+#define _GNU_SOURCE
+#endif
+#include <dlfcn.h>
+#endif
 
 namespace crash_investigator {
+
+
+#ifdef CRASH_INVEST_DO_NOT_USE_MAL_FREE
+using :: malloc;
+using :: realloc;
+using :: free;
+#else
+static void* malloc  ( size_t a_count ) CRASH_INVEST_NOEXCEPT;
+static void* realloc( void* a_ptr, size_t a_count ) CRASH_INVEST_NOEXCEPT;
+static void  free( void* a_ptr ) CRASH_INVEST_NOEXCEPT;
+#endif
 
 
 enum class MemoryStatus : uint32_t {
@@ -139,6 +158,74 @@ CRASH_INVEST_DLL_PRIVATE void* TestOperatorReAlloc  ( void* a_ptr, size_t a_coun
 		
 	return pReturn;		
 }
+
+
+/*////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////*/
+
+#ifndef CRASH_INVEST_DO_NOT_USE_MAL_FREE
+
+#define CRASH_INVEST_MEMORY_HANDLER_SIZE	1048576  // 1MB
+
+typedef void* (*TypeMalloc)(size_t);
+typedef void* (*TypeRealloc)(void*,size_t);
+typedef void  (*TypeFree)(void*);
+
+static uint8_t			s_vInitFuncBuffer[CRASH_INVEST_MEMORY_HANDLER_SIZE];
+static pthread_once_t	s_once_control		= PTHREAD_ONCE_INIT;
+static TypeMalloc		s_orig_malloc		= CRASH_INVEST_NULL;
+static TypeRealloc		s_orig_realloc		= CRASH_INVEST_NULL;
+static TypeFree			s_orig_free			= CRASH_INVEST_NULL;
+static bool				s_isInitFunction	= false;
+static bool				s_isNotInited		= true;
+
+static void InitFunction(void)
+{
+	s_isInitFunction = true;
+	s_orig_malloc  = reinterpret_cast<TypeMalloc>(dlsym(RTLD_NEXT, "malloc"));
+	s_orig_realloc = reinterpret_cast<TypeRealloc>(dlsym(RTLD_NEXT, "realloc"));
+	s_orig_free    = reinterpret_cast<TypeFree>(dlsym(RTLD_NEXT, "free"));
+	if((!s_orig_malloc)||(!s_orig_realloc)||(!s_orig_free)){
+		fprintf(stderr, "Unable to get addresses of original functions (malloc/realloc/free)\n. Application will exit");
+		exit(1);
+	}
+	s_isInitFunction = false;
+	s_isNotInited = false;
+}
+
+
+static void* malloc  ( size_t a_count ) CRASH_INVEST_NOEXCEPT
+{
+	if(s_isInitFunction){
+		if(a_count>CRASH_INVEST_MEMORY_HANDLER_SIZE){return CRASH_INVEST_NULL;}
+		return s_vInitFuncBuffer;
+	}
+	if(s_isNotInited){pthread_once(&s_once_control,&InitFunction);}
+	return (*s_orig_malloc)(a_count);
+}
+
+
+static void* realloc( void* a_ptr, size_t a_count ) CRASH_INVEST_NOEXCEPT
+{
+	if(s_isInitFunction){
+		if(a_count>CRASH_INVEST_MEMORY_HANDLER_SIZE){return CRASH_INVEST_NULL;}
+		return s_vInitFuncBuffer;
+	}
+	if(s_isNotInited){pthread_once(&s_once_control,&InitFunction);}
+	return (*s_orig_realloc)(a_ptr,a_count);
+}
+
+
+static void free( void* a_ptr ) CRASH_INVEST_NOEXCEPT
+{
+	if(s_isInitFunction){
+		return;
+	}
+	if(s_isNotInited){pthread_once(&s_once_control,&InitFunction);}
+	(*s_orig_free)(a_ptr);
+}
+
+#endif  // #ifndef CRASH_INVEST_DO_NOT_USE_MAL_FREE
+
 
 
 } // namespace crash_investigator {

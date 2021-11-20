@@ -6,16 +6,39 @@
 //
 
 #include <stdlib.h>
+#include <stdio.h>
 
 static void Corruption01();
 static void Corruption02();
 static void Corruption03();
 
-int main()
+int main(int a_argc, char* a_argv[])
 {
-	Corruption01();
-	Corruption02();
-	Corruption03();
+	printf("If debugging is needed, then connect with debugger, then press enter to proceed! ");
+	fflush(stdout);
+	getchar();
+	
+	if(a_argc<2){
+		fprintf(stderr,"ERROR: specify number [1..3] to select hook to test\n");
+		return 1;
+	}
+	
+	int nHookToTest = atoi(a_argv[1]);
+	switch(nHookToTest){
+	case 1:
+		Corruption01();
+		break;
+	case 2:
+		Corruption02();
+		break;
+	case 3:
+		Corruption03();
+		break;
+	default:
+		fprintf(stderr,"ERROR: Number of hook should be in the region [1..3]\n");
+		return 1;
+	}
+	
 	
 	return 0;
 }

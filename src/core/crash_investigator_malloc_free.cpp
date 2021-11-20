@@ -6,42 +6,47 @@
 //
 
 
+#include <crash_investigator/crash_investigator_internal_header.h>
+
 #ifndef CRASH_INVEST_DO_NOT_USE_MAL_FREE
 
-#include "crash_investigator_mallocn_freen.hpp"
 #include "crash_investigator_alloc_dealloc.hpp"
-#include <stdlib.h>
-#include <malloc.h>
 #include <string.h>
 
 
+CRASH_INVEST_BEGIN_C
 
-void* malloc  ( size_t a_count )
+
+CRASH_INVEST_DLL_PUBLIC void* malloc(size_t a_count)
 {
-	return crash_investigator::TestOperatorNew(a_count,crash_investigator::MemoryType::Malloc, false);
+	return ::crash_investigator::TestOperatorNew(a_count,::crash_investigator::MemoryType::Malloc,false);
 }
 
 
-void* calloc(size_t a_nmemb, size_t a_size)
+CRASH_INVEST_DLL_PUBLIC void* calloc(size_t a_nmemb, size_t a_size)
 {
-	const size_t cunOverallSize(a_nmemb*a_size);
-	void* pReturn = crash_investigator::TestOperatorNew(cunOverallSize,crash_investigator::MemoryType::Malloc, false);
-	if(!pReturn){return pReturn;}
-	memset(pReturn,0,cunOverallSize);
+	const size_t unCount ( a_nmemb * a_size );
+	void* pReturn = ::crash_investigator::TestOperatorNew(unCount,::crash_investigator::MemoryType::Malloc,false);
+	if(pReturn){
+		memset(pReturn,0,unCount);
+	}
 	return pReturn;
 }
 
 
-void* realloc  ( void* a_ptr, size_t a_count )
+CRASH_INVEST_DLL_PUBLIC void* realloc(void* a_ptr, size_t a_count)
 {
-	return crash_investigator::TestOperatorReAlloc(a_ptr,a_count);
+	return ::crash_investigator::TestOperatorReAlloc(a_ptr,a_count);
 }
 
 
-void free( void* a_ptr )
+CRASH_INVEST_DLL_PUBLIC void free(void* a_ptr)
 {
-	::crash_investigator::free(a_ptr);
+	::crash_investigator::TestOperatorDelete(a_ptr,::crash_investigator::MemoryType::Malloc);
 }
 
 
-#endif // #ifndef CRASH_INVEST_DO_NOT_USE_MAL_FREE
+CRASH_INVEST_END_C
+
+
+#endif  // #ifndef CRASH_INVEST_DO_NOT_USE_MAL_FREE

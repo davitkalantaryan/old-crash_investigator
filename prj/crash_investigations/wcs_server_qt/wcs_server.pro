@@ -22,10 +22,6 @@ win32{
 include("$${PWD}/../../common/common_qt/doocs_server_common.pri")
 include("$${PWD}/../../core/crash_investigator_qt/crash_investigator.pri")
 
-QMAKE_CXXFLAGS += -pthread
-QMAKE_CFLAGS += -pthread
-LIBS += -pthread
-
 
 SPS_NEXUS_DIR	= $${PWD}/../../../.codes_to_investigate/SPS
 INCLUDEPATH += "$${SPS_NEXUS_DIR}/contrib/tinyfsm/include"
