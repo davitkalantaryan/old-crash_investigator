@@ -11,6 +11,8 @@
 
 #DEFINES += DEBUG_APP
 
+#DEFINES += CRASH_INVEST_DO_NOT_USE_MAL_FREE
+
 win32{
 	SOURCES += \
 } else {
@@ -19,24 +21,12 @@ win32{
 	SOURCES += \
 }
 
-include($${PWD}/../../common/common_qt/sys_common.pri)
-
-#TEMPLATE = lib
+include("$${PWD}/../../core/crash_investigator_qt/crash_investigator.pri")
 
 QT -= core
 QT -= gui
 CONFIG -= qt
 
-H_HEADERS01		= $$cpputilsFindFilesRecursive($${PWD}/../../../include, .h)
-HPP_HEADERS01	= $$cpputilsFindFilesRecursive($${PWD}/../../../include, .hpp)
-
-
-INCLUDEPATH += "$${PWD}/../../../include"
-INCLUDEPATH += "$${PWD}/../../../contrib/cpputils/include"
 
 SOURCES += \
-	"$${PWD}/../../../src/core/crash_investigator_alloc_dealloc.cpp"		\
 	"$${PWD}/../../../src/tests/main_double_free01_test.cpp"
-
-HEADERS += $${H_HEADERS01}
-HEADERS += $${HPP_HEADERS01}

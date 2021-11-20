@@ -19,22 +19,10 @@ win32{
 	SOURCES += \
 }
 
-include($${PWD}/../../common/common_qt/sys_common.pri)
-
 TEMPLATE = lib
 
 QT -= core
 QT -= gui
 CONFIG -= qt
 
-H_HEADERS01		= $$cpputilsFindFilesRecursive($${PWD}/../../../include, .h)
-HPP_HEADERS01	= $$cpputilsFindFilesRecursive($${PWD}/../../../include, .hpp)
-
-
-INCLUDEPATH += "$${PWD}/../../../include"
-
-SOURCES += \
-	"$${PWD}/../../../src/core/crash_investigator_alloc_dealloc.cpp"		
-
-HEADERS += $${H_HEADERS01}
-HEADERS += $${HPP_HEADERS01}
+include("$${PWD}/crash_investigator.pri")
