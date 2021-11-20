@@ -19,14 +19,9 @@ win32{
 	SOURCES += \
 }
 
-include($${PWD}/../../common/common_qt/doocs_server_common.pri)
+include("$${PWD}/../../common/common_qt/doocs_server_common.pri")
+include("$${PWD}/../../core/crash_investigator_qt/crash_investigator.pri")
 
-QMAKE_CXXFLAGS += -pthread
-QMAKE_CFLAGS += -pthread
-LIBS += -pthread
-QXX_F
-
-SOURCES += $${PWD}/../../../src/tests/test_new_delete.cpp
 
 SPS_NEXUS_DIR	= $${PWD}/../../../.codes_to_investigate/SPS
 INCLUDEPATH += "$${SPS_NEXUS_DIR}/contrib/tinyfsm/include"
@@ -34,21 +29,15 @@ INCLUDEPATH += "$${SPS_NEXUS_DIR}/src/common"
 INCLUDEPATH += "$${SPS_NEXUS_DIR}/src/wcs_server"
 INCLUDEPATH += $$MYDOOCS/include/doocs/doocs
 
+
 CC_SOURCES01	= $$cpputilsFindFilesRecursive($${SPS_NEXUS_DIR}/src/wcs_server, .cc)
 CPP_SOURCES01	= $$cpputilsFindFilesRecursive($${SPS_NEXUS_DIR}/src/wcs_server, .cpp)
-H_HEADERS01	= $$cpputilsFindFilesRecursive($${SPS_NEXUS_DIR}/src/wcs_server, .h)
 #CC_SOURCES02	= $$cpputilsFindFilesRecursive($${SPS_NEXUS_DIR}/src/common, .cc)
 #CPP_SOURCES02	= $$cpputilsFindFilesRecursive($${SPS_NEXUS_DIR}/src/common, .cpp)
+H_HEADERS01	= $$cpputilsFindFilesRecursive($${SPS_NEXUS_DIR}/src/wcs_server, .h)
 H_HEADERS02	= $$cpputilsFindFilesRecursive($${SPS_NEXUS_DIR}/src/common, .h)
 
-#SOURCES += $${CC_SOURCES01}
-#SOURCES += $${CPP_SOURCES01}
-#SOURCES += $${CC_SOURCES02}
-#SOURCES += $${CPP_SOURCES02}
 
-#SOURCES += \
-#	"$${SPS_NEXUS_DIR}/src/common/D_cmd_sps.cc"		\
-#	"$${SPS_NEXUS_DIR}/src/common/D_cmd_sps.cc"
 
 SOURCES += \
 	"$${SPS_NEXUS_DIR}/src/wcs_server/wcs_rpc_server.cc"		\

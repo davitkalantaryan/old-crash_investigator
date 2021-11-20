@@ -13,10 +13,18 @@ message("repositoryRoot: " $$repositoryRoot)
 TEMPLATE = subdirs
 CONFIG += ordered
 
-SUBDIRS		+=	"$${repositoryRoot}/prj/core/wcs_server_qt/wcs_server.pro"
+SUBDIRS		+=	"$${repositoryRoot}/prj/crash_investigations/wcs_server_qt/wcs_server.pro"
+
+crashInvestigator {
+	SUBDIRS		+=	"$${repositoryRoot}/prj/core/crash_investigator_qt/crash_investigator.pro"
+}
 
 includeCppUtils {
 	SUBDIRS		+=	"$${repositoryRoot}/contrib/cpputils/workspaces/cpputils_qt/cpputils.pro"
+}
+
+testsFromWorkspace {
+	SUBDIRS		+=	"$${repositoryRoot}/prj/tests/double_free01_test_qt/double_free01_test.pro"
 }
 
 
