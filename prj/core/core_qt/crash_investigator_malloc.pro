@@ -10,3 +10,6 @@
 include("$${PWD}/crash_investigator_libs_common.pri")
 TARGET = libcrash_investiator_malloc.so
 DEFINES += CRASH_INVEST_DO_NOT_USE_MAL_FREE
+
+OTHER_FILES +=	\
+	$${PWD}/../core_mkfl/crash_investigator_malloc.unix.Makefile

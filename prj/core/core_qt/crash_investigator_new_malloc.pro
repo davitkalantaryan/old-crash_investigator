@@ -8,3 +8,7 @@
 
 include("$${PWD}/crash_investigator_libs_common.pri")
 TARGET = libcrash_investiator_new_malloc.so
+
+
+OTHER_FILES +=	\
+	$${PWD}/../core_mkfl/crash_investigator_new_malloc.unix.Makefile

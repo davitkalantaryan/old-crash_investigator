@@ -14,9 +14,9 @@ static void Corruption03();
 
 int main(int a_argc, char* a_argv[])
 {
-	printf("If debugging is needed, then connect with debugger, then press enter to proceed! ");
-	fflush(stdout);
-	getchar();
+	//printf("If debugging is needed, then connect with debugger, then press enter to proceed! ");
+	//fflush(stdout);
+	//getchar();
 	
 	if(a_argc<2){
 		fprintf(stderr,"ERROR: specify number [1..3] to select hook to test\n");
@@ -39,7 +39,7 @@ int main(int a_argc, char* a_argv[])
 		return 1;
 	}
 	
-	
+	fflush(stdout);
 	return 0;
 }
 

@@ -34,3 +34,6 @@ QT -= gui
 QT -= core
 QT -= widgets
 CONFIG -= qt
+
+OTHER_FILES +=	\
+	$${PWD}/../core_mkfl/crash_investigator_libs_common.unix.Makefile

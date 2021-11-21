@@ -9,3 +9,6 @@
 include("$${PWD}/crash_investigator_libs_common.pri")
 TARGET = libcrash_investiator_new.so
 DEFINES += CRASH_INVEST_DO_NOT_USE_NEW_DEL
+
+OTHER_FILES +=	\
+	$${PWD}/../core_mkfl/crash_investigator_new.unix.Makefile
