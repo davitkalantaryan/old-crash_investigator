@@ -12,3 +12,6 @@ systemRepoRoot		= $${repositoryRoot}/contrib/system
 include ( "$${cpputilsRepoRoot}/prj/common/common_qt/sys_common.pri" )
 
 CONFIG += c++17
+
+OTHER_FILES +=	\
+	$${repositoryRoot}/prj/common/common_mkfl/sys_common.unix.Makefile

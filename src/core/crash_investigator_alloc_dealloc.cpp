@@ -105,12 +105,14 @@ CRASH_INVEST_DLL_PRIVATE void TestOperatorDelete( void* a_ptr, MemoryType a_type
 		// we will  check 2 things a) if we used new, b) if this buffer is not deleted before
 		if(memItemIter->second.status!=MemoryStatus::Allocated){
 			printf("1. !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Trying to delete already deleted memory! Returning without action to prevent crash\n");
+			fflush(stdout);
 			return;
 		}
 		
 		if(memItemIter->second.type!=a_typeExpected){	
 			//printf("2. !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Trying to delete using wrong `delete`(expected: %s)! Returning without action to prevent crash\n", a_typeExpected.toString());
 			printf("2. !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Trying to delete using wrong `delete`(expected: %d)! Returning without action to prevent crash\n", static_cast<int>(a_typeExpected));
+			fflush(stdout);
 			return;
 		}
 		
@@ -141,10 +143,12 @@ CRASH_INVEST_DLL_PRIVATE void* TestOperatorReAlloc  ( void* a_ptr, size_t a_coun
 		}
 		if(memItemIter->second.type!=MemoryType::Malloc){
 			printf("4. !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Trying to realloc wrong type (%d) memory! Returning without action to prevent crash\n",static_cast<int>(memItemIter->second.type));
+			fflush(stdout);
 			return CRASH_INVEST_NULL;
 		}
 		if(memItemIter->second.status!=MemoryStatus::Allocated){
 			printf("5. !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Trying to realloc on freed memory! Returning without action to prevent crash\n");
+			fflush(stdout);
 			return CRASH_INVEST_NULL;
 		}
 		
@@ -186,6 +190,7 @@ static void InitFunction(void)
 	s_orig_free    = reinterpret_cast<TypeFree>(dlsym(RTLD_NEXT, "free"));
 	if((!s_orig_malloc)||(!s_orig_realloc)||(!s_orig_free)){
 		fprintf(stderr, "Unable to get addresses of original functions (malloc/realloc/free)\n. Application will exit");
+		fflush(stdout);
 		exit(1);
 	}
 	s_isInitFunction = false;
