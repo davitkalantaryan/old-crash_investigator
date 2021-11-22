@@ -5,7 +5,7 @@
 # 
 
 
-include($${PWD}/../../common/common_qt/sys_common.pri)
+include("$${PWD}/../../common/common_qt/sys_common.pri")
 
 QMAKE_CXXFLAGS += -pthread
 QMAKE_CFLAGS += -pthread
@@ -26,3 +26,6 @@ HEADERS += "$${PWD}/../../../src/core/crash_investigator_alloc_dealloc.hpp"
 
 HEADERS += $${CR_INV_HEADERS_H01}
 HEADERS += $${CR_INV_HEADERS_HPP01}
+
+OTHER_FILES +=	\
+	$${PWD}/../core_mkfl/crash_investigator.unix.Makefile

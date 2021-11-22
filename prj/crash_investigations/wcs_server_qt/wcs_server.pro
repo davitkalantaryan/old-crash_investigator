@@ -20,7 +20,7 @@ win32{
 }
 
 include("$${PWD}/../../common/common_qt/doocs_server_common.pri")
-include("$${PWD}/../../core/crash_investigator_qt/crash_investigator.pri")
+include("$${PWD}/../../core/core_qt/crash_investigator.pri")
 
 
 SPS_NEXUS_DIR	= $${PWD}/../../../.codes_to_investigate/SPS

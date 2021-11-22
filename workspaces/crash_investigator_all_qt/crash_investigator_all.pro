@@ -15,17 +15,19 @@ CONFIG += ordered
 
 SUBDIRS		+=	"$${repositoryRoot}/prj/crash_investigations/wcs_server_qt/wcs_server.pro"
 
-crashInvestigator {
-	SUBDIRS		+=	"$${repositoryRoot}/prj/core/crash_investigator_qt/crash_investigator.pro"
-}
+#crashInvestigatorLibs {
+	SUBDIRS		+=	"$${repositoryRoot}/prj/core/core_qt/crash_investigator_new.pro"
+	SUBDIRS		+=	"$${repositoryRoot}/prj/core/core_qt/crash_investigator_malloc.pro"
+	SUBDIRS		+=	"$${repositoryRoot}/prj/core/core_qt/crash_investigator_new_malloc.pro"
+#}
 
 includeCppUtils {
 	SUBDIRS		+=	"$${repositoryRoot}/contrib/cpputils/workspaces/cpputils_qt/cpputils.pro"
 }
 
-testsFromWorkspace {
+#testsFromWorkspace {
 	SUBDIRS		+=	"$${repositoryRoot}/prj/tests/double_free01_test_qt/double_free01_test.pro"
-}
+#}
 
 
 #UNIX_SCRIPTS	= $$cpputilsFindFilesRecursive($${repositoryRoot}/scripts, .sh)
@@ -44,4 +46,5 @@ OTHER_FILES	+=	\
 	"$${repositoryRoot}/.gitignore"									\
 	"$${repositoryRoot}/.gitmodules"								\
 	"$${repositoryRoot}/LICENSE"									\
-	"$${repositoryRoot}/README.md"									
+	"$${repositoryRoot}/README.md"									\
+	"$${repositoryRoot}/Makefile"	

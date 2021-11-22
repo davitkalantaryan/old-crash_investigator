@@ -21,7 +21,8 @@ win32{
 	SOURCES += \
 }
 
-include("$${PWD}/../../core/crash_investigator_qt/crash_investigator.pri")
+include("$${PWD}/../../common/common_qt/sys_common.pri")
+#include("$${PWD}/../../core/core_qt/crash_investigator.pri")
 
 QT -= core
 QT -= gui
