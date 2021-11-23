@@ -19,14 +19,14 @@ CRASH_INVEST_BEGIN_C
 
 CRASH_INVEST_DLL_PUBLIC void* malloc(size_t a_count)
 {
-	return ::crash_investigator::TestOperatorNewAligned(a_count,::crash_investigator::MemoryType::Malloc,false);
+	return ::crash_investigator::TestOperatorNew(a_count,::crash_investigator::MemoryType::Malloc,false);
 }
 
 
 CRASH_INVEST_DLL_PUBLIC void* calloc(size_t a_nmemb, size_t a_size)
 {
 	const size_t unCount ( a_nmemb * a_size );
-	void* pReturn = ::crash_investigator::TestOperatorNewAligned(unCount,::crash_investigator::MemoryType::Malloc,false,a_size);
+	void* pReturn = ::crash_investigator::TestOperatorNew(unCount,::crash_investigator::MemoryType::Malloc,false);
 	if(pReturn){
 		memset(pReturn,0,unCount);
 	}

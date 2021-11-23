@@ -77,19 +77,44 @@ typedef cpputils::hashtbl::Base<void*,SMemoryItem>  TypeHashTbl;
 #else
 typedef cpputilsm::HashItemsByPtr<void*,SMemoryItem,crash_investigator::malloc,crash_investigator::free>  TypeHashTbl;
 #endif
-static TypeHashTbl	s_memoryItems2;
-static std::mutex s_mutexForMap;
+static TypeHashTbl	s_memoryItems;
+static std::mutex	s_mutexForMap;
 
 
-CRASH_INVEST_DLL_PRIVATE void* TestOperatorNewAligned  ( size_t a_count, MemoryType a_memoryType, bool a_bThrow, size_t a_align )
+CRASH_INVEST_DLL_PRIVATE void* TestOperatorNew  ( size_t a_count, MemoryType a_memoryType, bool a_bThrow )
 {
+	if(s_bIsAllocingOrDeallocing){return ::crash_investigator::malloc(a_count);}
+	IsAllocingHandler aHandler;
+	
 	if(!a_count){
 		if(a_bThrow){throw ::std::bad_alloc();}
 		else{return CRASH_INVEST_NULL;}
 	}
-	if(s_bIsAllocingOrDeallocing){return ::crash_investigator::malloc(a_count);}
 	
+	void* pReturn = ::crash_investigator::malloc(a_count);
+	if(!pReturn){
+		if(a_bThrow){throw ::std::bad_alloc();}
+		else{return CRASH_INVEST_NULL;}
+	}
+	
+	const SMemoryItem aItem({a_memoryType,MemoryStatus::Allocated,pReturn});
+	
+	std::lock_guard<std::mutex> aGuard(s_mutexForMap);
+	s_memoryItems.AddOrReplaceEntry(pReturn,aItem);
+	return pReturn;
+}
+
+#ifdef CRASH_INVEST_CPP_17_DEFINED
+
+CRASH_INVEST_DLL_PRIVATE void* TestOperatorNewAligned  ( size_t a_count, MemoryType a_memoryType, bool a_bThrow, size_t a_align )
+{
+	if(s_bIsAllocingOrDeallocing){return ::crash_investigator::malloc(a_count);}
 	IsAllocingHandler aHandler;
+	
+	if(!a_count){
+		if(a_bThrow){throw ::std::bad_alloc();}
+		else{return CRASH_INVEST_NULL;}
+	}
 	
 	if (a_align < __STDCPP_DEFAULT_NEW_ALIGNMENT__)  {
 		a_align=__STDCPP_DEFAULT_NEW_ALIGNMENT__;
@@ -129,7 +154,7 @@ CRASH_INVEST_DLL_PRIVATE void* TestOperatorNewAligned  ( size_t a_count, MemoryT
 		MY_NEW_PRINTF("line:%d\n",__LINE__);
 		std::lock_guard<std::mutex> aGuard(s_mutexForMap);
 		//s_memoryItems[pReturn] = aItem;
-		s_memoryItems2.AddOrReplaceEntry(pReturn,aItem);
+		s_memoryItems.AddOrReplaceEntry(pReturn,aItem);
 		MY_NEW_PRINTF("line:%d\n",__LINE__);
 		return pReturn;
 	}
@@ -140,18 +165,21 @@ CRASH_INVEST_DLL_PRIVATE void* TestOperatorNewAligned  ( size_t a_count, MemoryT
 }
 
 
+#endif  // #ifdef CRASH_INVEST_CPP_17_DEFINED
+
+
 CRASH_INVEST_DLL_PRIVATE void TestOperatorDelete( void* a_ptr, MemoryType a_typeExpected ) CRASH_INVEST_NOEXCEPT
 {
 	if(s_bIsAllocingOrDeallocing){ ::crash_investigator::free(a_ptr);return;} // not handling here
-	
 	IsAllocingHandler aHandler;
+	
 	TypeHashTbl::iterator memItemIter;
 	void* pToDelete=CRASH_INVEST_NULL;
 	
 	{
 		std::lock_guard<std::mutex> aGuard(s_mutexForMap);
 		
-		memItemIter = s_memoryItems2.FindEntry(a_ptr);
+		memItemIter = s_memoryItems.FindEntry(a_ptr);
 		if(memItemIter == TypeHashTbl::s_endIter){ ::crash_investigator::free(a_ptr);return;} // this is some early memory, leave this
 		//if(memItemIter == TypeHashTbl::s_endIter){ return;}
 		
@@ -181,18 +209,19 @@ CRASH_INVEST_DLL_PRIVATE void TestOperatorDelete( void* a_ptr, MemoryType a_type
 
 CRASH_INVEST_DLL_PRIVATE void* TestOperatorReAlloc  ( void* a_ptr, size_t a_count )
 {
-	if(!a_count){return CRASH_INVEST_NULL;}
-	if(!a_ptr){return TestOperatorNewAligned(a_count,MemoryType::Malloc,false);}
 	if(s_bIsAllocingOrDeallocing){return ::crash_investigator::realloc(a_ptr,a_count);}
-	
+	if(!a_ptr){return TestOperatorNew(a_count,MemoryType::Malloc,false);}
 	IsAllocingHandler aHandler;
+	
+	if(!a_count){return CRASH_INVEST_NULL;}
+	
 	void* pReturn;
 	TypeHashTbl::iterator memItemIter;
 	
 	{
 		std::lock_guard<std::mutex> aGuard(s_mutexForMap);
 		
-		memItemIter = s_memoryItems2.FindEntry(a_ptr);
+		memItemIter = s_memoryItems.FindEntry(a_ptr);
 		if(memItemIter==TypeHashTbl::s_endIter){
 			fprintf(stderr,"3. !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Trying to realloc wrong memory! Returning without action to prevent crash\n");
 			fflush(stderr);
@@ -212,13 +241,13 @@ CRASH_INVEST_DLL_PRIVATE void* TestOperatorReAlloc  ( void* a_ptr, size_t a_coun
 			return CRASH_INVEST_NULL;
 		}
 		
-		pReturn = ::crash_investigator::realloc(a_ptr,a_count) ;
+		pReturn = ::crash_investigator::realloc(memItemIter->second.realAddress,a_count) ;
 		if(pReturn!=a_ptr){
 			SMemoryItem aItem = memItemIter->second;
-			s_memoryItems2.RemoveEntry(memItemIter);
+			s_memoryItems.RemoveEntry(memItemIter);
 			aItem.realAddress = pReturn;
 			//s_memoryItems[pReturn] = aItem;
-			s_memoryItems2.AddOrReplaceEntry(pReturn,aItem);
+			s_memoryItems.AddOrReplaceEntry(pReturn,aItem);
 		}
 	}
 		
@@ -257,7 +286,8 @@ static void InitFunction(void)
 	}
 	s_isInitFunction = false;
 	s_isNotInited = false;
-	//s_pMemoryItems = new TypeHashTbl;
+	printf("+-+-+-+-+-+-+-+-+-+- Crash investigator lib version 1 +-+-+-+-+-+-+-+-+-+-\n");
+	fflush(stdout);
 }
 
 
