@@ -17,12 +17,17 @@ CR_INV_HEADERS_HPP01	= $$cpputilsFindFilesRecursive($${PWD}/../../../include, .h
 
 INCLUDEPATH += "$${PWD}/../../../include"
 INCLUDEPATH += "$${PWD}/../../../contrib/cpputils/include"
+INCLUDEPATH += "$${PWD}/../../../src/include"
 
 SOURCES += "$${PWD}/../../../src/core/crash_investigator_alloc_dealloc.cpp"
 SOURCES += "$${PWD}/../../../src/core/crash_investigator_malloc_free.cpp"
 SOURCES += "$${PWD}/../../../src/core/crash_investigator_new_delete.cpp"
+SOURCES += "$${PWD}/../../../src/cpputilsm/hashitemsbyptr.cpp"
+#SOURCES += "$${PWD}/../../../contrib/cpputils/src/core/cpputils_hashtbl.cpp"
 
 HEADERS += "$${PWD}/../../../src/core/crash_investigator_alloc_dealloc.hpp"
+HEADERS += "$${PWD}/../../../src/include/cpputilsm/hashitemsbyptr.hpp"
+HEADERS += "$${PWD}/../../../src/include/cpputilsm/hashitemsbyptr.impl.hpp"
 
 HEADERS += $${CR_INV_HEADERS_H01}
 HEADERS += $${CR_INV_HEADERS_HPP01}

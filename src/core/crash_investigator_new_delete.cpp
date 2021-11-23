@@ -26,10 +26,10 @@ void* operator new  ( std::size_t a_count, const std::nothrow_t& ) CRASH_INVEST_
 void* operator new []  ( std::size_t a_count, const std::nothrow_t& ) CRASH_INVEST_NODISCARD{
 	return crash_investigator::TestOperatorNew(a_count,crash_investigator::MemoryType::NewArr, false);
 }
-void operator delete  ( void* a_ptr ) noexcept{
+void operator delete  ( void* a_ptr ) CRASH_INVEST_NOEXCEPT{
 	crash_investigator::TestOperatorDelete(a_ptr,crash_investigator::MemoryType::New);
 }
-void operator delete [] ( void* a_ptr ) noexcept{
+void operator delete [] ( void* a_ptr ) CRASH_INVEST_NOEXCEPT{
 	crash_investigator::TestOperatorDelete(a_ptr,crash_investigator::MemoryType::NewArr);
 }
 void operator delete  ( void* a_ptr, std::size_t ) CRASH_INVEST_NOEXCEPT{
@@ -42,17 +42,17 @@ void operator delete [] ( void* a_ptr, std::size_t ) CRASH_INVEST_NOEXCEPT{
 
 #ifdef CRASH_INVEST_CPP_17_DEFINED
 
-void* operator new  ( std::size_t a_count, std::align_val_t ){
-	return crash_investigator::TestOperatorNew(a_count,crash_investigator::MemoryType::New, true);
+void* operator new  ( std::size_t a_count, std::align_val_t a_al ){
+	return crash_investigator::TestOperatorNewAligned(a_count,crash_investigator::MemoryType::New,true,static_cast<std::size_t>(a_al));
 }
-void* operator new []  ( std::size_t a_count, std::align_val_t ){
-	return crash_investigator::TestOperatorNew(a_count,crash_investigator::MemoryType::NewArr, true);
+void* operator new []  ( std::size_t a_count, std::align_val_t a_al ){
+	return crash_investigator::TestOperatorNewAligned(a_count,crash_investigator::MemoryType::NewArr, true,static_cast<std::size_t>(a_al));
 }
-void* operator new  ( std::size_t a_count, std::align_val_t, const std::nothrow_t& ) CRASH_INVEST_NODISCARD{
-	return crash_investigator::TestOperatorNew(a_count,crash_investigator::MemoryType::New, true);
+void* operator new  ( std::size_t a_count, std::align_val_t a_al, const std::nothrow_t& ) CRASH_INVEST_NODISCARD{
+	return crash_investigator::TestOperatorNewAligned(a_count,crash_investigator::MemoryType::New, true,static_cast<std::size_t>(a_al));
 }
-void* operator new []  ( std::size_t a_count, std::align_val_t, const std::nothrow_t& ) CRASH_INVEST_NODISCARD{
-	return crash_investigator::TestOperatorNew(a_count,crash_investigator::MemoryType::NewArr, true);
+void* operator new []  ( std::size_t a_count, std::align_val_t a_al, const std::nothrow_t& ) CRASH_INVEST_NODISCARD{
+	return crash_investigator::TestOperatorNewAligned(a_count,crash_investigator::MemoryType::NewArr, true,static_cast<std::size_t>(a_al));
 }
 
 void operator delete  ( void* a_ptr, std::align_val_t  ) CRASH_INVEST_NOEXCEPT{

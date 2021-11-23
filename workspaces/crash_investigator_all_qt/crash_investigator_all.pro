@@ -13,7 +13,9 @@ message("repositoryRoot: " $$repositoryRoot)
 TEMPLATE = subdirs
 CONFIG += ordered
 
-SUBDIRS		+=	"$${repositoryRoot}/prj/crash_investigations/wcs_server_qt/wcs_server.pro"
+wcsServer {
+	SUBDIRS		+=	"$${repositoryRoot}/prj/crash_investigations/wcs_server_qt/wcs_server.pro"
+}
 
 #crashInvestigatorLibs {
 	SUBDIRS		+=	"$${repositoryRoot}/prj/core/core_qt/crash_investigator_new.pro"
