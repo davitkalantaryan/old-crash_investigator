@@ -9,10 +9,14 @@
 
 message("!!! doocs_client_common.pri:")
 include($${PWD}/sys_common.pri)
-MYDOOCS = /afs/ifh.de/group/pitz/doocs
 
+MYDOOCS = /afs/ifh.de/group/pitz/doocs
 LIBS += -L$$MYDOOCS/system_arch/$$CODENAME/lib
 INCLUDEPATH += $$MYDOOCS/include/doocs
+
+#MYDOOCS = /export/doocs
+#LIBS += -L/export/doocs/lib
+#INCLUDEPATH += /export/doocs/lib/include
 
 win32 {
     contains(QMAKE_TARGET.arch, x86_64) {

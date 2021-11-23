@@ -14,7 +14,7 @@ QT -= gui
 CONFIG -= qt
 
 LIBS += -lEqServer
-LIBS += -lCom
-LIBS += -lca
+#LIBS += -lCom
+#LIBS += -lca
 
 #LIBS += -L$$MYDOOCS/system_arch/$$CODENAME/MAIN/base/lib/linux-x86_64
