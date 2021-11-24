@@ -1,0 +1,14 @@
+;
+; Export file for creating MS DLL
+;
+; $Id: jpeglib.def,v 1.13 2017-12-30 08:03:27 Davit Exp $
+;
+;LIBRARY DOOCSapi
+;DESCRIPTION "jpegg compress decompress library, Windows port"
+;EXPORTS
+
+LIBRARY
+EXPORTS
+	; erlst					DATA
+	malloc
+	free
