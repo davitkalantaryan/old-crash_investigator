@@ -19,26 +19,26 @@
 namespace crash_investigator {
 
 
-CRASH_INVEST_EXPORT void* mallocn  ( size_t a_count ) CRASH_INVEST_NOEXCEPT
+CRASH_INVEST_DLL_PRIVATE void* mallocn  ( size_t a_count ) CRASH_INVEST_NODISCARD
 {
 	return LocalAlloc(LMEM_FIXED, static_cast<SIZE_T>(a_count));
 }
 
 
-CRASH_INVEST_EXPORT void* reallocn( void* a_ptr, size_t a_count ) CRASH_INVEST_NOEXCEPT
+CRASH_INVEST_DLL_PRIVATE void* reallocn( void* a_ptr, size_t a_count ) CRASH_INVEST_NODISCARD
 {
 	return LocalReAlloc(a_ptr, static_cast<SIZE_T>(a_count), LMEM_FIXED);
 }
 
 
-CRASH_INVEST_EXPORT void* callocn(size_t a_nmemb, size_t a_size) CRASH_INVEST_NOEXCEPT
+CRASH_INVEST_DLL_PRIVATE void* callocn(size_t a_nmemb, size_t a_size) CRASH_INVEST_NODISCARD
 {
 	const size_t unCount(a_nmemb * a_size);
 	return LocalAlloc(LMEM_FIXED|LMEM_ZEROINIT, static_cast<SIZE_T>(unCount));
 }
 
 
-CRASH_INVEST_EXPORT void freen( void* a_ptr ) CRASH_INVEST_NOEXCEPT
+CRASH_INVEST_DLL_PRIVATE void freen( void* a_ptr ) CRASH_INVEST_NOEXCEPT
 {
 	LocalFree(a_ptr);
 }
