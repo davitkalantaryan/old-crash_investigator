@@ -70,11 +70,16 @@ static void Corruption02()
 static void Corruption03()
 {
 	int* pnValue = static_cast<int*>(malloc(sizeof(int)));
-	free(pnValue);
 	delete pnValue;
 }
 
 static void Corruption04()
+{
+    int* pnValue = new int;
+    free(pnValue);
+}
+
+static void Corruption05()
 {
 	FILE* pFile = fopen("/tmp/aaa.txt","w");
 	printf("pFile: %p\n",static_cast<void*>(pFile));
@@ -83,11 +88,4 @@ static void Corruption04()
 		fclose(pFile);
 		fclose(pFile);
 	}
-}
-
-
-static void Corruption05()
-{
-    int* pnValue = new int;
-    free(pnValue);
 }
