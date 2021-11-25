@@ -12,6 +12,7 @@ static void Corruption01();
 static void Corruption02();
 static void Corruption03();
 static void Corruption04();
+static void Corruption05();
 
 int main(int a_argc, char* a_argv[])
 {
@@ -37,6 +38,9 @@ int main(int a_argc, char* a_argv[])
 		break;
 	case 4:
 		Corruption04();
+        break;
+    case 5:
+        Corruption05();
 		break;
 	default:
 		fprintf(stderr,"ERROR: Number of hook should be in the region [1..3]\n");
@@ -66,11 +70,16 @@ static void Corruption02()
 static void Corruption03()
 {
 	int* pnValue = static_cast<int*>(malloc(sizeof(int)));
-	free(pnValue);
 	delete pnValue;
 }
 
 static void Corruption04()
+{
+    int* pnValue = new int;
+    free(pnValue);
+}
+
+static void Corruption05()
 {
 	FILE* pFile = fopen("/tmp/aaa.txt","w");
 	printf("pFile: %p\n",static_cast<void*>(pFile));

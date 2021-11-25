@@ -9,4 +9,4 @@ endif
 
 COMMON_FLAGS	+=  -std=c++14
 
-include $(repoRootPathCrIn)/contrib/cpputils/prj/common/common_mkfl/unix.common.Makefile
+include $(repoRootPathCrIn)/contrib/cpputils/prj/common/common_mkfl/unix.common.tmp.Makefile

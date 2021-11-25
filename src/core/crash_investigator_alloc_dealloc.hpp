@@ -9,7 +9,7 @@
 #pragma once
 
 #include <crash_investigator/crash_investigator_internal_header.h>
-#include <cpputils/enums.hpp>
+//#include <cpputils/enums.hpp>
 #include <stddef.h>
 #include <stdint.h>
 
@@ -23,12 +23,13 @@ enum class MemoryType : uint32_t{
 };
 //CPPUTILS_ENUM_FAST_RAW(142,MemoryType,uint32_t,NotHandled,New,NewArr);
 
-CRASH_INVEST_DLL_PRIVATE void* TestOperatorNew  ( size_t a_count, MemoryType a_memoryType, bool a_bThrow );
+CRASH_INVEST_DLL_PRIVATE void* TestOperatorAlloc( size_t a_count, MemoryType a_memoryType, bool a_bThrow );
+CRASH_INVEST_DLL_PRIVATE void* TestOperatorCalloc(size_t a_nmemb, size_t a_size);
+CRASH_INVEST_DLL_PRIVATE void* TestOperatorReAlloc(void* a_ptr, size_t a_count);
+CRASH_INVEST_DLL_PRIVATE void  TestOperatorDelete(void* a_ptr, MemoryType a_typeExpected) CRASH_INVEST_NOEXCEPT;
 #ifdef CRASH_INVEST_CPP_17_DEFINED
 CRASH_INVEST_DLL_PRIVATE void* TestOperatorNewAligned  ( size_t a_count, MemoryType a_memoryType, bool a_bThrow, size_t a_align );
 #endif
-CRASH_INVEST_DLL_PRIVATE void  TestOperatorDelete( void* a_ptr, MemoryType a_typeExpected ) CRASH_INVEST_NOEXCEPT;
-CRASH_INVEST_DLL_PRIVATE void* TestOperatorReAlloc  ( void* a_ptr, size_t a_count );
 
 
 } // namespace crash_investigator {
