@@ -32,6 +32,7 @@ includeCppUtils {
 #}
 
 
+
 #UNIX_SCRIPTS	= $$cpputilsFindFilesRecursive($${repositoryRoot}/scripts, .sh)
 #WINDOWS_SCRIPTS	= $$cpputilsFindFilesRecursive($${repositoryRoot}/scripts, .bat)
 #MDS_IN_DOCS	= $$cpputilsFindFilesRecursive($${repositoryRoot}/docs, .md)

@@ -24,25 +24,25 @@ CRASH_INVEST_BEGIN_C
 
 CRASH_INVEST_EXPORT void* malloc(size_t a_count)
 {
-	return ::crash_investigator::TestOperatorAlloc(a_count,::crash_investigator::MemoryType::Malloc,false);
+    return ::crash_investigator::TestOperatorAlloc(a_count,::crash_investigator::MemoryType::Malloc,false,1);
 }
 
 
 CRASH_INVEST_EXPORT void* calloc(size_t a_nmemb, size_t a_size)
 {
-	return ::crash_investigator::TestOperatorCalloc(a_nmemb, a_size);
+    return ::crash_investigator::TestOperatorCalloc(a_nmemb, a_size,1);
 }
 
 
 CRASH_INVEST_EXPORT void* realloc(void* a_ptr, size_t a_count)
 {
-	return ::crash_investigator::TestOperatorReAlloc(a_ptr,a_count);
+    return ::crash_investigator::TestOperatorReAlloc(a_ptr,a_count,1);
 }
 
 
 CRASH_INVEST_EXPORT void free(void* a_ptr)
 {
-	::crash_investigator::TestOperatorDelete(a_ptr,::crash_investigator::MemoryType::Malloc);
+    ::crash_investigator::TestOperatorDelete(a_ptr,::crash_investigator::MemoryType::Malloc,1);
 }
 
 

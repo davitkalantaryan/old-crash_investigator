@@ -14,9 +14,10 @@ LFLAGS			+= -pthread
 LFLAGS			+= -ldl
 
 objectFilesDirPath	= $(repoRootPath)/sys/$(lsbCode)/$(Configuration)/.objects/$(targetName)
+# SRC_CORE_BASIC_DIR      = $(repoRootPath)/src/core/basic
 
 CR_INV_OBJECTS = \
-	$(objectFilesDirPath)/core/crash_investigator_alloc_dealloc_analyze.cpp.o \
-	$(objectFilesDirPath)/core/crash_investigator_alloc_dealloc_unix.cpp.o \
-	$(objectFilesDirPath)/core/crash_investigator_malloc_free.cpp.o	\
-	$(objectFilesDirPath)/core/crash_investigator_new_delete.cpp.o 
+        $(objectFilesDirPath)/core/basic/crash_investigator_alloc_dealloc_analyze.cpp.o \
+        $(objectFilesDirPath)/core/basic/crash_investigator_alloc_dealloc_unix.cpp.o \
+        $(objectFilesDirPath)/core/basic/crash_investigator_malloc_free.cpp.o	\
+        $(objectFilesDirPath)/core/basic/crash_investigator_new_delete.cpp.o

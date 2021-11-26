@@ -15,51 +15,51 @@
 
 
 void* operator new  ( std::size_t a_count ){
-	return crash_investigator::TestOperatorAlloc(a_count,crash_investigator::MemoryType::New, true);
+        return crash_investigator::TestOperatorAlloc(a_count,crash_investigator::MemoryType::New, true, 1);
 }
 void* operator new []  ( std::size_t a_count ){
-	return crash_investigator::TestOperatorAlloc(a_count,crash_investigator::MemoryType::NewArr, true);
+        return crash_investigator::TestOperatorAlloc(a_count,crash_investigator::MemoryType::NewArr, true, 1);
 }
 void* operator new  ( std::size_t a_count, const std::nothrow_t& ) CRASH_INVEST_NODISCARD {
-	return crash_investigator::TestOperatorAlloc(a_count,crash_investigator::MemoryType::New, false);
+        return crash_investigator::TestOperatorAlloc(a_count,crash_investigator::MemoryType::New, false, 1);
 }
 void* operator new []  ( std::size_t a_count, const std::nothrow_t& ) CRASH_INVEST_NODISCARD{
-	return crash_investigator::TestOperatorAlloc(a_count,crash_investigator::MemoryType::NewArr, false);
+        return crash_investigator::TestOperatorAlloc(a_count,crash_investigator::MemoryType::NewArr, false, 1);
 }
 void operator delete  ( void* a_ptr ) CRASH_INVEST_NOEXCEPT{
-	crash_investigator::TestOperatorDelete(a_ptr,crash_investigator::MemoryType::New);
+        crash_investigator::TestOperatorDelete(a_ptr,crash_investigator::MemoryType::New,1);
 }
 void operator delete [] ( void* a_ptr ) CRASH_INVEST_NOEXCEPT{
-	crash_investigator::TestOperatorDelete(a_ptr,crash_investigator::MemoryType::NewArr);
+        crash_investigator::TestOperatorDelete(a_ptr,crash_investigator::MemoryType::NewArr,1);
 }
 void operator delete  ( void* a_ptr, std::size_t ) CRASH_INVEST_NOEXCEPT{
-	crash_investigator::TestOperatorDelete(a_ptr,crash_investigator::MemoryType::New);
+        crash_investigator::TestOperatorDelete(a_ptr,crash_investigator::MemoryType::New,1);
 }
 void operator delete [] ( void* a_ptr, std::size_t ) CRASH_INVEST_NOEXCEPT{
-	crash_investigator::TestOperatorDelete(a_ptr,crash_investigator::MemoryType::NewArr);
+        crash_investigator::TestOperatorDelete(a_ptr,crash_investigator::MemoryType::NewArr,1);
 }
 
 
 #ifdef CRASH_INVEST_CPP_17_DEFINED
 
 void* operator new  ( std::size_t a_count, std::align_val_t a_al ){
-	return crash_investigator::TestOperatorAllocAligned(a_count,crash_investigator::MemoryType::New,true,static_cast<std::size_t>(a_al));
+        return crash_investigator::TestOperatorNewAligned(a_count,crash_investigator::MemoryType::New,true,static_cast<std::size_t>(a_al),1);
 }
 void* operator new []  ( std::size_t a_count, std::align_val_t a_al ){
-	return crash_investigator::TestOperatorAllocAligned(a_count,crash_investigator::MemoryType::NewArr, true,static_cast<std::size_t>(a_al));
+        return crash_investigator::TestOperatorNewAligned(a_count,crash_investigator::MemoryType::NewArr, true,static_cast<std::size_t>(a_al),1);
 }
 void* operator new  ( std::size_t a_count, std::align_val_t a_al, const std::nothrow_t& ) CRASH_INVEST_NODISCARD{
-	return crash_investigator::TestOperatorAllocAligned(a_count,crash_investigator::MemoryType::New, true,static_cast<std::size_t>(a_al));
+        return crash_investigator::TestOperatorNewAligned(a_count,crash_investigator::MemoryType::New, true,static_cast<std::size_t>(a_al),1);
 }
 void* operator new []  ( std::size_t a_count, std::align_val_t a_al, const std::nothrow_t& ) CRASH_INVEST_NODISCARD{
-	return crash_investigator::TestOperatorAllocAligned(a_count,crash_investigator::MemoryType::NewArr, true,static_cast<std::size_t>(a_al));
+        return crash_investigator::TestOperatorNewAligned(a_count,crash_investigator::MemoryType::NewArr, true,static_cast<std::size_t>(a_al),1);
 }
 
 void operator delete  ( void* a_ptr, std::align_val_t  ) CRASH_INVEST_NOEXCEPT{
-	crash_investigator::TestOperatorDelete(a_ptr,crash_investigator::MemoryType::New);
+        crash_investigator::TestOperatorDelete(a_ptr,crash_investigator::MemoryType::New,1);
 }
 void operator delete[]( void* a_ptr, std::align_val_t ) CRASH_INVEST_NOEXCEPT{
-	crash_investigator::TestOperatorDelete(a_ptr,crash_investigator::MemoryType::NewArr);
+        crash_investigator::TestOperatorDelete(a_ptr,crash_investigator::MemoryType::NewArr,1);
 }
 
 #endif  // #ifdef CRASH_INVEST_CPP_17_DEFINED

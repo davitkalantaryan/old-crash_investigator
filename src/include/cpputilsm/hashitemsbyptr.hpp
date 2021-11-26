@@ -43,15 +43,15 @@ public:
 	~HashItemsByPtr();
 	
 public:
-	void     AddOrReplaceEntry(const TypeIntKey& a_key, const TypeData& a_data);
-	iterator FindEntry(const TypeIntKey& a_key);
+    void     AddEntryWithKnownHash(const TypeIntKey& a_key, size_t a_hash, const TypeData& a_data);
+    iterator FindEntry(const TypeIntKey& a_key, size_t* a_punSize);
 	void     RemoveEntry(const iterator& iter);
 	
 	static void* operator new( ::std::size_t a_count );
 	void operator delete  ( void* a_ptr ) CRASH_INVEST_NOEXCEPT ;
 	
 private:
-	Item* FindEntryRaw(const TypeIntKey& a_key);
+    Item* FindEntryRaw(const TypeIntKey& a_key, size_t* a_punSize);
 	
 public:
 	static iterator   s_endIter;

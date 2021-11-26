@@ -54,27 +54,19 @@ HashItemsByPtr<TypeIntKey,TypeData,allocFn,freeFn>::~HashItemsByPtr()
 
 
 template <typename TypeIntKey, typename TypeData, TypeAlloc allocFn, TypeFree freeFn>
-void HashItemsByPtr<TypeIntKey,TypeData,allocFn,freeFn>::AddOrReplaceEntry(const TypeIntKey& a_key, const TypeData& a_data)
+void HashItemsByPtr<TypeIntKey,TypeData,allocFn,freeFn>::AddEntryWithKnownHash(const TypeIntKey& a_key, size_t a_hash, const TypeData& a_data)
 {
 	if(!m_ppItems){
 		printf("file:%s, line:%d\n",__FILE__,__LINE__);
 		return;
 	}
-	
-	MY_NEW_PRINTF("file:%s, line:%d\n",__FILE__,__LINE__);
-	Item* pItem = FindEntryRaw(a_key);
-	MY_NEW_PRINTF("line:%d\n",__LINE__);
-	if(pItem){
-		pItem->second = a_data;
-		return;
-	}
-	
-	pItem = static_cast<Item*>(allocFn(sizeof(Item)));
+		
+    Item* pItem = static_cast<Item*>(allocFn(sizeof(Item)));
 	if(!pItem){
 		throw ::std::bad_alloc();
 	}
 	
-	pItem->unIndex = reinterpret_cast<size_t>(a_key)%CPPUTILSM_HASH_SIZE;
+    pItem->unIndex = a_hash;
 	pItem->prev = CRASH_INVEST_NULL;
 	pItem->next = m_ppItems[pItem->unIndex];
 	if(m_ppItems[pItem->unIndex]){
@@ -87,9 +79,9 @@ void HashItemsByPtr<TypeIntKey,TypeData,allocFn,freeFn>::AddOrReplaceEntry(const
 
 
 template <typename TypeIntKey, typename TypeData, TypeAlloc allocFn, TypeFree freeFn>
-typename HashItemsByPtr<TypeIntKey,TypeData,allocFn,freeFn>::iterator HashItemsByPtr<TypeIntKey,TypeData,allocFn,freeFn>::FindEntry(const TypeIntKey& a_key)
+typename HashItemsByPtr<TypeIntKey,TypeData,allocFn,freeFn>::iterator HashItemsByPtr<TypeIntKey,TypeData,allocFn,freeFn>::FindEntry(const TypeIntKey& a_key,size_t* a_punSize)
 {
-	Item* pItem = FindEntryRaw(a_key);
+    Item* pItem = FindEntryRaw(a_key,a_punSize);
 	return iterator(pItem);
 }
 
@@ -121,12 +113,12 @@ void HashItemsByPtr<TypeIntKey,TypeData,allocFn,freeFn>::operator delete  ( void
 
 
 template <typename TypeIntKey, typename TypeData, TypeAlloc allocFn, TypeFree freeFn>
-typename HashItemsByPtr<TypeIntKey,TypeData,allocFn,freeFn>::Item* HashItemsByPtr<TypeIntKey,TypeData,allocFn,freeFn>::FindEntryRaw(const TypeIntKey& a_key)
+typename HashItemsByPtr<TypeIntKey,TypeData,allocFn,freeFn>::Item* HashItemsByPtr<TypeIntKey,TypeData,allocFn,freeFn>::FindEntryRaw(const TypeIntKey& a_key, size_t* a_punSize)
 {
 	MY_NEW_PRINTF("file:%s, line:%d\n",__FILE__,__LINE__);
-	size_t unIndex = reinterpret_cast<size_t>(a_key)%CPPUTILSM_HASH_SIZE;
+    *a_punSize = reinterpret_cast<size_t>(a_key)%CPPUTILSM_HASH_SIZE;
 	MY_NEW_PRINTF("file:%s, line:%d, m_ppItems=%p\n",__FILE__,__LINE__,m_ppItems);
-	Item* pItem = m_ppItems[unIndex];
+    Item* pItem = m_ppItems[*a_punSize];
 	MY_NEW_PRINTF("file:%s, line:%d\n",__FILE__,__LINE__);
 	while(pItem){
 		if(pItem->first == a_key){return pItem;}
