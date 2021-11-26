@@ -53,8 +53,8 @@ static void InitFunction(void)
 	}
 	s_isInitFunction = false;
 	s_isNotInited = false;
-    printf("+-+-+-+-+-+-+-+-+-+- Crash investigator lib version 3 +-+-+-+-+-+-+-+-+-+-\n");
-	fflush(stdout);
+    //printf("+-+-+-+-+-+-+-+-+-+- Crash investigator lib version 3 +-+-+-+-+-+-+-+-+-+-\n");
+    //fflush(stdout);
 }
 
 

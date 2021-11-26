@@ -12,23 +12,15 @@
 #include <crash_investigator/core/rawallocfree.hpp>
 #include <crash_investigator/core/backtrace.hpp>
 #include <crash_investigator/callback.hpp>
-//#include <cpputils/enums.hpp>
-//#include <unordered_map>
-#if defined(USE_CPPUTILS)
-#include <cpputils/hashtbl.hpp>
-#else
 #include <cpputilsm/hashitemsbyptr.hpp>
-#endif
 #include <cpputils/inscopecleaner.hpp>
 #include <mutex>
 #include <stdio.h>
+#include <stdarg.h>
 #ifdef CRASH_INVEST_CPP_17_DEFINED
 #include <memory>
 #endif
-#ifdef CRASH_INVEST_DO_NOT_USE_MAL_FREE
-#include <stdlib.h>
-#include <malloc.h>
-#endif
+
 
 namespace crash_investigator {
 
@@ -40,20 +32,10 @@ namespace crash_investigator {
 struct SMemoryItem;
 
 static FailureAction DefaultFailureClbk(const FailureData& a_data);
-//static void* InitFailureDataAndCallClbk(const SMemoryItem& a_item, MemoryType a_freeType, void* a_failureAddress,
-//                                        size_t a_count, FailureType a_failureType, int a_goBackInTheStackCalc);
-static void* InitFailureDataAndCallClbkRaw(const SMemoryItem& a_item, MemoryType a_freeType, void* a_failureAddress,
-                                           size_t a_count, FailureType a_failureType, Backtrace* a_pBacktrace);
-
-
-#if 0
-typedef ::std::mutex  ClbkMutex;
-#else
-struct ClbkMutex{
-    void lock(){}
-    void unlock(){}
-};
-#endif
+static int DefaultInfoReportStatic(void* clbkData,const char* a_format,...);
+static int DefaultErrorReportStatic(void* clbkData,const char* a_format,...);
+static void* InitFailureDataAndCallClbk(const SMemoryItem& a_item, MemoryType a_freeType, void* a_failureAddress,
+                                        size_t a_count, FailureType a_failureType, Backtrace* a_pBacktrace);
 
 
 enum class MemoryStatus : uint32_t {
@@ -72,46 +54,51 @@ struct SMemoryItem{
     Backtrace*      deallocTrace;
 };
 
-static ClbkMutex    s_clbkMutex;
-static SCallback    s_clbkData = {CRASH_INVEST_NULL,&DefaultFailureClbk};
+static SCallback    s_clbkData = {CRASH_INVEST_NULL,&DefaultFailureClbk,&DefaultInfoReportStatic,&DefaultErrorReportStatic};
 
 static thread_local bool s_bIsAllocingOrDeallocing = false;
-//static bool s_bIsAllocingOrDeallocing = false;
 class IsAllocingHandler{
 public:
 	IsAllocingHandler(){s_bIsAllocingOrDeallocing=true;}
 	~IsAllocingHandler(){s_bIsAllocingOrDeallocing=false;}
 };
 
-#ifdef USE_CPPUTILS
-typedef cpputils::hashtbl::Base<void*,SMemoryItem>  TypeHashTbl;
-#else
 typedef cpputilsm::HashItemsByPtr<void*,SMemoryItem,&mallocn,&freen>  TypeHashTbl;
-#endif
+
 static TypeHashTbl	s_memoryItems;
 static std::mutex	s_mutexForMap;
+
+class CrashInvestAnalizerInit{
+public:
+    CrashInvestAnalizerInit(){
+        (*s_clbkData.infoClbk)(s_clbkData.userData, "+-+-+-+-+-+-+-+-+-+- Crash investigator lib version 4 +-+-+-+-+-+-+-+-+-+-\n");
+    }
+}static s_crashInvestAnalizerInit;
 
 
 CRASH_INVEST_EXPORT SCallback ReplaceFailureClbk(const SCallback& a_newClbk)
 {
     SCallback retClbk;
-    ::std::lock_guard<ClbkMutex> aClbMutGuard(s_clbkMutex);
+    //::std::lock_guard<ClbkMutex> aClbMutGuard(s_clbkMutex);
     retClbk.userData = s_clbkData.userData;
     retClbk.clbkFnc = s_clbkData.clbkFnc;
+    retClbk.infoClbk = s_clbkData.infoClbk;
+    retClbk.errorClbk = s_clbkData.errorClbk;
     s_clbkData.userData = a_newClbk.userData;
     s_clbkData.clbkFnc = a_newClbk.clbkFnc?a_newClbk.clbkFnc:(&DefaultFailureClbk);
+    s_clbkData.infoClbk = a_newClbk.infoClbk?a_newClbk.infoClbk:(&DefaultInfoReportStatic);
+    s_clbkData.errorClbk = a_newClbk.errorClbk?a_newClbk.errorClbk:(&DefaultErrorReportStatic);
     return retClbk;
 }
 
 
 CRASH_INVEST_EXPORT SCallback GetFailureClbk(void)
 {
-    ::std::lock_guard<ClbkMutex> aClbMutGuard(s_clbkMutex);
     return s_clbkData;
 }
 
 
-static void* AddNewAllocatedMemoryAndCleanOldEntryNoLock(MemoryType a_memoryType,void* a_pReturn,Backtrace* a_pBacktrace)
+static inline void* AddNewAllocatedMemoryAndCleanOldEntryNoLock(MemoryType a_memoryType,void* a_pReturn,Backtrace* a_pBacktrace)
 {
     const SMemoryItem aItem({a_memoryType,MemoryStatus::Allocated,a_pReturn,a_pBacktrace,nullptr});
     size_t unHash;
@@ -128,12 +115,20 @@ static void* AddNewAllocatedMemoryAndCleanOldEntryNoLock(MemoryType a_memoryType
 }
 
 
-static void* AddNewAllocatedMemoryAndCleanOldEntry(MemoryType a_memoryType,void* a_pReturn,int a_goBackInTheStackCalc)
+static inline void* AddNewAllocatedMemoryAndCleanOldEntry(MemoryType a_memoryType,void* a_pReturn,int a_goBackInTheStackCalc)
 {
     Backtrace* pBacktrace = InitBacktraceDataForCurrentStack(++a_goBackInTheStackCalc);
     std::lock_guard<std::mutex> aGuard(s_mutexForMap);
     return AddNewAllocatedMemoryAndCleanOldEntryNoLock(a_memoryType,a_pReturn,pBacktrace);
 }
+
+// todo: try to get information on correct behaviour when count is equal to 0
+// #define CRASH_INVEST_ANALIZE_COUNT_0(_count, _bThrow)
+#define CRASH_INVEST_ANALIZE_COUNT_0(_count, _bThrow)   \
+    if((_count)==0){                                      \
+        if(_bThrow){throw ::std::bad_alloc();}          \
+        else{return CRASH_INVEST_NULL;}                 \
+    }
 
 
 CRASH_INVEST_DLL_PRIVATE void* TestOperatorAlloc  ( size_t a_count, MemoryType a_memoryType, bool a_bThrow, int a_goBackInTheStackCalc )
@@ -141,10 +136,7 @@ CRASH_INVEST_DLL_PRIVATE void* TestOperatorAlloc  ( size_t a_count, MemoryType a
 	if(s_bIsAllocingOrDeallocing){return ::crash_investigator::mallocn(a_count);}
 	IsAllocingHandler aHandler;
 	
-	if(!a_count){
-		if(a_bThrow){throw ::std::bad_alloc();}
-		else{return CRASH_INVEST_NULL;}
-	}
+    CRASH_INVEST_ANALIZE_COUNT_0(a_count,a_bThrow)
 	
 	void* pReturn = ::crash_investigator::mallocn(a_count);
 	if(!pReturn){
@@ -161,7 +153,7 @@ CRASH_INVEST_DLL_PRIVATE void* TestOperatorCalloc(size_t a_nmemb, size_t a_size,
 	if (s_bIsAllocingOrDeallocing) { return ::crash_investigator::callocn(a_nmemb,a_size); }
 	IsAllocingHandler aHandler;
 
-	if ((!a_nmemb)|| (!a_size)) { return CRASH_INVEST_NULL; }
+    CRASH_INVEST_ANALIZE_COUNT_0(a_nmemb*a_size,false)
 
 	void* pReturn = ::crash_investigator::callocn(a_nmemb, a_size);
 	if (!pReturn) {return CRASH_INVEST_NULL;}
@@ -177,7 +169,7 @@ CRASH_INVEST_DLL_PRIVATE void* TestOperatorReAlloc  ( void* a_ptr, size_t a_coun
     if(!a_ptr){return TestOperatorAlloc(a_count,MemoryType::Malloc,false,++a_goBackInTheStackCalc2);}
 	IsAllocingHandler aHandler;
 	
-	if(!a_count){return CRASH_INVEST_NULL;}
+    CRASH_INVEST_ANALIZE_COUNT_0(a_count,false)
 	
 	void* pReturn;
 	TypeHashTbl::iterator memItemIter;
@@ -193,19 +185,19 @@ CRASH_INVEST_DLL_PRIVATE void* TestOperatorReAlloc  ( void* a_ptr, size_t a_coun
 		if(memItemIter==TypeHashTbl::s_endIter){
             SMemoryItem aItem = memItemIter->second;
             aGuard.unlock();
-            return InitFailureDataAndCallClbkRaw(aItem,MemoryType::NotProvided,a_ptr,a_count,FailureType::BadReallocMemNotExist2,pAnalizeTrace);
+            return InitFailureDataAndCallClbk(aItem,MemoryType::NotProvided,a_ptr,a_count,FailureType::BadReallocMemNotExist,pAnalizeTrace);
 		}
 
 		if(memItemIter->second.type!=MemoryType::Malloc){
             SMemoryItem aItem = memItemIter->second;
             aGuard.unlock();
-            return InitFailureDataAndCallClbkRaw(aItem,MemoryType::NotProvided,a_ptr,a_count,FailureType::BadReallocCreatedByWrongAlloc,pAnalizeTrace);
+            return InitFailureDataAndCallClbk(aItem,MemoryType::NotProvided,a_ptr,a_count,FailureType::BadReallocCreatedByWrongAlloc,pAnalizeTrace);
 		}
 
 		if(memItemIter->second.status!=MemoryStatus::Allocated){
             SMemoryItem aItem = memItemIter->second;
             aGuard.unlock();
-            return InitFailureDataAndCallClbkRaw(aItem,MemoryType::NotProvided,a_ptr,a_count,FailureType::BadReallocDeletedMem2,pAnalizeTrace);
+            return InitFailureDataAndCallClbk(aItem,MemoryType::NotProvided,a_ptr,a_count,FailureType::BadReallocDeletedMem,pAnalizeTrace);
 		}
 		
 		pReturn = ::crash_investigator::reallocn(memItemIter->second.realAddress,a_count) ;
@@ -243,7 +235,7 @@ CRASH_INVEST_DLL_PRIVATE void TestOperatorDelete(void* a_ptr, MemoryType a_typeE
         if(memItemIter==TypeHashTbl::s_endIter){
             SMemoryItem aItem = memItemIter->second;
             aGuard.unlock();
-            InitFailureDataAndCallClbkRaw(aItem,MemoryType::NotProvided,a_ptr,0,FailureType::DeallocOfNonExistingMemory,pAnalizeTrace);
+            InitFailureDataAndCallClbk(aItem,MemoryType::NotProvided,a_ptr,0,FailureType::DeallocOfNonExistingMemory,pAnalizeTrace);
             return;
         }
 
@@ -251,14 +243,14 @@ CRASH_INVEST_DLL_PRIVATE void TestOperatorDelete(void* a_ptr, MemoryType a_typeE
 		if (memItemIter->second.status != MemoryStatus::Allocated) {            
             SMemoryItem aItem = memItemIter->second;
             aGuard.unlock();
-            InitFailureDataAndCallClbkRaw(aItem,MemoryType::NotProvided,a_ptr,0,FailureType::DoubleFree,pAnalizeTrace);
+            InitFailureDataAndCallClbk(aItem,MemoryType::NotProvided,a_ptr,0,FailureType::DoubleFree,pAnalizeTrace);
             return;
 		}
 
 		if (memItemIter->second.type != a_typeExpected) {
             SMemoryItem aItem = memItemIter->second;
             aGuard.unlock();
-            InitFailureDataAndCallClbkRaw(aItem,MemoryType::NotProvided,a_ptr,0,FailureType::FreeMissmatch,pAnalizeTrace);
+            InitFailureDataAndCallClbk(aItem,MemoryType::NotProvided,a_ptr,0,FailureType::FreeMissmatch,pAnalizeTrace);
             return;
 		}
 
@@ -271,7 +263,6 @@ CRASH_INVEST_DLL_PRIVATE void TestOperatorDelete(void* a_ptr, MemoryType a_typeE
 }
 
 
-//#define CRASH_INVEST_CPP_17_DEFINED
 #ifdef CRASH_INVEST_CPP_17_DEFINED
 
 CRASH_INVEST_DLL_PRIVATE void* TestOperatorNewAligned(size_t a_count, MemoryType a_memoryType, bool a_bThrow, size_t a_align, int a_goBackInTheStackCalc)
@@ -288,9 +279,8 @@ CRASH_INVEST_DLL_PRIVATE void* TestOperatorNewAligned(size_t a_count, MemoryType
 		a_align = __STDCPP_DEFAULT_NEW_ALIGNMENT__;
 	}
 	else {
-		//printf("!!!!!!!!!!! alignment new is called count=%d, (all=%d), __STDCPP_DEFAULT_NEW_ALIGNMENT__=%d!\n",
+        //(*s_clbkData.infoClbk)(s_clbkData.userData,"!!!!!!!!!!! alignment new is called count=%d, (all=%d), __STDCPP_DEFAULT_NEW_ALIGNMENT__=%d!\n",
 		//	   (int)a_count, (int)a_align,__STDCPP_DEFAULT_NEW_ALIGNMENT__);
-		fflush(stdout);
 		uint64_t ullnAlign = static_cast<uint64_t>(a_align) - 1;
 		ullnAlign |= (ullnAlign >> 1);
 		ullnAlign |= (ullnAlign >> 2);
@@ -300,9 +290,8 @@ CRASH_INVEST_DLL_PRIVATE void* TestOperatorNewAligned(size_t a_count, MemoryType
 		ullnAlign |= (ullnAlign >> 32);
 		++ullnAlign;
 		if (static_cast<size_t>(ullnAlign) != a_align) {
-			//fprintf(stderr,"6. !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Wrong alignment size (%d). "
+            //(*s_clbkData.errorClbk)(s_clbkData.userData,"6. !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Wrong alignment size (%d). "
 			//			   "Increasing to %d\n",static_cast<int>(a_align),static_cast<int>(ullnAlign));
-			//fflush(stderr);
 			//exit(1);
 			a_align = static_cast<size_t>(ullnAlign);
 		}
@@ -331,25 +320,16 @@ CRASH_INVEST_DLL_PRIVATE void* TestOperatorNewAligned(size_t a_count, MemoryType
 #endif  // #ifdef CRASH_INVEST_CPP_17_DEFINED
 
 
-/*/////////////*/
+/*//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////*/
 
 static inline void PrintStack(const ::std::vector< StackItem>& a_stack)
 {
     const size_t cunNumberOfFrames(a_stack.size());
     for(size_t i(0); i<cunNumberOfFrames;++i){
-        printf("\t%p: %s\n",a_stack[i].address,a_stack[i].funcName.c_str());
+        (*s_clbkData.errorClbk)(s_clbkData.userData,"\t%p: %s\n",a_stack[i].address,a_stack[i].funcName.c_str());
     }
 }
 
-
-#if 0
-enum class MemoryType : uint32_t{
-    NotProvided,
-    New,
-    NewArr,
-    Malloc,
-};
-#endif
 
 static inline const char* AllocTypeFromMemoryType(MemoryType a_memoryType)
 {
@@ -371,42 +351,47 @@ static inline const char* AllocTypeFromMemoryType(MemoryType a_memoryType)
 static FailureAction DefaultFailureClbk(const FailureData& a_data)
 {
     switch(a_data.failureType){
-    case FailureType::DoubleFree:
-        printf("Address: %p invalid free() / delete / delete[]\n", a_data.failureAddress);
+    case FailureType::DeallocOfNonExistingMemory:
+        (*s_clbkData.errorClbk)(s_clbkData.userData,"Address: %p invalid deallocation. Address is not a valid allocated address\n", a_data.failureAddress);
+        (*s_clbkData.errorClbk)(s_clbkData.userData,"Address: %p invalid deallocation. Address is not a valid allocated address\n", a_data.failureAddress);
         PrintStack(a_data.analizeStack);
-        printf("The previous deallocation was done in the following stack\n");
+        break;
+    case FailureType::DoubleFree:
+        (*s_clbkData.errorClbk)(s_clbkData.userData,"Address: %p invalid free() / delete / delete[]\n", a_data.failureAddress);
+        PrintStack(a_data.analizeStack);
+        (*s_clbkData.errorClbk)(s_clbkData.userData,"The previous deallocation was done in the following stack\n");
         PrintStack(a_data.stackFree);
-        printf("Memory was created in the following stack\n");
+        (*s_clbkData.errorClbk)(s_clbkData.userData,"Memory was created in the following stack\n");
         PrintStack(a_data.stackAlloc);
         break;
-    case FailureType::BadReallocMemNotExist2:
-        printf("Address: %p provided with realloc. The address is not a valid allocated address\n", a_data.failureAddress);
+    case FailureType::BadReallocMemNotExist:
+        (*s_clbkData.errorClbk)(s_clbkData.userData,"Address: %p provided with realloc. The address is not a valid allocated address\n", a_data.failureAddress);
         PrintStack(a_data.analizeStack);
         break;
-    case FailureType::BadReallocDeletedMem2:
-        printf("Address: %p provided with realloc. The address was already deallocated\n", a_data.failureAddress);
+    case FailureType::BadReallocDeletedMem:
+        (*s_clbkData.errorClbk)(s_clbkData.userData,"Address: %p provided with realloc. The address was already deallocated\n", a_data.failureAddress);
         PrintStack(a_data.analizeStack);
-        printf("The deallocation was done in the following stack\n");
+        (*s_clbkData.errorClbk)(s_clbkData.userData,"The deallocation was done in the following stack\n");
         PrintStack(a_data.stackFree);
-        printf("Memory was created in the following stack\n");
+        (*s_clbkData.errorClbk)(s_clbkData.userData,"Memory was created in the following stack\n");
         PrintStack(a_data.stackAlloc);
         break;
     case FailureType::BadReallocCreatedByWrongAlloc:
-        printf("Address: %p provided with realloc. The address was created by wrong routine (%s)\n",
-               a_data.failureAddress,AllocTypeFromMemoryType(a_data.allocType));
+        (*s_clbkData.errorClbk)(s_clbkData.userData,"Address: %p provided with realloc. The address was created by wrong routine (%s)\n",
+                                a_data.failureAddress,AllocTypeFromMemoryType(a_data.allocType));
         PrintStack(a_data.analizeStack);
-        printf("Memory was created in the following stack\n");
+        (*s_clbkData.errorClbk)(s_clbkData.userData,"Memory was created in the following stack\n");
         PrintStack(a_data.stackAlloc);
         break;
     case FailureType::FreeMissmatch:
-        printf("Address: %p is being deallocated with non-proper routine. "
-               "The memory allocated by %s and is being deallocated by %s\n",
-               a_data.failureAddress, AllocTypeFromMemoryType(a_data.allocType),
-               AllocTypeFromMemoryType(a_data.freeType));
+        (*s_clbkData.errorClbk)(s_clbkData.userData,"Address: %p is being deallocated with non-proper routine. "
+                                                   "The memory allocated by %s and is being deallocated by %s\n",
+                               a_data.failureAddress, AllocTypeFromMemoryType(a_data.allocType),
+                               AllocTypeFromMemoryType(a_data.freeType));
         PrintStack(a_data.analizeStack);
-        printf("Deallocation was done in the following stack\n");
+        (*s_clbkData.errorClbk)(s_clbkData.userData,"Deallocation was done in the following stack\n");
         PrintStack(a_data.stackFree);
-        printf("Memory was created in the following stack\n");
+        (*s_clbkData.errorClbk)(s_clbkData.userData,"Memory was created in the following stack\n");
         PrintStack(a_data.stackAlloc);
         break;
     default:
@@ -418,55 +403,29 @@ static FailureAction DefaultFailureClbk(const FailureData& a_data)
 }
 
 
+static int DefaultInfoReportStatic(void*,const char* a_format,...)
+{
+    va_list ap;
+    va_start(ap, a_format);
+    int nRet = vfprintf(stdout,a_format,ap);
+    va_end(ap);
+    fflush(stdout);
+    return nRet;
+}
+
+static int DefaultErrorReportStatic(void*,const char* a_format,...)
+{
+    va_list ap;
+    va_start(ap, a_format);
+    int nRet = vfprintf(stderr,a_format,ap);
+    va_end(ap);
+    fflush(stderr);
+    return nRet;
+}
 
 
-//static void* InitFailureDataAndCallClbk(const SMemoryItem& a_item, MemoryType a_freeType, void* a_failureAddress,
-//                                        size_t a_count, FailureType a_failureType, int a_goBackInTheStackCalc)
-//{
-//    Backtrace*const pAnalizeTrace = InitBacktraceDataForCurrentStack(++a_goBackInTheStackCalc);
-//    if(!pAnalizeTrace){
-//        fprintf(stderr,"Unable to init backtrace!\n");
-//        return CRASH_INVEST_NULL;
-//    }
-//
-//    return InitFailureDataAndCallClbkRaw(a_item,a_freeType,a_failureAddress,a_count,a_failureType,pAnalizeTrace);
-//}
-
-
-#if 0
-enum class FailureType : uint32_t{
-    Unknown,
-    DeallocOfNonExistingMemory,
-    DoubleFree,
-    BadReallocMemNotExist2,
-    BadReallocDeletedMem2,
-    BadReallocCreatedByWrongAlloc,
-    FreeMissmatch,
-};
-
-struct StackItem{
-    void*           address;
-    ::std::string   funcName;
-};
-
-
-struct FailureData{
-    FailureType                 failureType;
-    MemoryType                  allocType;
-    MemoryType                  freeType;
-    uint32_t                    reserved01;
-    mutable void*               clbkData;
-    void*                       failureAddress;
-    size_t                      badReallocSecondArg;
-    ::std::vector< StackItem>   stackAlloc;
-    ::std::vector< StackItem>   stackFree;
-    ::std::vector< StackItem>   analizeStack;
-};
-
-#endif
-
-static void* InitFailureDataAndCallClbkRaw(const SMemoryItem& a_item, MemoryType a_freeType, void* a_failureAddress,
-                                           size_t a_count, FailureType a_failureType, Backtrace* a_pAnalizeTrace)
+static void* InitFailureDataAndCallClbk(const SMemoryItem& a_item, MemoryType a_freeType, void* a_failureAddress,
+                                        size_t a_count, FailureType a_failureType, Backtrace* a_pAnalizeTrace)
 {
     FailureData aFailureData;
     FailureAction clbkRet;
@@ -499,8 +458,7 @@ static void* InitFailureDataAndCallClbkRaw(const SMemoryItem& a_item, MemoryType
             // exiting app
             exit(1);
         default:
-            fprintf(stderr, "Bad FailureAction is provided (%d). Exiting app\n",static_cast<int>(clbkRet));
-            fflush(stderr);
+            (*s_clbkData.errorClbk)(s_clbkData.userData, "Bad FailureAction is provided (%d). Exiting app\n",static_cast<int>(clbkRet));
             exit(1);
         }  // switch(clbkRet){
         return CRASH_INVEST_NULL;
@@ -528,13 +486,12 @@ static void* InitFailureDataAndCallClbkRaw(const SMemoryItem& a_item, MemoryType
             // exiting app
             exit(1);
         default:
-            fprintf(stderr, "Bad FailureAction is provided (%d). Exiting app\n",static_cast<int>(clbkRet));
-            fflush(stderr);
+            (*s_clbkData.errorClbk)(s_clbkData.userData, "Bad FailureAction is provided (%d). Exiting app\n",static_cast<int>(clbkRet));
             exit(1);
         }  // switch(clbkRet){
         return CRASH_INVEST_NULL;
 
-    case FailureType::BadReallocMemNotExist2:
+    case FailureType::BadReallocMemNotExist:
         aFailureData.allocType = MemoryType::NotProvided;
         aFailureData.freeType = MemoryType::NotProvided;
         aFailureData.reserved01 = 0;
@@ -555,13 +512,12 @@ static void* InitFailureDataAndCallClbkRaw(const SMemoryItem& a_item, MemoryType
             // exiting app
             exit(1);
         default:
-            fprintf(stderr, "Bad FailureAction is provided (%d). Exiting app\n",static_cast<int>(clbkRet));
-            fflush(stderr);
+            (*s_clbkData.errorClbk)(s_clbkData.userData, "Bad FailureAction is provided (%d). Exiting app\n",static_cast<int>(clbkRet));
             exit(1);
         }  // switch(clbkRet){
         return CRASH_INVEST_NULL;
 
-    case FailureType::BadReallocDeletedMem2:
+    case FailureType::BadReallocDeletedMem:
         aFailureData.allocType = a_item.type;
         aFailureData.freeType = a_freeType;
         aFailureData.reserved01 = 0;
@@ -584,8 +540,7 @@ static void* InitFailureDataAndCallClbkRaw(const SMemoryItem& a_item, MemoryType
             // exiting app
             exit(1);
         default:
-            fprintf(stderr, "Bad FailureAction is provided (%d). Exiting app\n",static_cast<int>(clbkRet));
-            fflush(stderr);
+            (*s_clbkData.errorClbk)(s_clbkData.userData, "Bad FailureAction is provided (%d). Exiting app\n",static_cast<int>(clbkRet));
             exit(1);
         }  // switch(clbkRet){
         return CRASH_INVEST_NULL;
@@ -612,8 +567,7 @@ static void* InitFailureDataAndCallClbkRaw(const SMemoryItem& a_item, MemoryType
             // exiting app
             exit(1);
         default:
-            fprintf(stderr, "Bad FailureAction is provided (%d). Exiting app\n",static_cast<int>(clbkRet));
-            fflush(stderr);
+            (*s_clbkData.errorClbk)(s_clbkData.userData, "Bad FailureAction is provided (%d). Exiting app\n",static_cast<int>(clbkRet));
             exit(1);
         }  // switch(clbkRet){
         return CRASH_INVEST_NULL;
@@ -640,8 +594,7 @@ static void* InitFailureDataAndCallClbkRaw(const SMemoryItem& a_item, MemoryType
             // exiting app
             exit(1);
         default:
-            fprintf(stderr, "Bad FailureAction is provided (%d). Exiting app\n",static_cast<int>(clbkRet));
-            fflush(stderr);
+            (*s_clbkData.errorClbk)(s_clbkData.userData, "Bad FailureAction is provided (%d). Exiting app\n",static_cast<int>(clbkRet));
             exit(1);
         }  // switch(clbkRet){
         return CRASH_INVEST_NULL;

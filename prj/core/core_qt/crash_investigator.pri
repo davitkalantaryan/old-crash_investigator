@@ -30,6 +30,7 @@ SOURCES += "$${SRC_CORE_BASIC_DIR}/crash_investigator_malloc_free.cpp"
 SOURCES += "$${SRC_CORE_BASIC_DIR}/crash_investigator_new_delete.cpp"
 SOURCES += "$${PWD}/../../../src/core/backtrace/crash_investigator_backtrace_unix.cpp"
 SOURCES += "$${PWD}/../../../src/cpputilsm/hashitemsbyptr.cpp"
+SOURCES += "$${PWD}/../../../contrib/cpputils/src/core/cpputils_inscopecleaner.cpp"
 #SOURCES += "$${PWD}/../../../contrib/cpputils/src/core/cpputils_hashtbl.cpp"
 
 HEADERS += "$${SRC_CORE_BASIC_DIR}/crash_investigator_alloc_dealloc.hpp"

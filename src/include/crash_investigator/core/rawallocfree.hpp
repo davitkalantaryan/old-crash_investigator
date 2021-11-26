@@ -10,6 +10,10 @@
 
 #include <crash_investigator/crash_investigator_internal_header.h>
 #include <stddef.h>
+#ifdef CRASH_INVEST_DO_NOT_USE_MAL_FREE
+#include <stdlib.h>
+#include <malloc.h>
+#endif
 
 
 namespace crash_investigator {

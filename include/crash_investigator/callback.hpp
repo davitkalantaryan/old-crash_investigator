@@ -29,8 +29,8 @@ enum class FailureType : uint32_t{
     Unknown,
     DeallocOfNonExistingMemory,
     DoubleFree,
-    BadReallocMemNotExist2,
-    BadReallocDeletedMem2,
+    BadReallocMemNotExist,
+    BadReallocDeletedMem,
     BadReallocCreatedByWrongAlloc,
     FreeMissmatch,
 };
@@ -54,13 +54,17 @@ struct FailureData{
     ::std::vector< StackItem>   analizeStack;
 };
 
-// return false, means
 typedef FailureAction (*TypeFailureClbk)(const FailureData& data);
+typedef int (*TypeReport)(void*,const char*,...);
 
 struct SCallback{
     void*           userData;
     TypeFailureClbk clbkFnc;
+    TypeReport      infoClbk;
+    TypeReport      errorClbk;
 };
+
+#define CRASH_INVEST_CLBK(_userData,_clbkFnc)   ::crash_investigator::SCallback({(_userData),(clbkFnc),CRASH_INVEST_NULL,CRASH_INVEST_NULL})
 
 
 CRASH_INVEST_EXPORT SCallback ReplaceFailureClbk(const SCallback& a_newClbk);

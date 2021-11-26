@@ -5,6 +5,8 @@
 // created on:	2021 Nov 25
 //
 
+#ifndef CRASH_INVEST_DO_NOT_USE_AT_ALL
+
 #include <crash_investigator/crash_investigator_internal_header.h>
 #include <crash_investigator/core/rawallocfree.hpp>
 #include <crash_investigator/callback.hpp>
@@ -48,13 +50,13 @@ CRASH_INVEST_DLL_PRIVATE Backtrace* InitBacktraceDataForCurrentStack(int a_goBac
         pReturn->stackDeepness = nInitialDeepness-a_goBackInTheStackCalc;
         pReturn->ppBuffer = static_cast<void**>(mallocn(static_cast<size_t>(pReturn->stackDeepness)*sizeof(void*)));
         if(!(pReturn->ppBuffer)){FreeBacktraceData(pReturn);return CRASH_INVEST_NULL;}
-        memcpy(pReturn->ppBuffer,&(ppBuffer[a_goBackInTheStackCalc]),static_cast<size_t>(pReturn->stackDeepness));
+		memcpy(pReturn->ppBuffer,&(ppBuffer[a_goBackInTheStackCalc]),static_cast<size_t>(pReturn->stackDeepness)*sizeof(void*));
     }
     else{
         pReturn->stackDeepness = nInitialDeepness;
         pReturn->ppBuffer = static_cast<void**>(mallocn(static_cast<size_t>(pReturn->stackDeepness)*sizeof(void*)));
         if(!(pReturn->ppBuffer)){FreeBacktraceData(pReturn);return CRASH_INVEST_NULL;}
-        memcpy(pReturn->ppBuffer,ppBuffer,static_cast<size_t>(pReturn->stackDeepness));
+		memcpy(pReturn->ppBuffer,ppBuffer,static_cast<size_t>(pReturn->stackDeepness)*sizeof(void*));
     }
 
     return pReturn;
@@ -84,3 +86,5 @@ CRASH_INVEST_DLL_PRIVATE void ConvertBacktraceToNames(const Backtrace* a_data, :
 
 
 }  // namespace crash_investigator {
+
+#endif // #ifndef CRASH_INVEST_DO_NOT_USE_AT_ALL
