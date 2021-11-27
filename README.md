@@ -20,3 +20,17 @@ With this developer will have [valgrind](http://valgrind.org/docs/manual/quick-s
   
 For now system will find possible memory corruption and print log on it. Further details will be implemented
   
+
+## Prepare repository for compilation
+
+### Debian based
+``` bash
+sudo apt-get update -y
+sudo apt-get install -y libdwarf-dev
+sudo apt-get install -y libelf-dev
+```
+
+
+## Usefull links
+ 1. [DWARF 4 (Version 4 Debugging Format Standard)](https://dwarfstd.org/Dwarf4Std.php)  
+

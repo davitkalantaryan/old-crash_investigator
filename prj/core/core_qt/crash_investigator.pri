@@ -7,10 +7,10 @@
 
 include("$${PWD}/../../common/common_qt/sys_common.pri")
 
-QMAKE_CXXFLAGS += -pthread
-QMAKE_CFLAGS += -pthread
+QMAKE_CXXFLAGS += -pthread -rdynamic
+QMAKE_CFLAGS += -pthread -rdynamic
 LIBS += -ldl
-LIBS += -pthread
+LIBS += -pthread -rdynamic
 
 
 CR_INV_HEADERS_H01		= $$cpputilsFindFilesRecursive($${PWD}/../../../include, .h)
