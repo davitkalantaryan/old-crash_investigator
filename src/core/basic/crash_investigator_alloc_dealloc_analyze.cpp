@@ -71,7 +71,7 @@ static std::mutex	s_mutexForMap;
 class CrashInvestAnalizerInit{
 public:
     CrashInvestAnalizerInit(){
-        (*s_clbkData.infoClbk)(s_clbkData.userData, "+-+-+-+-+-+-+-+-+-+- Crash investigator lib version 4 +-+-+-+-+-+-+-+-+-+-\n");
+        (*s_clbkData.infoClbk)(s_clbkData.userData, "+-+-+-+-+-+-+-+-+-+- Crash investigator lib version 10 +-+-+-+-+-+-+-+-+-+-\n");
     }
 }static s_crashInvestAnalizerInit;
 
@@ -130,91 +130,9 @@ static inline void* AddNewAllocatedMemoryAndCleanOldEntry(MemoryType a_memoryTyp
         else{return CRASH_INVEST_NULL;}                 \
     }
 
-
-CRASH_INVEST_DLL_PRIVATE void* TestOperatorAlloc  ( size_t a_count, MemoryType a_memoryType, bool a_bThrow, int a_goBackInTheStackCalc )
-{
-	if(s_bIsAllocingOrDeallocing){return ::crash_investigator::mallocn(a_count);}
-	IsAllocingHandler aHandler;
-	
-    CRASH_INVEST_ANALIZE_COUNT_0(a_count,a_bThrow)
-	
-	void* pReturn = ::crash_investigator::mallocn(a_count);
-	if(!pReturn){
-		if(a_bThrow){throw ::std::bad_alloc();}
-		else{return CRASH_INVEST_NULL;}
-	}
-
-    return AddNewAllocatedMemoryAndCleanOldEntry(a_memoryType,pReturn,++a_goBackInTheStackCalc);
-}
-
-
-CRASH_INVEST_DLL_PRIVATE void* TestOperatorCalloc(size_t a_nmemb, size_t a_size, int a_goBackInTheStackCalc )
-{
-	if (s_bIsAllocingOrDeallocing) { return ::crash_investigator::callocn(a_nmemb,a_size); }
-	IsAllocingHandler aHandler;
-
-    CRASH_INVEST_ANALIZE_COUNT_0(a_nmemb*a_size,false)
-
-	void* pReturn = ::crash_investigator::callocn(a_nmemb, a_size);
-	if (!pReturn) {return CRASH_INVEST_NULL;}
-
-    return AddNewAllocatedMemoryAndCleanOldEntry(MemoryType::Malloc,pReturn,++a_goBackInTheStackCalc);
-}
-
-
-
-CRASH_INVEST_DLL_PRIVATE void* TestOperatorReAlloc  ( void* a_ptr, size_t a_count, int a_goBackInTheStackCalc2 )
-{
-	if(s_bIsAllocingOrDeallocing){return ::crash_investigator::reallocn(a_ptr,a_count);}
-    if(!a_ptr){return TestOperatorAlloc(a_count,MemoryType::Malloc,false,++a_goBackInTheStackCalc2);}
-	IsAllocingHandler aHandler;
-	
-    CRASH_INVEST_ANALIZE_COUNT_0(a_count,false)
-	
-	void* pReturn;
-	TypeHashTbl::iterator memItemIter;
-
-    Backtrace*const pAnalizeTrace = InitBacktraceDataForCurrentStack(++a_goBackInTheStackCalc2);
-	
-
-    {
-        std::unique_lock<std::mutex> aGuard(s_mutexForMap);
-		
-        size_t unHash;
-        memItemIter = s_memoryItems.FindEntry(a_ptr,&unHash);
-		if(memItemIter==TypeHashTbl::s_endIter){
-            SMemoryItem aItem = memItemIter->second;
-            aGuard.unlock();
-            return InitFailureDataAndCallClbk(aItem,MemoryType::NotProvided,a_ptr,a_count,FailureType::BadReallocMemNotExist,pAnalizeTrace);
-		}
-
-		if(memItemIter->second.type!=MemoryType::Malloc){
-            SMemoryItem aItem = memItemIter->second;
-            aGuard.unlock();
-            return InitFailureDataAndCallClbk(aItem,MemoryType::NotProvided,a_ptr,a_count,FailureType::BadReallocCreatedByWrongAlloc,pAnalizeTrace);
-		}
-
-		if(memItemIter->second.status!=MemoryStatus::Allocated){
-            SMemoryItem aItem = memItemIter->second;
-            aGuard.unlock();
-            return InitFailureDataAndCallClbk(aItem,MemoryType::NotProvided,a_ptr,a_count,FailureType::BadReallocDeletedMem,pAnalizeTrace);
-		}
-		
-		pReturn = ::crash_investigator::reallocn(memItemIter->second.realAddress,a_count) ;
-		if(pReturn!=a_ptr){
-            memItemIter->second.status = MemoryStatus::DuringReallocChanged;
-            return AddNewAllocatedMemoryAndCleanOldEntryNoLock(MemoryType::Malloc,pReturn,pAnalizeTrace);
-		}
-	}
-
-    FreeBacktraceData(pAnalizeTrace);
-    return pReturn; // equal to a_ptr
-}
-
-
-
 CRASH_INVEST_DLL_PRIVATE void TestOperatorDelete(void* a_ptr, MemoryType a_typeExpected, int a_goBackInTheStackCalc ) CRASH_INVEST_NOEXCEPT
 {
+	if(!a_ptr){return;}
 	if (s_bIsAllocingOrDeallocing) { ::crash_investigator::freen(a_ptr); return; } // not handling here
 	IsAllocingHandler aHandler;
 
@@ -260,6 +178,92 @@ CRASH_INVEST_DLL_PRIVATE void TestOperatorDelete(void* a_ptr, MemoryType a_typeE
 	}
 
 	::crash_investigator::freen(pToDelete);
+}
+
+
+CRASH_INVEST_DLL_PRIVATE void* TestOperatorAlloc  ( size_t a_count, MemoryType a_memoryType, bool a_bThrow, int a_goBackInTheStackCalc )
+{
+	if(s_bIsAllocingOrDeallocing){return ::crash_investigator::mallocn(a_count);}
+	IsAllocingHandler aHandler;
+	
+    CRASH_INVEST_ANALIZE_COUNT_0(a_count,a_bThrow)
+	
+	void* pReturn = ::crash_investigator::mallocn(a_count);
+	if(!pReturn){
+		if(a_bThrow){throw ::std::bad_alloc();}
+		else{return CRASH_INVEST_NULL;}
+	}
+
+    return AddNewAllocatedMemoryAndCleanOldEntry(a_memoryType,pReturn,++a_goBackInTheStackCalc);
+}
+
+
+CRASH_INVEST_DLL_PRIVATE void* TestOperatorCalloc(size_t a_nmemb, size_t a_size, int a_goBackInTheStackCalc )
+{
+	if (s_bIsAllocingOrDeallocing) { return ::crash_investigator::callocn(a_nmemb,a_size); }
+	IsAllocingHandler aHandler;
+
+    CRASH_INVEST_ANALIZE_COUNT_0(a_nmemb*a_size,false)
+
+	void* pReturn = ::crash_investigator::callocn(a_nmemb, a_size);
+	if (!pReturn) {return CRASH_INVEST_NULL;}
+
+    return AddNewAllocatedMemoryAndCleanOldEntry(MemoryType::Malloc,pReturn,++a_goBackInTheStackCalc);
+}
+
+
+
+CRASH_INVEST_DLL_PRIVATE void* TestOperatorReAlloc  ( void* a_ptr, size_t a_count, int a_goBackInTheStackCalc2 )
+{
+	if(s_bIsAllocingOrDeallocing){return ::crash_investigator::reallocn(a_ptr,a_count);}
+    if(!a_ptr){return TestOperatorAlloc(a_count,MemoryType::Malloc,false,++a_goBackInTheStackCalc2);}
+	IsAllocingHandler aHandler;
+	
+    //CRASH_INVEST_ANALIZE_COUNT_0(a_count,false)
+	// in the case if 0 length provided, we delete initial memory
+	if(!a_count){
+		TestOperatorDelete(a_ptr,MemoryType::Malloc,++a_goBackInTheStackCalc2);
+		return CRASH_INVEST_NULL;
+	}
+	
+	void* pReturn;
+	TypeHashTbl::iterator memItemIter;
+
+    Backtrace*const pAnalizeTrace = InitBacktraceDataForCurrentStack(++a_goBackInTheStackCalc2);
+	
+
+    {
+        std::unique_lock<std::mutex> aGuard(s_mutexForMap);
+		
+        size_t unHash;
+        memItemIter = s_memoryItems.FindEntry(a_ptr,&unHash);
+		if(memItemIter==TypeHashTbl::s_endIter){
+            SMemoryItem aItem = memItemIter->second;
+            aGuard.unlock();
+            return InitFailureDataAndCallClbk(aItem,MemoryType::NotProvided,a_ptr,a_count,FailureType::BadReallocMemNotExist,pAnalizeTrace);
+		}
+
+		if(memItemIter->second.type!=MemoryType::Malloc){
+            SMemoryItem aItem = memItemIter->second;
+            aGuard.unlock();
+            return InitFailureDataAndCallClbk(aItem,MemoryType::NotProvided,a_ptr,a_count,FailureType::BadReallocCreatedByWrongAlloc,pAnalizeTrace);
+		}
+
+		if(memItemIter->second.status!=MemoryStatus::Allocated){
+            SMemoryItem aItem = memItemIter->second;
+            aGuard.unlock();
+            return InitFailureDataAndCallClbk(aItem,MemoryType::NotProvided,a_ptr,a_count,FailureType::BadReallocDeletedMem,pAnalizeTrace);
+		}
+		
+		pReturn = ::crash_investigator::reallocn(memItemIter->second.realAddress,a_count) ;
+		if(pReturn!=a_ptr){
+            memItemIter->second.status = MemoryStatus::DuringReallocChanged;
+            return AddNewAllocatedMemoryAndCleanOldEntryNoLock(MemoryType::Malloc,pReturn,pAnalizeTrace);
+		}
+	}
+
+    FreeBacktraceData(pAnalizeTrace);
+    return pReturn; // equal to a_ptr
 }
 
 
