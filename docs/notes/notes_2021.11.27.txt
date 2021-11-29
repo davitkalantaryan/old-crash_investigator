@@ -1,0 +1,82 @@
+
+Abbreviations
+ ra:   Relative Address (Address in the so file)  
+ na:   Not Available
+
+Following is the meaning of first letter
+
+ A => standard libraries sources
+ B => investigator source
+ C => DOOCS source 
+ D => source of wcserver
+
+Address: 0x7f4d807aae70 invalid free() / delete / delete[]
+	B  crash_investigator_new_delete.cpp:31, operator delete(void*),       0x7f4dc16496cf:  /local/lib2/libcrash_investiator_new_malloc.so(_ZdlPv+0x22) [ra: 0x76cf]
+	A  new_allocator.h:126,                  <long name 1>,                0x40e3a0:        ./wcs_server() [0x40e3a0]
+	A  basic_string.tcc:899,                 <long name 2>,                0x40dc14:        ./wcs_server(_ZNSs4_Rep10_M_destroyERKSaIcE+0x4a) [0x40dc14]
+	A  basic_string.h:3273                   <long name 3>,                0x40d4fe:        ./wcs_server(_ZNSs4_Rep10_M_disposeERKSaIcE+0x5a) [0x40d4fe]
+	A  basic_string.tcc:701,                 <long name 4>,                0x40da9e:        ./wcs_server(_ZNSs6assignERKSs+0xb0) [0x40da9e]
+	C  d_fct.cc:1859,                        <long name 5>,                0x7f4dc06cd93f:  /local/lib2/libEqServer.so.20.10.1(_ZN8D_string10copy_valueERKSs+0x37f) [0x7f4dc06cd93f]
+	C  d_fct.cc:1837,                        <long name 6>,                0x7f4dc06c16dd:  /local/lib2/libEqServer.so.20.10.1(_ZN8D_string9set_valueERKSs+0xd) [ra: 0xc76dd]
+	D  D_cmd_sps.cc:71,                      D_cmd_sps::value(),           0x429b5a:        ./wcs_server() [0x429b5a]
+	D  wcsfsm.cc:175,                        FctWCS_FSM::getParentMode(),  0x42005f:        ./wcs_server() [0x42005f]
+	D  wcsfsm.cc:116,                        FctWCS_FSM::start(),          0x41fb9a:        ./wcs_server() [0x41fb9a]
+	A  invoke.h:73,                          <long name 7>,                0x420b7d:        ./wcs_server() [0x420b7d]
+	A  invoke.h:96                           <long name 8>,                0x4205d6:        ./wcs_server() [0x4205d6]
+	A  thread:244,                           <long name 9>,                0x4211ad:        ./wcs_server() [0x4211ad]
+	A  thread:253,                           <long name 9>,                0x421168:        ./wcs_server() [0x421168]
+	A  thread:196,                           <long name 10>,               0x42114c:        ./wcs_server() [0x42114c]
+	C  na:na,                                na,                           0x7f4dc141fadf:  /local/lib2/libDOOCSapi.so.20.10.1(+0x61adf) [0x7f4dc141fadf]
+	A  pthread_create.c:na,                  start_thread,                 0x7f4dbfbc5ea5:  /lib64/libpthread.so.0(+0x7ea5) [ra: 0x7ea5]
+	A  na:na,                                na,                           0x7f4dbf8ee9fd:  /lib64/libc.so.6(clone+0x6d) [0x7f4dbf8ee9fd]
+The previous deallocation was done in the following stack
+	B  crash_investigator_new_delete.cpp:31, operator delete(void*),       0x7f4dc16496cf:  /local/lib2/libcrash_investiator_new_malloc.so(_ZdlPv+0x22) [0x7f4dc16496cf]
+	A  new_allocator.h:126,                  <long name 1>,                0x40e3a0:        ./wcs_server() [0x40e3a0]
+	A  basic_string.tcc:899,                 <long name 2>,                0x40dc14:        ./wcs_server(_ZNSs4_Rep10_M_destroyERKSaIcE+0x4a) [0x40dc14]
+	A  basic_string.h:3273                   <long name 3>,                0x40d4fe:        ./wcs_server(_ZNSs4_Rep10_M_disposeERKSaIcE+0x5a) [0x40d4fe]
+	A  basic_string.tcc:701,                 <long name 4>,                0x40da9e: ./wcs_server(_ZNSs6assignERKSs+0xb0) [0x40da9e]
+	C  d_fct.cc:1859,                        <long name 5>,                0x7f4dc06cd93f: /local/lib2/libEqServer.so.20.10.1(_ZN8D_string10copy_valueERKSs+0x37f) [0x7f4dc06cd93f]
+	C  d_fct.cc:1837,                        <long name 6>,                0x7f4dc06c16dd: /local/lib2/libEqServer.so.20.10.1(_ZN8D_string9set_valueERKSs+0xd) [0x7f4dc06c16dd]
+	D  D_cmd_sps.cc:71,                      D_cmd_sps::value(),           0x429b5a: ./wcs_server() [0x429b5a]
+	D  WCS.cc:107                            WCS::update()                 0x40a893: ./wcs_server() [0x40a893]
+	D  WCSBooster.cc:35,                     WCSBooster::update(),         0x4131b5: ./wcs_server() [0x4131b5]
+	D  WCSGun.cc:108,                        WCSGun::update(),             0x41a9e1: ./wcs_server() [0x41a9e1]
+	0x7f4dc0730d5e: /local/lib2/libEqServer.so.20.10.1(_Z8proc_deviP5EqFctP7timevalii+0x5e) [0x7f4dc0730d5e]
+	0x7f4dc0731dd6: /local/lib2/libEqServer.so.20.10.1(+0x137dd6) [0x7f4dc0731dd6]
+	0x7f4dbfbc5ea5: /lib64/libpthread.so.0(+0x7ea5) [0x7f4dbfbc5ea5]
+	0x7f4dbf8ee9fd: /lib64/libc.so.6(clone+0x6d) [0x7f4dbf8ee9fd]
+Memory was created in the following stack
+	0x7f4dc16496cf: /local/lib2/libcrash_investiator_new_malloc.so(_ZdlPv+0x22) [0x7f4dc16496cf]
+	0x40e3a0: ./wcs_server() [0x40e3a0]
+	0x40dc14: ./wcs_server(_ZNSs4_Rep10_M_destroyERKSaIcE+0x4a) [0x40dc14]
+	0x40d4fe: ./wcs_server(_ZNSs4_Rep10_M_disposeERKSaIcE+0x5a) [0x40d4fe]
+	0x40da9e: ./wcs_server(_ZNSs6assignERKSs+0xb0) [0x40da9e]
+	0x7f4dc06cd93f: /local/lib2/libEqServer.so.20.10.1(_ZN8D_string10copy_valueERKSs+0x37f) [0x7f4dc06cd93f]
+	0x7f4dc06c16dd: /local/lib2/libEqServer.so.20.10.1(_ZN8D_string9set_valueERKSs+0xd) [0x7f4dc06c16dd]
+	0x429b5a: ./wcs_server() [0x429b5a]
+	0x42005f: ./wcs_server() [0x42005f]
+	0x41fb9a: ./wcs_server() [0x41fb9a]
+	0x420b7d: ./wcs_server() [0x420b7d]
+	0x4205d6: ./wcs_server() [0x4205d6]
+	0x4211ad: ./wcs_server() [0x4211ad]
+	0x421168: ./wcs_server() [0x421168]
+	0x42114c: ./wcs_server() [0x42114c]
+	0x7f4dc141fadf: /local/lib2/libDOOCSapi.so.20.10.1(+0x61adf) [0x7f4dc141fadf]
+	0x7f4dbfbc5ea5: /lib64/libpthread.so.0(+0x7ea5) [0x7f4dbfbc5ea5]
+	0x7f4dbf8ee9fd: /lib64/libc.so.6(clone+0x6d) [0x7f4dbf8ee9fd]
+	
+	
+Long names
+ 1  => __gnu_cxx::new_allocator<char>::deallocate(char*, unsigned long)  
+ 2  => std::string::_Rep::_M_destroy(std::allocator<char> const&)  
+ 3  => std::string::_Rep::_M_dispose(std::allocator<char> const&)  
+ 4  => std::string::assign(std::string const&)
+ 5  => D_string::copy_value(std::string const&)
+ 6  => D_string::set_value(std::string const&)  
+ 7  => void std::__invoke_impl<void, void (FctWCS_FSM::*)(), FctWCS_FSM*>(std::__invoke_memfun_deref, void (FctWCS_FSM::*&&)(), FctWCS_FSM*&&)  
+ 8  => std::__invoke_result<void (FctWCS_FSM::*)(), FctWCS_FSM*>::type std::__invoke<void (FctWCS_FSM::*)(), FctWCS_FSM*>(void (FctWCS_FSM::*&&)(), FctWCS_FSM*&&)  
+ 9  => decltype (__invoke((_S_declval<0ul>)(), (_S_declval<1ul>)())) std::thread::_Invoker<std::tuple<void (FctWCS_FSM::*)(), FctWCS_FSM*> >::_M_invoke<0ul, 1ul>(std::_Index_tuple<0ul, 1ul>)  
+ 10 => std::thread::_State_impl<std::thread::_Invoker<std::tuple<void (FctWCS_FSM::*)(), FctWCS_FSM*> > >::_M_run()  
+ 
+
+
