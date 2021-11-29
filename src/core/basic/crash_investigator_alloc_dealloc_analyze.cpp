@@ -74,7 +74,7 @@ static std::mutex	s_mutexForMap;
 class CrashInvestAnalizerInit{
 public:
     CrashInvestAnalizerInit(){
-        (*s_clbkData.infoClbk)(s_clbkData.userData, "+-+-+-+-+-+-+-+-+-+- Crash investigator lib version 12 +-+-+-+-+-+-+-+-+-+-\n");
+        (*s_clbkData.infoClbk)(s_clbkData.userData, "+-+-+-+-+-+-+-+-+-+- Crash investigator lib version 14 +-+-+-+-+-+-+-+-+-+-\n");
 		//printf("going to sleep\n");fflush(stdout);sleep(10);
     }
 }static s_crashInvestAnalizerInit;
@@ -243,7 +243,7 @@ CRASH_INVEST_DLL_PRIVATE void* TestOperatorReAlloc  ( void* a_ptr, size_t a_coun
         size_t unHash;
         memItemIter = s_memoryItems.FindEntry(a_ptr,&unHash);
 		if(memItemIter==TypeHashTbl::s_endIter){
-            SMemoryItem aItem = memItemIter->second;
+            const SMemoryItem aItem({MemoryType::NotProvided,MemoryStatus::DoesNotExistAtAll,CRASH_INVEST_NULL,pAnalizeTrace,nullptr});
             aGuard.unlock();
             return InitFailureDataAndCallClbk(aItem,MemoryType::NotProvided,a_ptr,a_count,FailureType::BadReallocMemNotExist,pAnalizeTrace);
 		}
