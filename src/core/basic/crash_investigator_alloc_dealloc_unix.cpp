@@ -53,8 +53,8 @@ static void InitFunction(void)
 	}
 	s_isInitFunction = false;
 	s_isNotInited = false;
-	printf("+-+-+-+-+-+-+-+-+-+- Crash investigator lib version 2 +-+-+-+-+-+-+-+-+-+-\n");
-	fflush(stdout);
+    //printf("+-+-+-+-+-+-+-+-+-+- Crash investigator lib version 3 +-+-+-+-+-+-+-+-+-+-\n");
+    //fflush(stdout);
 }
 
 
@@ -100,6 +100,7 @@ CRASH_INVEST_DLL_PRIVATE void freen( void* a_ptr ) CRASH_INVEST_NOEXCEPT
 	if(s_isNotInited){pthread_once(&s_once_control,&InitFunction);}
 	(*s_orig_free)(a_ptr);
 }
+
 
 
 } // namespace crash_investigator {

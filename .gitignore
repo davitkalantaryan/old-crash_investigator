@@ -32,6 +32,7 @@
 #*.app
 
 /.codes_to_investigate
+/.tests
 
 /.vs
 /deploy

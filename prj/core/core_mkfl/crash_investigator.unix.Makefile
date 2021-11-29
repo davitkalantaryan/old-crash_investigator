@@ -14,9 +14,15 @@ LFLAGS			+= -pthread
 LFLAGS			+= -ldl
 
 objectFilesDirPath	= $(repoRootPath)/sys/$(lsbCode)/$(Configuration)/.objects/$(targetName)
+# SRC_CORE_BASIC_DIR      = $(repoRootPath)/src/core/basic
+
+# SOURCES += "$${PWD}/../../../contrib/cpputils/src/core/cpputils_inscopecleaner.cpp"
+# SOURCES += "$${PWD}/../../../contrib/cpputils/src/core/cpputils_hashtbl.cpp"
 
 CR_INV_OBJECTS = \
-	$(objectFilesDirPath)/core/crash_investigator_alloc_dealloc_analyze.cpp.o \
-	$(objectFilesDirPath)/core/crash_investigator_alloc_dealloc_unix.cpp.o \
-	$(objectFilesDirPath)/core/crash_investigator_malloc_free.cpp.o	\
-	$(objectFilesDirPath)/core/crash_investigator_new_delete.cpp.o 
+    $(objectFilesDirPath)/core/backtrace/crash_investigator_backtrace_unix.cpp.o \
+    $(objectFilesDirPath)/core/basic/crash_investigator_alloc_dealloc_analyze.cpp.o \
+    $(objectFilesDirPath)/core/basic/crash_investigator_alloc_dealloc_unix.cpp.o \
+    $(objectFilesDirPath)/core/basic/crash_investigator_malloc_free.cpp.o	\
+    $(objectFilesDirPath)/core/basic/crash_investigator_new_delete.cpp.o    \
+    $(objectFilesDirPath)/../contrib/cpputils/src/core/cpputils_inscopecleaner.cpp.o

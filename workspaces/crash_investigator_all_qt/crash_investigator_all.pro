@@ -18,8 +18,8 @@ wcsServer {
 }
 
 #crashInvestigatorLibs {
-	#SUBDIRS		+=	"$${repositoryRoot}/prj/core/core_qt/crash_investigator_new.pro"
-	#SUBDIRS		+=	"$${repositoryRoot}/prj/core/core_qt/crash_investigator_malloc.pro"
+        #SUBDIRS		+=	"$${repositoryRoot}/prj/core/core_qt/crash_investigator_new.pro"
+        #SUBDIRS		+=	"$${repositoryRoot}/prj/core/core_qt/crash_investigator_malloc.pro"
 	SUBDIRS		+=	"$${repositoryRoot}/prj/core/core_qt/crash_investigator_new_malloc.pro"
 #}
 
@@ -30,6 +30,7 @@ includeCppUtils {
 #testsFromWorkspace {
 	SUBDIRS		+=	"$${repositoryRoot}/prj/tests/double_free01_test_qt/double_free01_test.pro"
 #}
+
 
 
 #UNIX_SCRIPTS	= $$cpputilsFindFilesRecursive($${repositoryRoot}/scripts, .sh)
