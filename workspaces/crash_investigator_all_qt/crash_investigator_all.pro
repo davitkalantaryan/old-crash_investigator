@@ -50,4 +50,6 @@ OTHER_FILES	+=	\
 	"$${repositoryRoot}/.gitmodules"								\
 	"$${repositoryRoot}/LICENSE"									\
 	"$${repositoryRoot}/README.md"									\
-	"$${repositoryRoot}/Makefile"	
+	"$${repositoryRoot}/Makefile"									\
+	"$${repositoryRoot}/scripts/run_under_invest"					\
+	"$${repositoryRoot}/scripts/doocs_under_invest"

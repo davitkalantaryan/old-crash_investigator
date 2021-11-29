@@ -21,6 +21,8 @@
 #include <memory>
 #endif
 
+#include <unistd.h>
+
 
 namespace crash_investigator {
 
@@ -39,6 +41,7 @@ static void* InitFailureDataAndCallClbk(const SMemoryItem& a_item, MemoryType a_
 
 
 enum class MemoryStatus : uint32_t {
+	DoesNotExistAtAll,
 	Allocated,
 	Deallocated,
     DuringReallocChanged=MemoryStatus::Deallocated,
@@ -71,7 +74,8 @@ static std::mutex	s_mutexForMap;
 class CrashInvestAnalizerInit{
 public:
     CrashInvestAnalizerInit(){
-        (*s_clbkData.infoClbk)(s_clbkData.userData, "+-+-+-+-+-+-+-+-+-+- Crash investigator lib version 10 +-+-+-+-+-+-+-+-+-+-\n");
+        (*s_clbkData.infoClbk)(s_clbkData.userData, "+-+-+-+-+-+-+-+-+-+- Crash investigator lib version 12 +-+-+-+-+-+-+-+-+-+-\n");
+		//printf("going to sleep\n");fflush(stdout);sleep(10);
     }
 }static s_crashInvestAnalizerInit;
 
@@ -151,7 +155,8 @@ CRASH_INVEST_DLL_PRIVATE void TestOperatorDelete(void* a_ptr, MemoryType a_typeE
         //if (memItemIter == TypeHashTbl::s_endIter) { ::crash_investigator::freen(a_ptr); return; } // this is some early memory, leave this
 		//if(memItemIter == TypeHashTbl::s_endIter){ return;}
         if(memItemIter==TypeHashTbl::s_endIter){
-            SMemoryItem aItem = memItemIter->second;
+			const SMemoryItem aItem({MemoryType::NotProvided,MemoryStatus::DoesNotExistAtAll,CRASH_INVEST_NULL,pAnalizeTrace,nullptr});
+			// in this case app will not exit if DefaultCallback is there
             aGuard.unlock();
             InitFailureDataAndCallClbk(aItem,MemoryType::NotProvided,a_ptr,0,FailureType::DeallocOfNonExistingMemory,pAnalizeTrace);
             return;
@@ -357,9 +362,8 @@ static FailureAction DefaultFailureClbk(const FailureData& a_data)
     switch(a_data.failureType){
     case FailureType::DeallocOfNonExistingMemory:
         (*s_clbkData.errorClbk)(s_clbkData.userData,"Address: %p invalid deallocation. Address is not a valid allocated address\n", a_data.failureAddress);
-        (*s_clbkData.errorClbk)(s_clbkData.userData,"Address: %p invalid deallocation. Address is not a valid allocated address\n", a_data.failureAddress);
         PrintStack(a_data.analizeStack);
-        break;
+        return FailureAction::DoNotMakeActionToPreventCrash;
     case FailureType::DoubleFree:
         (*s_clbkData.errorClbk)(s_clbkData.userData,"Address: %p invalid free() / delete / delete[]\n", a_data.failureAddress);
         PrintStack(a_data.analizeStack);

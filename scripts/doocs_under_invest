@@ -1,0 +1,22 @@
+#!/bin/bash
+
+#
+# file:			doocs_under_invest
+# path:			scripts/doocs_under_invest
+# created by:	Davit Kalantaryan (davit.kalataryan@desy.de)
+# created on:	2021 Nov 29
+#
+# the aim:		The role of this script is to start software 
+#				under memory handling investigation
+#
+
+if [ $# -lt 0 ]; then
+	echo "Program name is not specified"
+	exit 1
+fi
+
+PROG_NAME="$1"
+shift
+# below line most probably will be owerwritten, when other script from here called
+export LD_LIBRARY_PATH=/local/lib
+LD_PRELOAD=libcrash_investiator_new_malloc.so /export/doocs/server/doocs ${PROG_NAME} "$@"
