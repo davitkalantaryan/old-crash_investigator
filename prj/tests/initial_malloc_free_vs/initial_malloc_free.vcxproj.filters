@@ -15,16 +15,21 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\src\tests\malloc_free\crash_investigator_malloc_free_hook_windows1.c">
+    <ClInclude Include="..\..\..\src\tests\malloc_free_hook_tests\crash_investigator_malloc_free_hook.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\..\src\tests\malloc_free_hook_tests\crash_investigator_malloc_free_hook_windows1.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\src\tests\malloc_free\crash_investigator_malloc_free_hook_windows2.c">
+    <ClCompile Include="..\..\..\src\tests\malloc_free_hook_tests\crash_investigator_malloc_free_hook_windows2.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\..\src\tests\malloc_free\crash_investigator_malloc_free_hook.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
+    <None Include="..\..\..\src\tests\malloc_free_hook_tests\second_malloc_free.def">
+      <Filter>Source Files</Filter>
+    </None>
   </ItemGroup>
 </Project>

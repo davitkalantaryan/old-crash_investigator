@@ -20,8 +20,7 @@
 #ifdef CRASH_INVEST_CPP_17_DEFINED
 #include <memory>
 #endif
-
-#include <unistd.h>
+#include <string.h>
 
 
 namespace crash_investigator {
@@ -333,9 +332,21 @@ CRASH_INVEST_DLL_PRIVATE void* TestOperatorNewAligned(size_t a_count, MemoryType
 
 static inline void PrintStack(const ::std::vector< StackItem>& a_stack)
 {
+    const char* cpcInitial;
+    const char* flName;
     const size_t cunNumberOfFrames(a_stack.size());
     for(size_t i(0); i<cunNumberOfFrames;++i){
-        (*s_clbkData.errorClbk)(s_clbkData.userData,"\t%p: %s\n",a_stack[i].address,a_stack[i].funcName.c_str());
+        cpcInitial = a_stack[i].fileName.c_str();
+        flName = strrchr(cpcInitial, '\\');
+        if (flName) { ++flName; }
+        else {
+            flName = strrchr(cpcInitial, '/');
+            if (flName) { ++flName; }
+            else {
+                flName = cpcInitial;
+            }
+        }
+        (*s_clbkData.errorClbk)(s_clbkData.userData,"\t%p: fn:%s, src:%s, ln:%d\n",a_stack[i].address,a_stack[i].funcName.c_str(),flName,a_stack[i].line);
     }
 }
 

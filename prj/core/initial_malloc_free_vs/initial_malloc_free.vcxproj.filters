@@ -13,26 +13,17 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="Source Files\src">
-      <UniqueIdentifier>{ad442afc-a207-4139-a0bc-4810085e42e7}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\src\core">
-      <UniqueIdentifier>{1e9c88bd-a4d9-44d8-952e-a87ca9f58ee7}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\src\tests\main_mc_weak_symbol_test01.cpp">
+    <ClCompile Include="..\..\..\src\core\initial_malloc_free_hook\crash_investigator_malloc_free_hook_windows1.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\core\initial_malloc_free_hook\crash_investigator_malloc_free_hook_windows2.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\..\include\crash_investigator\crash_investigator_internal_header.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\src\core\crash_investigator_alloc_dealloc.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\src\core\crash_investigator_windows_missing_functions.h">
+    <ClInclude Include="..\..\..\include\crash_investigator\crash_investigator_malloc_free_hook.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

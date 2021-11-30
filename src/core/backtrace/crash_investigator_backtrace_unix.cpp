@@ -6,6 +6,7 @@
 //
 
 #ifndef CRASH_INVEST_DO_NOT_USE_AT_ALL
+#if !defined(_WIN32) || defined(__INTELLISENSE__)
 
 #include <crash_investigator/crash_investigator_internal_header.h>
 #include <crash_investigator/core/rawallocfree.hpp>
@@ -76,7 +77,9 @@ CRASH_INVEST_DLL_PRIVATE void ConvertBacktraceToNames(const Backtrace* a_data, :
         for(size_t i(0); i < cunSynbols; ++i){
             pStackItem = &(a_pStack->operator [](i));
             pStackItem->address = a_data->ppBuffer[i];
-            pStackItem->funcName = ppStrings[i];
+            pStackItem->dllName = ppStrings[i];
+			pStackItem->reserved01 = 0;
+			pStackItem->line = -1;
         }
 
         freen(ppStrings);
@@ -314,4 +317,5 @@ out:
 #endif // #ifdef CRASH_INVEST_TRANSLATE_ADDRESSES_TO_LINES
 
 
+#endif  // #ifndef _WIN32
 #endif // #ifndef CRASH_INVEST_DO_NOT_USE_AT_ALL

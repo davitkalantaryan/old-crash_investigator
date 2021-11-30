@@ -8,7 +8,6 @@
 #ifdef _WIN32
 #ifndef CRASH_INVEST_DO_NOT_USE_AT_ALL
 
-#include "crash_investigator_windows_missing_functions.h"
 #include "crash_investigator_alloc_dealloc.hpp"
 #ifndef CRASH_INVEST_DO_NOT_USE_MAL_FREE
 #include <WinSock2.h>
