@@ -14,6 +14,7 @@
 if [ $# -gt 0 ]; then
 	PROG_NAME="$1"
 	shift
+	export LD_LIBRARY_PATH=/local/lib:/afs/ifh.de/group/pitz/doocs/lib  # please redefine this if needed in your runable
 	LD_PRELOAD=libcrash_investiator_new_malloc.so ${PROG_NAME} "$@"
 else
 	echo "Program name is not specified"
