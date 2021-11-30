@@ -5,8 +5,10 @@
 // created on:	2021 Nov 19
 //
 
+#ifdef _MSC_VER
 #include <crash_investigator/crash_investigator_internal_header.h>
 #include <crash_investigator/callback.hpp>
+#endif
 #include <stdlib.h>
 #include <stdio.h>
 //#include <crash_investigator/crash_investigator_malloc_free_hook.h>
@@ -36,7 +38,9 @@ int main(int a_argc, char* a_argv[])
 	fflush(stdout);
 	getchar();
 
+#ifdef _MSC_VER
 	crash_investiator_new_malloc_init();
+#endif
 	
 	if(a_argc<2){
         fprintf(stderr,"ERROR: specify number [1..6] to select hook to test\n");

@@ -73,7 +73,7 @@ static std::mutex	s_mutexForMap;
 class CrashInvestAnalizerInit{
 public:
     CrashInvestAnalizerInit(){
-        (*s_clbkData.infoClbk)(s_clbkData.userData, "+-+-+-+-+-+-+-+-+-+- Crash investigator lib version 14 +-+-+-+-+-+-+-+-+-+-\n");
+        (*s_clbkData.infoClbk)(s_clbkData.userData, "+-+-+-+-+-+-+-+-+-+- Crash investigator lib version 15 +-+-+-+-+-+-+-+-+-+-\n");
 		//printf("going to sleep\n");fflush(stdout);sleep(10);
     }
 }static s_crashInvestAnalizerInit;

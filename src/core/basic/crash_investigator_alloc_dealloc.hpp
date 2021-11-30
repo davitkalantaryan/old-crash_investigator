@@ -28,7 +28,7 @@ CRASH_INVEST_DLL_PRIVATE void* TestOperatorNewAligned  ( size_t a_count, MemoryT
 #define CorrectNameBase(_a,_b)      _a ## _b
 #define CorrectName(_a)             CorrectNameBase(_a,WinMsC)
 #else
-#define CorrectName(_a)
+#define CorrectName(_a)				_a
 #endif
 
 
