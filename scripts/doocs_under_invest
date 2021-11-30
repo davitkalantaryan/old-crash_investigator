@@ -10,7 +10,7 @@
 #				under memory handling investigation
 #
 
-if [ $# -lt 0 ]; then
+if [ $# -lt 1 ]; then
 	echo "Program name is not specified"
 	exit 1
 fi
