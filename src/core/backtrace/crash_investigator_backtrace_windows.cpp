@@ -132,7 +132,7 @@ static void GetSymbolInfo(StackItem* a_pStackItem)
 
 		if (SymGetLineFromAddr64(s_currentProcess, dwAddress, &dwDisplacement, &line)){
 			if (line.FileName) {
-				a_pStackItem->fileName = line.FileName;
+				a_pStackItem->sourceFileName = line.FileName;
 			}
 			a_pStackItem->line = static_cast<int>(line.LineNumber);
 		}
