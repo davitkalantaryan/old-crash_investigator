@@ -39,7 +39,7 @@ struct StackItem{
     void*           address;
     ::std::string   dllName;
     ::std::string   funcName;
-    ::std::string   fileName;  // empty means unavailable
+    ::std::string   sourceFileName;  // empty means unavailable
     int             line;      // <0 means unknown (no debug info available)
     int             reserved01;
 };

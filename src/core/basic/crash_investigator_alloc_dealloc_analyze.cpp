@@ -330,14 +330,17 @@ CRASH_INVEST_DLL_PRIVATE void* TestOperatorNewAligned(size_t a_count, MemoryType
 
 /*//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////*/
 
-static inline void PrintStack(const ::std::vector< StackItem>& a_stack)
+
+static inline void PrintStackSingleLine(const StackItem& a_stackItem)
 {
-    const char* cpcInitial;
-    const char* flName;
-    const size_t cunNumberOfFrames(a_stack.size());
-    for(size_t i(0); i<cunNumberOfFrames;++i){
-        cpcInitial = a_stack[i].fileName.c_str();
-        flName = strrchr(cpcInitial, '\\');
+	bool bLineOrSourceFile = false;
+	(*s_clbkData.errorClbk)(s_clbkData.userData,"\t%p:  ",a_stackItem.address);
+	if(a_stackItem.funcName.length()){
+		(*s_clbkData.errorClbk)(s_clbkData.userData,"%s  ",a_stackItem.funcName.c_str());
+	}
+	if(a_stackItem.sourceFileName.length()){
+		const char* cpcInitial = a_stackItem.sourceFileName.c_str();
+        const char* flName = strrchr(cpcInitial, '\\');
         if (flName) { ++flName; }
         else {
             flName = strrchr(cpcInitial, '/');
@@ -346,7 +349,28 @@ static inline void PrintStack(const ::std::vector< StackItem>& a_stack)
                 flName = cpcInitial;
             }
         }
-        (*s_clbkData.errorClbk)(s_clbkData.userData,"\t%p: fn:%s, src:%s, ln:%d\n",a_stack[i].address,a_stack[i].funcName.c_str(),flName,a_stack[i].line);
+		(*s_clbkData.errorClbk)(s_clbkData.userData,"(%s",flName);
+		bLineOrSourceFile = true;
+	}
+	if(a_stackItem.line>0){
+		if(bLineOrSourceFile){ (*s_clbkData.errorClbk)(s_clbkData.userData,":%d",a_stackItem.line); }
+		else{ (*s_clbkData.errorClbk)(s_clbkData.userData,"(line:%d",a_stackItem.line);bLineOrSourceFile=true; }
+	}
+	if(bLineOrSourceFile){
+		(*s_clbkData.errorClbk)(s_clbkData.userData,")  ",a_stackItem.line);
+	}
+	if(a_stackItem.dllName.length()){
+		(*s_clbkData.errorClbk)(s_clbkData.userData,"(%s) ",a_stackItem.dllName.c_str());
+	}
+	(*s_clbkData.errorClbk)(s_clbkData.userData,"\n");
+}
+
+
+static inline void PrintStack(const ::std::vector< StackItem>& a_stack)
+{
+    const size_t cunNumberOfFrames(a_stack.size());
+    for(size_t i(0); i<cunNumberOfFrames;++i){
+		PrintStackSingleLine(a_stack[i]);
     }
 }
 
