@@ -7,6 +7,12 @@
 
 #ifndef CRASH_INVEST_DO_NOT_USE_AT_ALL
 
+#define CRASH_INVEST_VERSION_RAW		17
+
+#define CRASH_INVEST_STRINGIFY(_num)		CRASH_INVEST_STRINGIFY_RAW(_num)
+#define CRASH_INVEST_STRINGIFY_RAW(_num)	#_num
+#define CRASH_INVEST_VERSION_STR			CRASH_INVEST_STRINGIFY(CRASH_INVEST_VERSION_RAW)
+
 
 //#include "crash_investigator_alloc_dealloc.hpp"
 #include <crash_investigator/core/rawallocfree.hpp>
@@ -73,7 +79,9 @@ static std::mutex	s_mutexForMap;
 class CrashInvestAnalizerInit{
 public:
     CrashInvestAnalizerInit(){
-        (*s_clbkData.infoClbk)(s_clbkData.userData, "+-+-+-+-+-+-+-+-+-+- Crash investigator lib version 15 +-+-+-+-+-+-+-+-+-+-\n");
+        (*s_clbkData.infoClbk)(s_clbkData.userData, "+-+-+-+-+-+-+-+-+-+- Crash investigator lib version "
+													CRASH_INVEST_VERSION_STR
+													" +-+-+-+-+-+-+-+-+-+-\n");
 		//printf("going to sleep\n");fflush(stdout);sleep(10);
     }
 }static s_crashInvestAnalizerInit;
