@@ -10,6 +10,9 @@
 #				under memory handling investigation
 #
 
+
+CRASH_INVEST_VERSION_ENV=0019
+
 if [ $# -lt 1 ]; then
 	echo "Program name is not specified"
 	exit 1
@@ -19,4 +22,4 @@ PROG_NAME="$1"
 shift
 # below line most probably will be owerwritten, when other script from here called
 export LD_LIBRARY_PATH=/local/lib
-LD_PRELOAD=libcrash_investiator_new_malloc.so /export/doocs/server/doocs ${PROG_NAME} "$@"
+LD_PRELOAD=libcrash_investigator_new_malloc_${CRASH_INVEST_VERSION_ENV}.so /export/doocs/server/doocs ${PROG_NAME} "$@"

@@ -24,10 +24,17 @@ win32{
 include("$${PWD}/../../common/common_qt/sys_common.pri")
 #include("$${PWD}/../../core/core_qt/crash_investigator.pri")
 
+CR_INV_HEADERS_HPP02	= $$cpputilsFindFilesRecursive($${PWD}/../../../src/include, .hpp)
+
 QT -= core
 QT -= gui
 CONFIG -= qt
 
+INCLUDEPATH += $${PWD}/../../../include
+INCLUDEPATH += $${PWD}/../../../src/include
 
+HEADERS += $${CR_INV_HEADERS_HPP02}
+
+SOURCES += "$${PWD}/../../../src/cpputilsm/cpputilsm_memorypool.cpp"
 SOURCES += \
 	"$${PWD}/../../../src/tests/main_any_test.cpp"

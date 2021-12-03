@@ -11,6 +11,7 @@
 include($${PWD}/../../common/common_qt/sys_common.pri)
 include("$${PWD}/crash_investigator.pri")
 
+TARGET_OLD=$${TARGET}
 
 macx {
         # case of MAC
@@ -39,6 +40,7 @@ macx {
         QMAKE_LFLAGS = -Wl,-E -pie -shared
         TARGET_EXT = so
         QMAKE_EXTENSION_SHLIB = so
+		SYS_TARGET_EXT = so
         QMAKE_CXXFLAGS = -fPIC
         QMAKE_CFLAGS = -fPIC
         #QMAKE_LFLAGS = -Wl,-E -pie
@@ -70,6 +72,7 @@ macx {
 
 
 DESTDIR = $${PRJ_PWD}/$${SYSTEM_PATH}/lib$${TARGET_PATH_EXTRA}
+TARGET = lib$${TARGET_OLD}_$${CRASH_INVEST_VERSION_ENV}.$${SYS_TARGET_EXT}
 
 QT -= gui
 QT -= core

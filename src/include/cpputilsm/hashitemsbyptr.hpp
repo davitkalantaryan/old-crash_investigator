@@ -26,6 +26,7 @@ public:
 	private:
 		size_t  unIndex;
 		Item	*prev, *next;
+		Item	*prevInTheList, *nextInTheList;
 		friend class HashItemsByPtr;
 	};
 	class iterator{
@@ -34,6 +35,8 @@ public:
 		iterator();
 		Item* operator->();
 		bool operator==(const iterator&)const;
+		bool operator!=(const iterator&)const;
+		const iterator& operator++();
 	private:
 		Item* m_pItem;
 		friend class HashItemsByPtr;
@@ -46,6 +49,7 @@ public:
     void     AddEntryWithKnownHash(const TypeIntKey& a_key, size_t a_hash, const TypeData& a_data);
     iterator FindEntry(const TypeIntKey& a_key, size_t* a_punSize);
 	void     RemoveEntry(const iterator& iter);
+	iterator begin();
 	
 	static void* operator new( ::std::size_t a_count );
 	void operator delete  ( void* a_ptr ) CRASH_INVEST_NOEXCEPT ;
@@ -58,6 +62,7 @@ public:
 public:
 	//Item**const		  m_ppItems;
 	Item*		  m_ppItems[CPPUTILSM_HASH_SIZE];
+	Item*			m_pFirstItem;
 };
 
 }  // namespace cpputilsm{
