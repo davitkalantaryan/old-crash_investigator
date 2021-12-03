@@ -6,3 +6,16 @@
 
 /export/doocs/server/run_under_invest /export/doocs/server/doocs wcs_server
 
+cp ~/dev/crash_investigator/sys/Nitrogen/Debug/lib/libcrash_investigator_new_malloc_0019.so /afs/ifh.de/group/pitz/doocs/lib/.
+
+scp kalantar@pitzdev1:~/dev/crash_investigator/sys/Nitrogen/Debug/lib/libcrash_investigator_new_malloc*.so /local/lib/. && scp kalantar@pitzdev1:~/dev/crash_investigator/scripts/* /export/doocs/server/. && /export/doocs/server/run_under_invest cat /export/doocs/server/doocs_under_invest && /export/doocs/server/run_under_invest ls -al /local/lib/libcrash*
+
+scp kalantar@pitzcpudev1:~/dev/crash_investigator/sys/focal/Debug/lib/libcrash_investigator_new_malloc*.so /local/lib/. && scp kalantar@pitzcpudev1:~/dev/crash_investigator/scripts/* /export/doocs/server/. && /export/doocs/server/run_under_invest cat /export/doocs/server/doocs_under_invest && /export/doocs/server/run_under_invest ls -al /local/lib/libcrash*
+
+picus10- picus14           => 5            
+pitzml1                    => 1
+pitzcpusync1-pitzcpusync2  => 2
+pitzcpudi1-pitzcpudi7      => 7
+pitzdaq5-10                => 6
+================================
+overall                    => 21
