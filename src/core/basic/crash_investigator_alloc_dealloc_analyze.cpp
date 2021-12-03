@@ -20,16 +20,10 @@
 #ifdef CRASH_INVEST_CPP_17_DEFINED
 #include <memory>
 #endif
-
-#include <unistd.h>
+#include <string.h>
 
 
 namespace crash_investigator {
-
-#ifndef MY_NEW_PRINTF
-//#define MY_NEW_PRINTF	printf
-#define MY_NEW_PRINTF(...)
-#endif
 
 struct SMemoryItem;
 
@@ -68,16 +62,23 @@ public:
 
 typedef cpputilsm::HashItemsByPtr<void*,SMemoryItem,&mallocn,&freen>  TypeHashTbl;
 
-static TypeHashTbl	s_memoryItems;
-static std::mutex	s_mutexForMap;
 
-class CrashInvestAnalizerInit{
+static std::mutex	s_mutexForMap;
+class CRASH_INVEST_DLL_PRIVATE CrashInvestAnalizerInit{
 public:
     CrashInvestAnalizerInit(){
-        (*s_clbkData.infoClbk)(s_clbkData.userData, "+-+-+-+-+-+-+-+-+-+- Crash investigator lib version 12 +-+-+-+-+-+-+-+-+-+-\n");
+		IsAllocingHandler aHandler;
+        (*s_clbkData.infoClbk)(s_clbkData.userData, "+-+-+-+-+-+-+-+-+-+- Crash investigator lib version "
+													CRASH_INVEST_VERSION_STR
+													" +-+-+-+-+-+-+-+-+-+-\n");
 		//printf("going to sleep\n");fflush(stdout);sleep(10);
     }
+	~CrashInvestAnalizerInit();
+	
+	TypeHashTbl	m_memoryItems;
 }static s_crashInvestAnalizerInit;
+
+static TypeHashTbl&	s_memoryItems = s_crashInvestAnalizerInit.m_memoryItems;
 
 
 CRASH_INVEST_EXPORT SCallback ReplaceFailureClbk(const SCallback& a_newClbk)
@@ -111,8 +112,8 @@ static inline void* AddNewAllocatedMemoryAndCleanOldEntryNoLock(MemoryType a_mem
         s_memoryItems.AddEntryWithKnownHash(a_pReturn,unHash,aItem);
     }
     else{
-        FreeBacktraceData(aItem.deallocTrace);
-        FreeBacktraceData(aItem.allocTrace);
+        FreeBacktraceData(memIter->second.deallocTrace);
+        FreeBacktraceData(memIter->second.allocTrace);
         memIter->second = aItem;
     }
     return a_pReturn;
@@ -158,7 +159,9 @@ CRASH_INVEST_DLL_PRIVATE void TestOperatorDelete(void* a_ptr, MemoryType a_typeE
 			const SMemoryItem aItem({MemoryType::NotProvided,MemoryStatus::DoesNotExistAtAll,CRASH_INVEST_NULL,pAnalizeTrace,nullptr});
 			// in this case app will not exit if DefaultCallback is there
             aGuard.unlock();
-            InitFailureDataAndCallClbk(aItem,MemoryType::NotProvided,a_ptr,0,FailureType::DeallocOfNonExistingMemory,pAnalizeTrace);
+			if(!SystemSpecificEarlyDealloc(a_ptr)){
+				InitFailureDataAndCallClbk(aItem,MemoryType::NotProvided,a_ptr,0,FailureType::DeallocOfNonExistingMemory,pAnalizeTrace);
+			}
             return;
         }
 
@@ -243,8 +246,12 @@ CRASH_INVEST_DLL_PRIVATE void* TestOperatorReAlloc  ( void* a_ptr, size_t a_coun
         size_t unHash;
         memItemIter = s_memoryItems.FindEntry(a_ptr,&unHash);
 		if(memItemIter==TypeHashTbl::s_endIter){
-            SMemoryItem aItem = memItemIter->second;
+            const SMemoryItem aItem({MemoryType::NotProvided,MemoryStatus::DoesNotExistAtAll,CRASH_INVEST_NULL,pAnalizeTrace,nullptr});
             aGuard.unlock();
+			void* pEarlyCall;
+			if(SystemSpecificEarlyRealloc(a_ptr,a_count,&pEarlyCall)){
+				return pEarlyCall;
+			}
             return InitFailureDataAndCallClbk(aItem,MemoryType::NotProvided,a_ptr,a_count,FailureType::BadReallocMemNotExist,pAnalizeTrace);
 		}
 
@@ -331,13 +338,82 @@ CRASH_INVEST_DLL_PRIVATE void* TestOperatorNewAligned(size_t a_count, MemoryType
 
 /*//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////*/
 
+static inline void PrintStackSingleLine(const StackItem& a_stackItem)
+{
+	bool bLineOrSourceFile = false;
+	(*s_clbkData.errorClbk)(s_clbkData.userData,"\t%p:  ",a_stackItem.address);
+	if(a_stackItem.funcName.length()){
+		(*s_clbkData.errorClbk)(s_clbkData.userData,"%s  ",a_stackItem.funcName.c_str());
+	}
+	if(a_stackItem.sourceFileName.length()){
+		const char* cpcInitial = a_stackItem.sourceFileName.c_str();
+        const char* flName = strrchr(cpcInitial, '\\');
+        if (flName) { ++flName; }
+        else {
+            flName = strrchr(cpcInitial, '/');
+            if (flName) { ++flName; }
+            else {
+                flName = cpcInitial;
+            }
+        }
+		(*s_clbkData.errorClbk)(s_clbkData.userData,"(%s",flName);
+		bLineOrSourceFile = true;
+	}
+	if(a_stackItem.line>0){
+		if(bLineOrSourceFile){ (*s_clbkData.errorClbk)(s_clbkData.userData,":%d",a_stackItem.line); }
+		else{ (*s_clbkData.errorClbk)(s_clbkData.userData,"(line:%d",a_stackItem.line);bLineOrSourceFile=true; }
+	}
+	if(bLineOrSourceFile){
+		(*s_clbkData.errorClbk)(s_clbkData.userData,")  ",a_stackItem.line);
+	}
+	if(a_stackItem.dllName.length()){
+		(*s_clbkData.errorClbk)(s_clbkData.userData,"(%s) ",a_stackItem.dllName.c_str());
+	}
+	(*s_clbkData.errorClbk)(s_clbkData.userData,"\n");
+}
+
+
 static inline void PrintStack(const ::std::vector< StackItem>& a_stack)
 {
     const size_t cunNumberOfFrames(a_stack.size());
     for(size_t i(0); i<cunNumberOfFrames;++i){
-        (*s_clbkData.errorClbk)(s_clbkData.userData,"\t%p: %s\n",a_stack[i].address,a_stack[i].funcName.c_str());
+		PrintStackSingleLine(a_stack[i]);
     }
 }
+
+
+/*//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////*/
+
+CrashInvestAnalizerInit::~CrashInvestAnalizerInit()
+{
+	int nSizeOfUnallocated = 0;
+	IsAllocingHandler aHandler;
+	TypeHashTbl::iterator iter = s_memoryItems.begin();
+	
+	for(;iter!=TypeHashTbl::s_endIter;++iter){
+		if(iter->second.status==MemoryStatus::Allocated){
+			++nSizeOfUnallocated;
+		}
+	}
+	
+	SMemoryItem* pMemItem;
+	::std::vector< StackItem> aStack;
+	if(nSizeOfUnallocated){
+		(*s_clbkData.infoClbk)(s_clbkData.userData, "\n\nProgram is about to finish. Number of unallocated memories %d\n",nSizeOfUnallocated);
+	}
+	
+	for(;iter!=TypeHashTbl::s_endIter;++iter){
+		pMemItem = &(iter->second);
+		if(pMemItem->status==MemoryStatus::Allocated){
+			ConvertBacktraceToNames(pMemItem->allocTrace,&aStack);
+			PrintStack(aStack);
+		}
+		FreeBacktraceData(pMemItem->deallocTrace);
+		FreeBacktraceData(pMemItem->allocTrace);
+	}
+}
+
+/*//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////*/
 
 
 static inline const char* AllocTypeFromMemoryType(MemoryType a_memoryType)

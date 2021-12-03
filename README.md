@@ -2,6 +2,7 @@
 
 ## Introduction  
   
+See details [here](docs/crash_investigations_nov_29.pdf)  
 This is the newer version of the [crash-investigations](https://github.com/davitkalantaryan/crash-investigations)
 The goal of this project to document and to implement some helper files in order to investigate crashes.  
 Usually best way to investigate crashes is to attach debugger (if crash is reproducible) and see what is ongoing.  

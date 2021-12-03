@@ -229,5 +229,8 @@
 #endif
 #endif
 
+#define CRASH_INVEST_STRINGIFY(_num)		CRASH_INVEST_STRINGIFY_RAW(_num)
+#define CRASH_INVEST_STRINGIFY_RAW(_num)	#_num
+
 
 #endif  // #ifndef INCLUDE_CRASH_INVEST_INTERNAL_HEADER_H

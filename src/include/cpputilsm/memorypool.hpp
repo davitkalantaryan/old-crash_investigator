@@ -1,71 +1,65 @@
 
-#ifndef CPPUTILSM_NEW_HASH_HPP
-#define CPPUTILSM_NEW_HASH_HPP
+#ifndef CPPUTILSM_MEMORYPOOL_HPP
+#define CPPUTILSM_MEMORYPOOL_HPP
 
 #include <crash_investigator/crash_investigator_internal_header.h>
 #include <new>
 #include <stddef.h>
 #include <stdlib.h>
 #include <malloc.h>
+#include <stdint.h>
 
 namespace cpputilsm{
 
-#define CPPUTILSM_HASH_SIZE	4096
 
-
-typedef void* (*TypeAlloc)  ( size_t );
-typedef void  (*TypeFree)  ( void* );
-
-template <typename TypeIntKey, typename TypeData, TypeAlloc allocFn= :: malloc, TypeFree freeFn= :: free>
-class HashItemsByPtr
+class MemoryPoolBase
 {
-public:
-	struct Item{
-		TypeIntKey first;
-		TypeData   second;
-	private:
-		size_t  unIndex;
-		Item	*prev, *next;
-		friend class HashItemsByPtr;
-	};
-	class iterator{
-	public:
-		iterator(Item*);
-		iterator();
-		Item* operator->();
-		bool operator==(const iterator&)const;
-	private:
-		Item* m_pItem;
-		friend class HashItemsByPtr;
-	};
+public:	
+	void* Alloc(size_t a_count);
+	void* Calloc(size_t a_nmemb, size_t a_size); 
+	bool  Realloc(void* a_ptr, size_t a_count, void** a_pRet); // return true, means correct memory
+	bool  Dealloc(void* a_ptr);   // return true, means correct memory
 	
-	HashItemsByPtr();
-	~HashItemsByPtr();
-	
-public:
-    void     AddEntryWithKnownHash(const TypeIntKey& a_key, size_t a_hash, const TypeData& a_data);
-    iterator FindEntry(const TypeIntKey& a_key, size_t* a_punSize);
-	void     RemoveEntry(const iterator& iter);
-	
-	static void* operator new( ::std::size_t a_count );
-	void operator delete  ( void* a_ptr ) CRASH_INVEST_NOEXCEPT ;
+protected:
+	void  Init(void* a_pBuffer, size_t a_unBufferSize);
 	
 private:
-    Item* FindEntryRaw(const TypeIntKey& a_key, size_t* a_punSize);
+	void  DeallocCheckedMemory(size_t ptrOffset);
 	
-public:
-	static iterator   s_endIter;
-public:
-	//Item**const		  m_ppItems;
-	Item*		  m_ppItems[CPPUTILSM_HASH_SIZE];
+private:
+	struct Item;
+	
+private:
+	uint8_t*		m_pBuffer;
+	size_t			m_cunBufferSize;
+	size_t			m_unOffset;
+	Item			*m_pFirst, *m_pLast;
+	
+private:
+	struct Item{
+		size_t count;
+		size_t isInUse;
+		Item *prev, *next;
+	};
 };
+
+template <size_t BufferSize>
+class MemoryPool : public MemoryPoolBase
+{
+public:
+	MemoryPool();
+	
+private:
+	uint8_t		m_vBuffer[BufferSize];
+};
+
 
 }  // namespace cpputilsm{
 
 
-#ifndef CPPUTILSM_NEW_HASH_IMPL_HPP
-#include "hashitemsbyptr.impl.hpp"
+#ifndef CPPUTILSM_MEMORYPOOL_IMPL_HPP
+#include "memorypool.impl.hpp"
 #endif
 
 
-#endif  // #ifndef CPPUTILSM_NEW_HASH_HPP
+#endif  // #ifndef CPPUTILSM_MEMORYPOOL_HPP

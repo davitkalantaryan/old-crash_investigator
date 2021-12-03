@@ -5,8 +5,13 @@
 // created on:	2021 Nov 19
 //
 
+#ifdef _MSC_VER
+#include <crash_investigator/crash_investigator_internal_header.h>
+#include <crash_investigator/callback.hpp>
+#endif
 #include <stdlib.h>
 #include <stdio.h>
+//#include <crash_investigator/crash_investigator_malloc_free_hook.h>
 
 static void Corruption01();
 static void Corruption02();
@@ -17,11 +22,25 @@ static void Corruption06();
 static void Corruption07();
 static void Corruption08();
 
+#ifdef _MSC_VER
+#pragma warning (disable:4996)
+// crash_investiator_new_malloc.lib;initial_malloc_free_test.lib
+#pragma comment(lib,"crash_investiator_new_malloc.lib")
+#pragma comment(lib,"initial_malloc_free.lib")
+//#pragma comment(lib,"Dbghelp.lib")
+#endif
+
+
 int main(int a_argc, char* a_argv[])
 {
-	printf("If debugging is needed, then connect with debugger, then press enter to proceed! ");
+	//printf("If debugging is needed, then connect with debugger, then press enter to proceed %p ! ", g_callers_malloc);
+	printf("If debugging is needed, then connect with debugger, then press enter to proceed  ! ");
 	fflush(stdout);
 	getchar();
+
+#ifdef _MSC_VER
+	crash_investiator_new_malloc_init();
+#endif
 	
 	if(a_argc<2){
         fprintf(stderr,"ERROR: specify number [1..6] to select hook to test\n");
@@ -65,6 +84,10 @@ int main(int a_argc, char* a_argv[])
 
 
 static void Corruption01(){  // double free
+	// https://stackoverflow.com/questions/33374483/what-does-visual-studio-do-with-a-deleted-pointer-and-why
+	// mor Microsoft compiler, after delete compiler modifies pointer value to 0x8123
+	// in order to prevent this, disable SDL check 
+	// Properties -> Configuration Properties -> C/C++ -> General -> SDL checks
 	int* pnValue = new int;
 	delete pnValue;
 	delete pnValue;

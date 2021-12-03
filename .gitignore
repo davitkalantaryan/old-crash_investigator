@@ -56,6 +56,7 @@
 !/prj/*/*_qt/platform
 #/prj/*/*_qt/platform/android/manifest/res
 #
+!/prj/*/*_vs/cpp.hint
 !/prj/*/*_vs/*.sln
 !/prj/*/*_vs/*.vcxproj
 !/prj/*/*_vs/*.vcxproj.filters

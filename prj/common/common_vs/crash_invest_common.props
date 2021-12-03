@@ -1,0 +1,65 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ImportGroup Label="PropertySheets" />
+  <PropertyGroup Label="UserMacros">
+    <DoocsConfigurationExtension Condition="'$(Configuration)'=='Debug'">d</DoocsConfigurationExtension>
+    <DoocsConfigurationExtension Condition="'$(Configuration)'=='Release'">r</DoocsConfigurationExtension>
+    <DoocsVersion>20.8.0</DoocsVersion>
+    <DoocsBuildNumber>05</DoocsBuildNumber>
+    <DoocsFullVersion>$(DoocsVersion).$(DoocsBuildNumber)-$(PlatformTarget)-e$(DoocsConfigurationExtension)</DoocsFullVersion>
+    <TineVersion>5.2.2</TineVersion>
+    <TineBuildNumber>01</TineBuildNumber>
+    <TineFullVersion>$(TineVersion).$(TineBuildNumber)-$(PlatformTarget)-e$(DoocsConfigurationExtension)</TineFullVersion>
+    <CRASH_INVEST_VERSION_ENV>0019</CRASH_INVEST_VERSION_ENV>
+  </PropertyGroup>
+  <PropertyGroup>
+    <IntDir>$(ProjectDir)..\..\..\sys\win_$(PlatformTarget)\$(Configuration)\.objects\$(ProjectName)\</IntDir>
+    <SourcePath>$(UDOOCSROOT)\dev\src\clientlib\pktrclntlib;$(UDOOCSROOT)\dev\src\clientlib;$(SourcePath)</SourcePath>
+    <OutDir>$(ProjectDir)..\..\..\sys\win_$(PlatformTarget)\$(Configuration)\dll\</OutDir>
+    <TargetName>$(ProjectName).$(DoocsFullVersion)</TargetName>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+    <PreBuildEvent>
+      <Command>::..\..\..\util\set_windows_target_platform.exe $(ProjectPath) $(WinTargetPlatformVersion)</Command>
+    </PreBuildEvent>
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(UDOOCSROOT)\dev\src\clientlib;$(UDOOCSROOT)\dev\src\clientlib\pktrclntlib;$(UDOOCSROOT)\dev\include\wlac;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>DOOCS_VERSION="$(DoocsVersion)"</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <AdditionalLibraryDirectories>$(UDOOCSROOT)\dev\arch\$(PROCESSOR_ARCHITECTURE)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>DOOCSapi.lib;wlac.lib</AdditionalDependencies>
+      <ImportLibrary>$(ProjectDir)..\..\..\sys\win_$(PlatformTarget)\$(Configuration)\lib\$(ProjectName).lib</ImportLibrary>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <BuildMacro Include="DoocsVersion">
+      <Value>$(DoocsVersion)</Value>
+      <EnvironmentVariable>true</EnvironmentVariable>
+    </BuildMacro>
+    <BuildMacro Include="DoocsBuildNumber">
+      <Value>$(DoocsBuildNumber)</Value>
+      <EnvironmentVariable>true</EnvironmentVariable>
+    </BuildMacro>
+    <BuildMacro Include="DoocsFullVersion">
+      <Value>$(DoocsFullVersion)</Value>
+      <EnvironmentVariable>true</EnvironmentVariable>
+    </BuildMacro>
+    <BuildMacro Include="TineVersion">
+      <Value>$(TineVersion)</Value>
+      <EnvironmentVariable>true</EnvironmentVariable>
+    </BuildMacro>
+    <BuildMacro Include="TineBuildNumber">
+      <Value>$(TineBuildNumber)</Value>
+      <EnvironmentVariable>true</EnvironmentVariable>
+    </BuildMacro>
+    <BuildMacro Include="TineFullVersion">
+      <Value>$(TineFullVersion)</Value>
+      <EnvironmentVariable>true</EnvironmentVariable>
+    </BuildMacro>
+    <BuildMacro Include="CRASH_INVEST_VERSION_ENV">
+      <Value>$(CRASH_INVEST_VERSION_ENV)</Value>
+      <EnvironmentVariable>true</EnvironmentVariable>
+    </BuildMacro>
+  </ItemGroup>
+</Project>

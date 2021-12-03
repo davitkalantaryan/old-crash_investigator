@@ -24,5 +24,12 @@ CRASH_INVEST_DLL_PRIVATE void  TestOperatorDelete(void* a_ptr, MemoryType a_type
 CRASH_INVEST_DLL_PRIVATE void* TestOperatorNewAligned  ( size_t a_count, MemoryType a_memoryType, bool a_bThrow, size_t a_align, int goBackInTheStackCalc );
 #endif
 
+#ifdef _MSC_VER
+#define CorrectNameBase(_a,_b)      _a ## _b
+#define CorrectName(_a)             CorrectNameBase(_a,WinMsC)
+#else
+#define CorrectName(_a)				_a
+#endif
+
 
 } // namespace crash_investigator {

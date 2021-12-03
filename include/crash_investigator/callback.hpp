@@ -37,7 +37,11 @@ enum class FailureType : uint32_t{
 
 struct StackItem{
     void*           address;
+    ::std::string   dllName;
     ::std::string   funcName;
+    ::std::string   sourceFileName;  // empty means unavailable
+    int             line;      // <0 means unknown (no debug info available)
+    int             reserved01;
 };
 
 
@@ -71,3 +75,9 @@ CRASH_INVEST_EXPORT SCallback ReplaceFailureClbk(const SCallback& a_newClbk);
 CRASH_INVEST_EXPORT SCallback GetFailureClbk(void);
 
 } // namespace crash_investigator {
+
+#ifdef _MSC_VER
+CRASH_INVEST_BEGIN_C
+CRASH_INVEST_EXPORT void crash_investiator_new_malloc_init(void);
+CRASH_INVEST_END_C
+#endif

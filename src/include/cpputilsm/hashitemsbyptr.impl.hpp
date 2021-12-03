@@ -14,25 +14,16 @@
 namespace cpputilsm{
 
 
-// #define NEW_FREEE_USED
-//#define MY_NEW_PRINTF	printf
-#define MY_NEW_PRINTF(...)
-
-
-//class HashItemsByPtr{
-//	//
-//};
-
-
 template <typename TypeIntKey, typename TypeData, TypeAlloc allocFn, TypeFree freeFn>
 typename HashItemsByPtr<TypeIntKey,TypeData,allocFn,freeFn>::iterator   HashItemsByPtr<TypeIntKey,TypeData,allocFn,freeFn>::s_endIter(CRASH_INVEST_NULL);
 
 template <typename TypeIntKey, typename TypeData, TypeAlloc allocFn, TypeFree freeFn>
 HashItemsByPtr<TypeIntKey,TypeData,allocFn,freeFn>::HashItemsByPtr()
-#ifdef NEW_FREEE_USED
 	:
-	  m_ppItems(static_cast<Item**>(allocFn(CPPUTILSM_HASH_SIZE*sizeof(Item*))))
+#ifdef NEW_FREEE_USED
+	  m_ppItems(static_cast<Item**>(allocFn(CPPUTILSM_HASH_SIZE*sizeof(Item*)))),
 #endif
+	  m_pFirstItem(CRASH_INVEST_NULL)
 {	
 #ifdef NEW_FREEE_USED
 	if(!m_ppItems){
@@ -47,6 +38,16 @@ HashItemsByPtr<TypeIntKey,TypeData,allocFn,freeFn>::HashItemsByPtr()
 template <typename TypeIntKey, typename TypeData, TypeAlloc allocFn, TypeFree freeFn>
 HashItemsByPtr<TypeIntKey,TypeData,allocFn,freeFn>::~HashItemsByPtr()
 {
+	Item *pItemNext, *pItem = m_pFirstItem;
+	
+	while(pItem){
+		pItemNext = pItem->nextInTheList;
+		pItem->second.~TypeData();
+		pItem->first.~TypeIntKey();
+		freeFn(pItem);
+		pItem = pItemNext;
+	}
+	
 #ifdef NEW_FREEE_USED
 	freeFn(m_ppItems);
 #endif
@@ -54,12 +55,15 @@ HashItemsByPtr<TypeIntKey,TypeData,allocFn,freeFn>::~HashItemsByPtr()
 
 
 template <typename TypeIntKey, typename TypeData, TypeAlloc allocFn, TypeFree freeFn>
-void HashItemsByPtr<TypeIntKey,TypeData,allocFn,freeFn>::AddEntryWithKnownHash(const TypeIntKey& a_key, size_t a_hash, const TypeData& a_data)
-{
+void HashItemsByPtr<TypeIntKey,TypeData,allocFn,freeFn>::
+AddEntryWithKnownHash(const TypeIntKey& a_key, size_t a_hash, const TypeData& a_data)
+{	
+#ifdef NEW_FREEE_USED
 	if(!m_ppItems){
 		printf("file:%s, line:%d\n",__FILE__,__LINE__);
 		return;
 	}
+#endif
 		
     Item* pItem = static_cast<Item*>(allocFn(sizeof(Item)));
 	if(!pItem){
@@ -67,19 +71,29 @@ void HashItemsByPtr<TypeIntKey,TypeData,allocFn,freeFn>::AddEntryWithKnownHash(c
 	}
 	
     pItem->unIndex = a_hash;
+	//
 	pItem->prev = CRASH_INVEST_NULL;
 	pItem->next = m_ppItems[pItem->unIndex];
 	if(m_ppItems[pItem->unIndex]){
 		m_ppItems[pItem->unIndex]->prev = pItem;
 	}
 	m_ppItems[pItem->unIndex] = pItem;
+	//
+	pItem->prevInTheList = CRASH_INVEST_NULL;
+	pItem->nextInTheList = m_pFirstItem;
+	if(m_pFirstItem){
+		m_pFirstItem->prev = pItem;
+	}
+	m_pFirstItem = pItem;
+	//
 	new(&(pItem->first)) TypeIntKey(a_key);
 	new(&(pItem->second)) TypeData(a_data);
 }
 
 
 template <typename TypeIntKey, typename TypeData, TypeAlloc allocFn, TypeFree freeFn>
-typename HashItemsByPtr<TypeIntKey,TypeData,allocFn,freeFn>::iterator HashItemsByPtr<TypeIntKey,TypeData,allocFn,freeFn>::FindEntry(const TypeIntKey& a_key,size_t* a_punSize)
+typename HashItemsByPtr<TypeIntKey,TypeData,allocFn,freeFn>::iterator HashItemsByPtr<TypeIntKey,TypeData,allocFn,freeFn>::
+FindEntry(const TypeIntKey& a_key,size_t* a_punSize)
 {
     Item* pItem = FindEntryRaw(a_key,a_punSize);
 	return iterator(pItem);
@@ -87,14 +101,47 @@ typename HashItemsByPtr<TypeIntKey,TypeData,allocFn,freeFn>::iterator HashItemsB
 
 
 template <typename TypeIntKey, typename TypeData, TypeAlloc allocFn, TypeFree freeFn>
-void HashItemsByPtr<TypeIntKey,TypeData,allocFn,freeFn>::RemoveEntry(const iterator& a_iter)
+typename HashItemsByPtr<TypeIntKey,TypeData,allocFn,freeFn>::iterator HashItemsByPtr<TypeIntKey,TypeData,allocFn,freeFn>::
+begin()
 {
-	assert(a_iter.m_pItem);
-	a_iter.m_pItem->second.~TypeData();
-	a_iter.m_pItem->first.~TypeIntKey();
-	if(a_iter.m_pItem->next){a_iter.m_pItem->next->prev = a_iter.m_pItem->prev;}
-	if(a_iter.m_pItem->prev){a_iter.m_pItem->prev->next = a_iter.m_pItem->next;}
-	if(a_iter.m_pItem == m_ppItems[a_iter.m_pItem->unIndex]){m_ppItems[a_iter.m_pItem->unIndex]=a_iter.m_pItem->next;}
+	return iterator(m_pFirstItem);
+}
+
+
+template <typename TypeIntKey, typename TypeData, TypeAlloc allocFn, TypeFree freeFn>
+void HashItemsByPtr<TypeIntKey,TypeData,allocFn,freeFn>::
+RemoveEntry(const iterator& a_iter)
+{
+	if(a_iter.m_pItem){
+		//
+		a_iter.m_pItem->second.~TypeData();
+		a_iter.m_pItem->first.~TypeIntKey();
+		//
+		if(a_iter.m_pItem->next){a_iter.m_pItem->next->prev = a_iter.m_pItem->prev;}
+		if(a_iter.m_pItem->prev){a_iter.m_pItem->prev->next = a_iter.m_pItem->next;}
+		if(a_iter.m_pItem == m_ppItems[a_iter.m_pItem->unIndex]){m_ppItems[a_iter.m_pItem->unIndex]=a_iter.m_pItem->next;}
+		//
+		if(a_iter.m_pItem->nextInTheList){a_iter.m_pItem->nextInTheList->prevInTheList = a_iter.m_pItem->prevInTheList;}
+		if(a_iter.m_pItem->prevInTheList){a_iter.m_pItem->prevInTheList->nextInTheList = a_iter.m_pItem->nextInTheList;}
+		if(a_iter.m_pItem == m_pFirstItem){m_pFirstItem=a_iter.m_pItem->nextInTheList;}
+		//
+		freeFn(a_iter.m_pItem);
+		a_iter.m_pItem = CRASH_INVEST_NULL;
+	}
+}
+
+
+template <typename TypeIntKey, typename TypeData, TypeAlloc allocFn, TypeFree freeFn>
+typename HashItemsByPtr<TypeIntKey,TypeData,allocFn,freeFn>::Item* HashItemsByPtr<TypeIntKey,TypeData,allocFn,freeFn>::
+FindEntryRaw(const TypeIntKey& a_key, size_t* a_punSize)
+{
+    *a_punSize = ((size_t)(a_key))%CPPUTILSM_HASH_SIZE;
+    Item* pItem = m_ppItems[*a_punSize];
+	while(pItem){
+		if(pItem->first == a_key){return pItem;}
+		pItem = pItem->next;
+	}
+	return CRASH_INVEST_NULL;
 }
 
 
@@ -109,22 +156,6 @@ template <typename TypeIntKey, typename TypeData, TypeAlloc allocFn, TypeFree fr
 void HashItemsByPtr<TypeIntKey,TypeData,allocFn,freeFn>::operator delete  ( void* a_ptr ) CRASH_INVEST_NOEXCEPT
 {
 	freeFn(a_ptr);
-}
-
-
-template <typename TypeIntKey, typename TypeData, TypeAlloc allocFn, TypeFree freeFn>
-typename HashItemsByPtr<TypeIntKey,TypeData,allocFn,freeFn>::Item* HashItemsByPtr<TypeIntKey,TypeData,allocFn,freeFn>::FindEntryRaw(const TypeIntKey& a_key, size_t* a_punSize)
-{
-	MY_NEW_PRINTF("file:%s, line:%d\n",__FILE__,__LINE__);
-    *a_punSize = reinterpret_cast<size_t>(a_key)%CPPUTILSM_HASH_SIZE;
-	MY_NEW_PRINTF("file:%s, line:%d, m_ppItems=%p\n",__FILE__,__LINE__,m_ppItems);
-    Item* pItem = m_ppItems[*a_punSize];
-	MY_NEW_PRINTF("file:%s, line:%d\n",__FILE__,__LINE__);
-	while(pItem){
-		if(pItem->first == a_key){return pItem;}
-		pItem = pItem->next;
-	}
-	return CRASH_INVEST_NULL;
 }
 
 
@@ -146,16 +177,35 @@ HashItemsByPtr<TypeIntKey,TypeData,allocFn,freeFn>::iterator::iterator()
 
 
 template <typename TypeIntKey, typename TypeData, TypeAlloc allocFn, TypeFree freeFn>
-typename HashItemsByPtr<TypeIntKey,TypeData,allocFn,freeFn>::Item* HashItemsByPtr<TypeIntKey,TypeData,allocFn,freeFn>::iterator::operator->()
+const typename HashItemsByPtr<TypeIntKey,TypeData,allocFn,freeFn>::iterator& HashItemsByPtr<TypeIntKey,TypeData,allocFn,freeFn>::
+iterator::operator++()
+{
+	m_pItem = m_pItem->nextInTheList;
+	return *this;
+}
+
+
+template <typename TypeIntKey, typename TypeData, TypeAlloc allocFn, TypeFree freeFn>
+typename HashItemsByPtr<TypeIntKey,TypeData,allocFn,freeFn>::Item* HashItemsByPtr<TypeIntKey,TypeData,allocFn,freeFn>::
+iterator::operator->()
 {
 	return m_pItem;
 }
 
 
 template <typename TypeIntKey, typename TypeData, TypeAlloc allocFn, TypeFree freeFn>
-bool HashItemsByPtr<TypeIntKey,TypeData,allocFn,freeFn>::iterator::operator==(const iterator& a_aM)const
+bool HashItemsByPtr<TypeIntKey,TypeData,allocFn,freeFn>::
+iterator::operator==(const iterator& a_aM)const
 {
 	return (m_pItem == a_aM.m_pItem);
+}
+
+
+template <typename TypeIntKey, typename TypeData, TypeAlloc allocFn, TypeFree freeFn>
+bool HashItemsByPtr<TypeIntKey,TypeData,allocFn,freeFn>::
+iterator::operator!=(const iterator& a_aM)const
+{
+	return (m_pItem != a_aM.m_pItem);
 }
 
 

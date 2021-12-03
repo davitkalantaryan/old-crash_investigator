@@ -7,6 +7,12 @@ ifndef repoRootPath
 	repoRootPath	:= $(repoRootPathCrIn)
 endif
 
-COMMON_FLAGS	+=  -std=c++14
+
+include $(repoRootPathCrIn)/ENVIRONMENT
+
+COMMON_FLAGS	+= -DCRASH_INVEST_VERSION_NUM=$(CRASH_INVEST_VERSION_ENV)
+COMMON_FLAGS	+= -DCRASH_INVEST_VERSION_STR="\"$(CRASH_INVEST_VERSION_ENV)\""
+
+COMMON_FLAGS	+= -std=c++14
 
 include $(repoRootPathCrIn)/contrib/cpputils/prj/common/common_mkfl/unix.common.tmp.Makefile

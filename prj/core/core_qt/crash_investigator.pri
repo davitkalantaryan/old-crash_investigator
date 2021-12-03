@@ -6,6 +6,11 @@
 
 
 include("$${PWD}/../../common/common_qt/sys_common.pri")
+include("$${PWD}/../../../ENVIRONMENT")
+
+
+DEFINES +=  CRASH_INVEST_VERSION_NUM=$${CRASH_INVEST_VERSION_ENV}
+DEFINES +=	CRASH_INVEST_VERSION_STR=\\\"$${CRASH_INVEST_VERSION_ENV}\\\"
 
 QMAKE_CXXFLAGS += -pthread -rdynamic
 QMAKE_CFLAGS += -pthread -rdynamic
@@ -29,7 +34,8 @@ SOURCES += "$${SRC_CORE_BASIC_DIR}/crash_investigator_alloc_dealloc_analyze.cpp"
 SOURCES += "$${SRC_CORE_BASIC_DIR}/crash_investigator_malloc_free.cpp"
 SOURCES += "$${SRC_CORE_BASIC_DIR}/crash_investigator_new_delete.cpp"
 SOURCES += "$${PWD}/../../../src/core/backtrace/crash_investigator_backtrace_unix.cpp"
-SOURCES += "$${PWD}/../../../src/cpputilsm/hashitemsbyptr.cpp"
+SOURCES += "$${PWD}/../../../src/cpputilsm/cpputilsm_hashitemsbyptr.cpp"
+SOURCES += "$${PWD}/../../../src/cpputilsm/cpputilsm_memorypool.cpp"
 SOURCES += "$${PWD}/../../../contrib/cpputils/src/core/cpputils_inscopecleaner.cpp"
 #SOURCES += "$${PWD}/../../../contrib/cpputils/src/core/cpputils_hashtbl.cpp"
 

@@ -34,11 +34,22 @@
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\..\src\tests\malloc_free_hook_tests\crash_investigator_malloc_free_hook.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\..\src\tests\malloc_free_hook_tests\crash_investigator_malloc_free_hook_windows1.c" />
+    <ClCompile Include="..\..\..\src\tests\malloc_free_hook_tests\crash_investigator_malloc_free_hook_windows2.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\..\src\tests\malloc_free_hook_tests\second_malloc_free.def" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
     <ProjectGuid>{16f512ee-22a8-45f1-ba94-4cb39abd42c3}</ProjectGuid>
     <RootNamespace>initialmallocfree</RootNamespace>
+    <ProjectName>initial_malloc_free_test</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -307,13 +318,6 @@
       <ImportLibrary>$(OutDir)..\lib\$(TargetName).lib</ImportLibrary>
     </Link>
   </ItemDefinitionGroup>
-  <ItemGroup>
-    <ClCompile Include="..\..\..\src\tests\malloc_free\crash_investigator_malloc_free_hook_windows1.c" />
-    <ClCompile Include="..\..\..\src\tests\malloc_free\crash_investigator_malloc_free_hook_windows2.c" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="..\..\..\src\tests\malloc_free\crash_investigator_malloc_free_hook.h" />
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

@@ -2,7 +2,7 @@
 mkfile_path		=  $(abspath $(lastword $(MAKEFILE_LIST)))
 mkfile_dir		=  $(shell dirname $(mkfile_path))
 
-targetName		=  libcrash_investiator_new_malloc
+targetName		=  libcrash_investigator_new_malloc
 
 include $(mkfile_dir)/crash_investigator_libs_common.unix.Makefile
 
