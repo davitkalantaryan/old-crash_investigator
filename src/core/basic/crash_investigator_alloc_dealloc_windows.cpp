@@ -17,6 +17,18 @@
 
 namespace crash_investigator {
 
+CRASH_INVEST_DLL_PRIVATE bool SystemSpecificEarlyRealloc  ( void*, size_t, void** a_ppReturn ) CRASH_INVEST_NODISCARD
+{
+	*a_ppReturn = CRASH_INVEST_NULL;
+	return false;
+}
+
+
+CRASH_INVEST_DLL_PRIVATE bool SystemSpecificEarlyDealloc( void* ) CRASH_INVEST_NOEXCEPT
+{
+	return false;
+}
+
 
 CRASH_INVEST_DLL_PRIVATE void* mallocn  ( size_t a_count ) CRASH_INVEST_NODISCARD
 {

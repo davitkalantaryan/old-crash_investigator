@@ -1,0 +1,8 @@
+
+
+/export/doocs/server/doocs wcs_server
+
+/export/doocs/server/doocs_under_invest wcs_server
+
+/export/doocs/server/run_under_invest /export/doocs/server/doocs wcs_server
+
