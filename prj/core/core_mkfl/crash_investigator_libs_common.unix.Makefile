@@ -11,4 +11,4 @@ COMMON_FLAGS	+=  -fPIC
 LFLAGS			+= -Wl,-E -pie -shared
 
 targetDirPath	= $(repoRootPath)/sys/$(lsbCode)/$(Configuration)/lib
-targetFilePath	= $(targetDirPath)/$(targetName).so
+targetFilePath	= $(targetDirPath)/$(targetName)_$(CRASH_INVEST_VERSION_ENV).so
