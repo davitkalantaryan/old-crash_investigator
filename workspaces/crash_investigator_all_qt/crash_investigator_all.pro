@@ -45,11 +45,16 @@ OTHER_FILES	=
 #OTHER_FILES += $${TXT_IN_DOCS}
 
 OTHER_FILES	+=	\
-	"$${repositoryRoot}/.gitattributes"								\
-	"$${repositoryRoot}/.gitignore"									\
-	"$${repositoryRoot}/.gitmodules"								\
-	"$${repositoryRoot}/LICENSE"									\
-	"$${repositoryRoot}/README.md"									\
-	"$${repositoryRoot}/Makefile"									\
-	"$${repositoryRoot}/scripts/run_under_invest"					\
-	"$${repositoryRoot}/scripts/doocs_under_invest"
+	"$${repositoryRoot}/.gitattributes"									\
+	"$${repositoryRoot}/.gitignore"										\
+	"$${repositoryRoot}/.gitmodules"									\
+	"$${repositoryRoot}/LICENSE"										\
+	"$${repositoryRoot}/README.md"										\
+	"$${repositoryRoot}/Makefile"										\
+	"$${repositoryRoot}/scripts/run_under_invest"						\
+	"$${repositoryRoot}/scripts/doocs_under_invest"						\
+	"$${repositoryRoot}/scripts/upload_to_supported_hosts.sh"			\
+	"$${repositoryRoot}/scripts/upload_to_supported_hosts_focal.sh"		\
+	"$${repositoryRoot}/scripts/upload_to_supported_hosts_nitrogen1.sh"	\
+	"$${repositoryRoot}/scripts/upload_to_supported_hosts_nitrogen2.sh"	\
+	"$${repositoryRoot}/scripts/raw/_upload_to_supported_hosts.sh"
