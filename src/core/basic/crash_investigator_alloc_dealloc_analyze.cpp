@@ -509,6 +509,7 @@ CMemoryItem::CMemoryItem()
 	this->type = MemoryType::NotProvided;
 	this->status = MemoryStatus::DoesNotExistAtAll;
 	this->allocTrace = CRASH_INVEST_NULL;
+	this->deallocTrace = CRASH_INVEST_NULL;
 }
 
 
@@ -593,8 +594,7 @@ static FailureAction DefaultFailureClbk(const FailureData& a_data)
         PrintStack(a_data.stackAlloc);
         break;
     default:
-        //assert(false);
-		(*s_clbkData.errorClbk)(s_clbkData.userData,"line: %d, a_data.failureType=%d\n",__LINE__,(int)a_data.failureType);
+        assert(false);
         break;
     } // switch(a_data.failureType){
 
@@ -799,8 +799,7 @@ static void* InitFailureDataAndCallClbk(const SMemoryItem& a_item, MemoryType a_
         return CRASH_INVEST_NULL;
 
     default:
-        //assert(false);
-		(*s_clbkData.errorClbk)(s_clbkData.userData,"line: %d, a_data.failureType=%d\n",__LINE__,(int)a_failureType);
+        assert(false);
         break;
     } // switch(a_failureType){
 

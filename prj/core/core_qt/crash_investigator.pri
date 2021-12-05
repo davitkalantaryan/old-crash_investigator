@@ -12,10 +12,15 @@ include("$${PWD}/../../../ENVIRONMENT")
 DEFINES +=  CRASH_INVEST_VERSION_NUM=$${CRASH_INVEST_VERSION_ENV}
 DEFINES +=	CRASH_INVEST_VERSION_STR=\\\"$${CRASH_INVEST_VERSION_ENV}\\\"
 
-QMAKE_CXXFLAGS += -pthread -rdynamic
-QMAKE_CFLAGS += -pthread -rdynamic
+#QMAKE_CXXFLAGS += -pthread -rdynamic
+#QMAKE_CFLAGS += -pthread -rdynamic
+#LIBS += -ldl
+#LIBS += -pthread -rdynamic
+
+QMAKE_CXXFLAGS += -pthread 
+QMAKE_CFLAGS += -pthread
 LIBS += -ldl
-LIBS += -pthread -rdynamic
+LIBS += -pthread 
 
 
 CR_INV_HEADERS_H01		= $$cpputilsFindFilesRecursive($${PWD}/../../../include, .h)
