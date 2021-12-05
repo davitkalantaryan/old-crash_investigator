@@ -56,6 +56,9 @@
     <ClCompile Include="..\..\..\src\core\basic\crash_investigator_windows_entry.c">
       <Filter>Source Files\basic</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\contrib\cpputils\src\core\cpputils_thread_local.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="cpp.hint" />

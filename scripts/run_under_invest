@@ -10,7 +10,7 @@
 #				under memory handling investigation
 #
 
-CRASH_INVEST_VERSION_ENV=0019
+CRASH_INVEST_VERSION_ENV=0020
 
 if [ $# -gt 0 ]; then
 	PROG_NAME="$1"

@@ -15,18 +15,53 @@
 #include <Windows.h>
 #endif
 
+#ifdef _DEBUG
+#define CRASH_INVEST_CRUN_LIB	"ucrtbased.dll"
+#else
+#define CRASH_INVEST_CRUN_LIB	"ucrtbase.dll"
+#endif
+
 namespace crash_investigator {
 
-CRASH_INVEST_DLL_PRIVATE bool SystemSpecificEarlyRealloc  ( void*, size_t, void** a_ppReturn ) CRASH_INVEST_NODISCARD
+CRASH_INVEST_DLL_PRIVATE bool SystemSpecificLibInitialRealloc( void*, size_t, void** a_ppReturn ) CRASH_INVEST_NODISCARD
 {
 	*a_ppReturn = CRASH_INVEST_NULL;
 	return false;
 }
 
 
-CRASH_INVEST_DLL_PRIVATE bool SystemSpecificEarlyDealloc( void* ) CRASH_INVEST_NOEXCEPT
+CRASH_INVEST_DLL_PRIVATE bool SystemSpecificLibInitialDealloc( void* ) CRASH_INVEST_NOEXCEPT
 {
 	return false;
+}
+
+
+CRASH_INVEST_DLL_PRIVATE void* SystemSpecificGlibcRealloc(void* a_ptr, size_t a_count) CRASH_INVEST_NODISCARD
+{
+	void* pReturn = CRASH_INVEST_NULL;
+	HMODULE cranLib = LoadLibraryA(CRASH_INVEST_CRUN_LIB);
+	if (cranLib) {
+		void* (*reallocPtr)(void*, size_t) = (void*(*)(void*,size_t))GetProcAddress(cranLib,"realloc");
+		if (reallocPtr) {
+			pReturn = (*reallocPtr)(a_ptr,a_count);
+		}
+		FreeLibrary(cranLib);
+	}
+
+	return pReturn;
+}
+
+
+CRASH_INVEST_DLL_PRIVATE void  SystemSpecificGlibcDealloc(void* a_ptr) CRASH_INVEST_NOEXCEPT
+{
+	HMODULE cranLib = LoadLibraryA(CRASH_INVEST_CRUN_LIB);
+	if (cranLib) {
+		void (*freePtr)(void*) = (void (*)(void*))GetProcAddress(cranLib, "free");
+		if (freePtr) {
+			(*freePtr)(a_ptr);
+		}
+		FreeLibrary(cranLib);
+	}
 }
 
 

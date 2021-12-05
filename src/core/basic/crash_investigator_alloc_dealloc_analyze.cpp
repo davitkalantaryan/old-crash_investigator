@@ -14,6 +14,7 @@
 #include <crash_investigator/callback.hpp>
 #include <cpputilsm/hashitemsbyptr.hpp>
 #include <cpputils/inscopecleaner.hpp>
+#include <cpputils/tls_data.hpp>
 #include <mutex>
 #include <stdio.h>
 #include <stdarg.h>
@@ -21,6 +22,7 @@
 #include <memory>
 #endif
 #include <string.h>
+#include <signal.h>
 
 
 namespace crash_investigator {
@@ -56,29 +58,45 @@ static SCallback    s_clbkData = {CRASH_INVEST_NULL,&DefaultFailureClbk,&Default
 static thread_local bool s_bIsAllocingOrDeallocing = false;
 class IsAllocingHandler{
 public:
-	IsAllocingHandler(){s_bIsAllocingOrDeallocing=true;}
-	~IsAllocingHandler(){s_bIsAllocingOrDeallocing=false;}
+	IsAllocingHandler(){if(s_bIsAllocingOrDeallocing){m_bIsLocker=false;}else{s_bIsAllocingOrDeallocing=true;m_bIsLocker=true;}}
+	~IsAllocingHandler(){if(m_bIsLocker){s_bIsAllocingOrDeallocing=false;}}
+	
+private:
+	bool m_bIsLocker;
+};
+
+
+class CMemoryItem : public SMemoryItem{
+public:
+	CMemoryItem();
+	~CMemoryItem();
+	void Init(size_t a_count, FailureType a_failureType, void* a_prealAddress, Backtrace* a_pAnalizeTrace);
+	FailureType failureType;
+	size_t count;
 };
 
 typedef cpputilsm::HashItemsByPtr<void*,SMemoryItem,&mallocn,&freen>  TypeHashTbl;
 
 
-static std::mutex	s_mutexForMap;
 class CRASH_INVEST_DLL_PRIVATE CrashInvestAnalizerInit{
 public:
-    CrashInvestAnalizerInit(){
-		IsAllocingHandler aHandler;
-        (*s_clbkData.infoClbk)(s_clbkData.userData, "+-+-+-+-+-+-+-+-+-+- Crash investigator lib version "
-													CRASH_INVEST_VERSION_STR
-													" +-+-+-+-+-+-+-+-+-+-\n");
-		//printf("going to sleep\n");fflush(stdout);sleep(10);
-    }
+    CrashInvestAnalizerInit();
 	~CrashInvestAnalizerInit();
 	
-	TypeHashTbl	m_memoryItems;
+	TypeHashTbl								m_memoryItems;
+	std::mutex								m_mutexForMap;
+	cpputils::tls_ptr_fast<CMemoryItem>		m_handlerMemory;
+#ifdef _WIN32
+	void (*m_funcInitial)(int);
+#else
+	struct sigaction m_saInitial;
+#endif
 }static s_crashInvestAnalizerInit;
 
+
+// todo: remove below 2 lines and fix the code
 static TypeHashTbl&	s_memoryItems = s_crashInvestAnalizerInit.m_memoryItems;
+static std::mutex&	s_mutexForMap = s_crashInvestAnalizerInit.m_mutexForMap;
 
 
 CRASH_INVEST_EXPORT SCallback ReplaceFailureClbk(const SCallback& a_newClbk)
@@ -156,12 +174,18 @@ CRASH_INVEST_DLL_PRIVATE void TestOperatorDelete(void* a_ptr, MemoryType a_typeE
         //if (memItemIter == TypeHashTbl::s_endIter) { ::crash_investigator::freen(a_ptr); return; } // this is some early memory, leave this
 		//if(memItemIter == TypeHashTbl::s_endIter){ return;}
         if(memItemIter==TypeHashTbl::s_endIter){
-			const SMemoryItem aItem({MemoryType::NotProvided,MemoryStatus::DoesNotExistAtAll,CRASH_INVEST_NULL,pAnalizeTrace,nullptr});
 			// in this case app will not exit if DefaultCallback is there
             aGuard.unlock();
-			if(!SystemSpecificEarlyDealloc(a_ptr)){
-				InitFailureDataAndCallClbk(aItem,MemoryType::NotProvided,a_ptr,0,FailureType::DeallocOfNonExistingMemory,pAnalizeTrace);
+			if(SystemSpecificLibInitialDealloc(a_ptr)){return;}
+			
+			// let's prepare temporar variable, that will be used if we have crash
+			CMemoryItem* pMemoryItem = s_crashInvestAnalizerInit.m_handlerMemory.get();
+			if(!pMemoryItem){
+				pMemoryItem = new CMemoryItem;
+				s_crashInvestAnalizerInit.m_handlerMemory = pMemoryItem;
 			}
+			pMemoryItem->Init(0,FailureType::DeallocOfNonExistingMemory,a_ptr,pAnalizeTrace);
+			SystemSpecificGlibcDealloc(a_ptr);
             return;
         }
 
@@ -246,13 +270,20 @@ CRASH_INVEST_DLL_PRIVATE void* TestOperatorReAlloc  ( void* a_ptr, size_t a_coun
         size_t unHash;
         memItemIter = s_memoryItems.FindEntry(a_ptr,&unHash);
 		if(memItemIter==TypeHashTbl::s_endIter){
-            const SMemoryItem aItem({MemoryType::NotProvided,MemoryStatus::DoesNotExistAtAll,CRASH_INVEST_NULL,pAnalizeTrace,nullptr});
             aGuard.unlock();
 			void* pEarlyCall;
-			if(SystemSpecificEarlyRealloc(a_ptr,a_count,&pEarlyCall)){
+			if(SystemSpecificLibInitialRealloc(a_ptr,a_count,&pEarlyCall)){
 				return pEarlyCall;
+			}			
+			
+			// let's prepare temporar variable, that will be used if we have crash
+			CMemoryItem* pMemoryItem = s_crashInvestAnalizerInit.m_handlerMemory.get();
+			if(!pMemoryItem){
+				pMemoryItem = new CMemoryItem;
+				s_crashInvestAnalizerInit.m_handlerMemory = pMemoryItem;
 			}
-            return InitFailureDataAndCallClbk(aItem,MemoryType::NotProvided,a_ptr,a_count,FailureType::BadReallocMemNotExist,pAnalizeTrace);
+			pMemoryItem->Init(a_count,FailureType::BadReallocMemNotExist,a_ptr,pAnalizeTrace);
+			return SystemSpecificGlibcRealloc(a_ptr,a_count);
 		}
 
 		if(memItemIter->second.type!=MemoryType::Malloc){
@@ -336,7 +367,11 @@ CRASH_INVEST_DLL_PRIVATE void* TestOperatorNewAligned(size_t a_count, MemoryType
 #endif  // #ifdef CRASH_INVEST_CPP_17_DEFINED
 
 
+
+
+
 /*//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////*/
+
 
 static inline void PrintStackSingleLine(const StackItem& a_stackItem)
 {
@@ -384,6 +419,43 @@ static inline void PrintStack(const ::std::vector< StackItem>& a_stack)
 
 /*//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////*/
 
+static void SignalSigsegvHandler(int)
+{
+	CMemoryItem* pMemoryItem = s_crashInvestAnalizerInit.m_handlerMemory.get();
+	if(pMemoryItem){
+		Backtrace*const pAnalizeTrace = pMemoryItem->deallocTrace;
+		pMemoryItem->deallocTrace = CRASH_INVEST_NULL;
+		InitFailureDataAndCallClbk(*pMemoryItem,MemoryType::NotProvided,pMemoryItem->realAddress,pMemoryItem->count,
+								   pMemoryItem->failureType,pAnalizeTrace);
+	}
+	exit(3);
+}
+
+
+CrashInvestAnalizerInit::CrashInvestAnalizerInit()
+{
+	IsAllocingHandler aHandler;
+	(*s_clbkData.infoClbk)(s_clbkData.userData, "+-+-+-+-+-+-+-+-+-+- Crash investigator lib version "
+												CRASH_INVEST_VERSION_STR
+												" +-+-+-+-+-+-+-+-+-+-\n");
+	//printf("going to sleep\n");fflush(stdout);sleep(10);
+	
+		
+#ifdef _WIN32
+	m_funcInitial = reinterpret_cast<void (*)(int)>(signal(SIGSEGV,&SignalSigsegvHandler));
+#else
+	struct sigaction sa;
+	sa.sa_flags = 0;
+	sigemptyset(&sa.sa_mask);
+	sa.sa_handler = &SignalSigsegvHandler;
+	if (sigaction(SIGSEGV, &sa, &m_saInitial) < 0 ){
+		(*s_clbkData.errorClbk)(s_clbkData.userData, "!!!!!!!! Unable to change signal handler\n");
+	}
+#endif
+	
+}
+
+
 CrashInvestAnalizerInit::~CrashInvestAnalizerInit()
 {
 	int nSizeOfUnallocated = 0;
@@ -411,6 +483,49 @@ CrashInvestAnalizerInit::~CrashInvestAnalizerInit()
 		FreeBacktraceData(pMemItem->deallocTrace);
 		FreeBacktraceData(pMemItem->allocTrace);
 	}
+	
+#ifdef _WIN32
+    signal(SIGSEGV, m_funcInitial);
+#else
+	sigaction(SIGSEGV, &m_saInitial, CRASH_INVEST_NULL);
+#endif
+}
+
+
+/*//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////*/
+
+#if 0
+struct SMemoryItem{
+	MemoryType		type;
+	MemoryStatus	status;
+	void*			realAddress;
+    Backtrace*      allocTrace;
+    Backtrace*      deallocTrace;
+};
+#endif
+
+CMemoryItem::CMemoryItem()
+{
+	this->type = MemoryType::NotProvided;
+	this->status = MemoryStatus::DoesNotExistAtAll;
+	this->allocTrace = CRASH_INVEST_NULL;
+	this->deallocTrace = CRASH_INVEST_NULL;
+}
+
+
+CMemoryItem::~CMemoryItem()
+{
+	FreeBacktraceData(this->deallocTrace);
+}
+
+
+void CMemoryItem::Init(size_t a_count, FailureType a_failureType, void* a_prealAddress, Backtrace* a_pAnalizeTrace)
+{
+	FreeBacktraceData(this->deallocTrace);
+	this->deallocTrace = a_pAnalizeTrace;
+	this->realAddress = a_prealAddress;
+	this->failureType = a_failureType;
+	this->count = a_count;
 }
 
 /*//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////*/

@@ -30,6 +30,7 @@ CRASH_INVEST_INTERFACE_NOT_KNOWN CRASH_INVEST_DLL_PRIVATE void _windows_crt_all_
 #pragma comment(linker, "/alternatename:_RTC_InitBase=_windows_crt_all_unknown_functionsWeak")
 #pragma comment(linker, "/alternatename:_RTC_Shutdown=_windows_crt_all_unknown_functionsWeak")
 #pragma comment(linker, "/alternatename:_DllMainCRTStartup=_windows_crt_all_unknown_functionsWeak")
+#pragma comment(linker, "/alternatename:__security_check_cookie=_windows_crt_all_unknown_functionsWeak")
 
 
 CRASH_INVEST_END_C

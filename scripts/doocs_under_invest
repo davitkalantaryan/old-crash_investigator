@@ -11,7 +11,7 @@
 #
 
 
-CRASH_INVEST_VERSION_ENV=0019
+CRASH_INVEST_VERSION_ENV=0020
 
 if [ $# -lt 1 ]; then
 	echo "Program name is not specified"

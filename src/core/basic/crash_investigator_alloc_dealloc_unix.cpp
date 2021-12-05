@@ -61,15 +61,27 @@ static void InitFunction(void)
 }
 
 
-CRASH_INVEST_DLL_PRIVATE bool SystemSpecificEarlyRealloc  ( void* a_ptr, size_t a_count, void** a_ppReturn ) CRASH_INVEST_NODISCARD
+CRASH_INVEST_DLL_PRIVATE bool SystemSpecificLibInitialRealloc  ( void* a_ptr, size_t a_count, void** a_ppReturn ) CRASH_INVEST_NODISCARD
 {
 	return s_memPool.Realloc(a_ptr,a_count,a_ppReturn);
 }
 
 
-CRASH_INVEST_DLL_PRIVATE bool SystemSpecificEarlyDealloc( void* a_ptr ) CRASH_INVEST_NOEXCEPT
+CRASH_INVEST_DLL_PRIVATE bool SystemSpecificLibInitialDealloc( void* a_ptr ) CRASH_INVEST_NOEXCEPT
 {
 	return s_memPool.Dealloc(a_ptr);
+}
+
+
+CRASH_INVEST_DLL_PRIVATE void* SystemSpecificGlibcRealloc( void* a_ptr, size_t a_count ) CRASH_INVEST_NODISCARD
+{
+	return (*s_orig_realloc)(a_ptr,a_count);
+}
+
+
+CRASH_INVEST_DLL_PRIVATE void  SystemSpecificGlibcDealloc( void* a_ptr ) CRASH_INVEST_NOEXCEPT 
+{
+	(*s_orig_free)(a_ptr);
 }
 
 

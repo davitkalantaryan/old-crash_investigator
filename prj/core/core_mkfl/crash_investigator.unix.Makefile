@@ -20,6 +20,7 @@ objectFilesDirPath	= $(repoRootPath)/sys/$(lsbCode)/$(Configuration)/.objects/$(
 # SOURCES += "$${PWD}/../../../contrib/cpputils/src/core/cpputils_hashtbl.cpp"
 # SOURCES += "$${PWD}/../../../src/cpputilsm/cpputilsm_hashitemsbyptr.cpp"
 # SOURCES += "$${PWD}/../../../src/cpputilsm/cpputilsm_memorypool.cpp"
+# SOURCES += "$${PWD}/../../../contrib/cpputils/src/core/cpputils_thread_local.cpp"
 
 CR_INV_OBJECTS = \
     $(objectFilesDirPath)/core/backtrace/crash_investigator_backtrace_unix.cpp.o \
@@ -29,4 +30,5 @@ CR_INV_OBJECTS = \
     $(objectFilesDirPath)/core/basic/crash_investigator_new_delete.cpp.o    \
 	$(objectFilesDirPath)/cpputilsm/cpputilsm_hashitemsbyptr.cpp.o    \
 	$(objectFilesDirPath)/cpputilsm/cpputilsm_memorypool.cpp.o    \
-    $(objectFilesDirPath)/../contrib/cpputils/src/core/cpputils_inscopecleaner.cpp.o
+    $(objectFilesDirPath)/../contrib/cpputils/src/core/cpputils_inscopecleaner.cpp.o	\
+	$(objectFilesDirPath)/../contrib/cpputils/src/core/cpputils_thread_local.cpp.o
