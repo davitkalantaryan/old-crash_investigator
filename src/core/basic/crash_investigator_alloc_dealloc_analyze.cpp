@@ -367,44 +367,6 @@ CRASH_INVEST_DLL_PRIVATE void* TestOperatorNewAligned(size_t a_count, MemoryType
 #endif  // #ifdef CRASH_INVEST_CPP_17_DEFINED
 
 
-/*//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////*/
-
-#if 0
-struct SMemoryItem{
-	MemoryType		type;
-	MemoryStatus	status;
-	void*			realAddress;
-    Backtrace*      allocTrace;
-    Backtrace*      deallocTrace;
-};
-#endif
-
-CMemoryItem::CMemoryItem()
-{
-	this->type = MemoryType::NotProvided;
-	this->status = MemoryStatus::DoesNotExistAtAll;
-	this->allocTrace = CRASH_INVEST_NULL;
-}
-
-
-CMemoryItem::~CMemoryItem()
-{
-	FreeBacktraceData(this->deallocTrace);
-}
-
-
-void CMemoryItem::Init(size_t a_count, FailureType a_failureType, void* a_prealAddress, Backtrace* a_pAnalizeTrace)
-{
-	FreeBacktraceData(this->deallocTrace);
-	this->deallocTrace = a_pAnalizeTrace;
-	this->realAddress = a_prealAddress;
-	this->failureType = a_failureType;
-	this->count = a_count;
-}
-
-
-/*//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////*/
-
 
 
 
@@ -527,6 +489,42 @@ CrashInvestAnalizerInit::~CrashInvestAnalizerInit()
 #else
 	sigaction(SIGSEGV, &m_saInitial, CRASH_INVEST_NULL);
 #endif
+}
+
+
+/*//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////*/
+
+#if 0
+struct SMemoryItem{
+	MemoryType		type;
+	MemoryStatus	status;
+	void*			realAddress;
+    Backtrace*      allocTrace;
+    Backtrace*      deallocTrace;
+};
+#endif
+
+CMemoryItem::CMemoryItem()
+{
+	this->type = MemoryType::NotProvided;
+	this->status = MemoryStatus::DoesNotExistAtAll;
+	this->allocTrace = CRASH_INVEST_NULL;
+}
+
+
+CMemoryItem::~CMemoryItem()
+{
+	FreeBacktraceData(this->deallocTrace);
+}
+
+
+void CMemoryItem::Init(size_t a_count, FailureType a_failureType, void* a_prealAddress, Backtrace* a_pAnalizeTrace)
+{
+	FreeBacktraceData(this->deallocTrace);
+	this->deallocTrace = a_pAnalizeTrace;
+	this->realAddress = a_prealAddress;
+	this->failureType = a_failureType;
+	this->count = a_count;
 }
 
 /*//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////*/
