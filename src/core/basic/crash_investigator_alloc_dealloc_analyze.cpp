@@ -485,7 +485,7 @@ CrashInvestAnalizerInit::~CrashInvestAnalizerInit()
 	}
 	
 #ifdef _WIN32
-	signal(SIGSEGV,m_funcInitial)
+    signal(SIGSEGV, m_funcInitial);
 #else
 	sigaction(SIGSEGV, &m_saInitial, CRASH_INVEST_NULL);
 #endif

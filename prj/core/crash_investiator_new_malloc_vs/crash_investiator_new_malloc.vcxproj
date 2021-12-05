@@ -175,7 +175,7 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>CRASH_INVEST_VERSION_NUM=$(CRASH_INVEST_VERSION_ENV);CRASH_INVEST_VERSION_STR="$(CRASH_INVEST_VERSION_ENV)";CRASH_INVEST_COMPILING_SHARED_LIB;WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>CPPUTILS_USING_STATIC_LIB_OR_OBJECTS;CRASH_INVEST_VERSION_NUM=$(CRASH_INVEST_VERSION_ENV);CRASH_INVEST_VERSION_STR="$(CRASH_INVEST_VERSION_ENV)";CRASH_INVEST_COMPILING_SHARED_LIB;WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\include;$(ProjectDir)..\..\..\contrib\cpputils\include;$(ProjectDir)..\..\..\src\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
@@ -191,7 +191,7 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>CRASH_INVEST_VERSION_NUM=$(CRASH_INVEST_VERSION_ENV);CRASH_INVEST_VERSION_STR="$(CRASH_INVEST_VERSION_ENV)";CRASH_INVEST_COMPILING_SHARED_LIB;WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>CPPUTILS_USING_STATIC_LIB_OR_OBJECTS;CRASH_INVEST_VERSION_NUM=$(CRASH_INVEST_VERSION_ENV);CRASH_INVEST_VERSION_STR="$(CRASH_INVEST_VERSION_ENV)";CRASH_INVEST_COMPILING_SHARED_LIB;WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\include;$(ProjectDir)..\..\..\contrib\cpputils\include;$(ProjectDir)..\..\..\src\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
@@ -207,7 +207,7 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>CRASH_INVEST_VERSION_NUM=$(CRASH_INVEST_VERSION_ENV);CRASH_INVEST_VERSION_STR="$(CRASH_INVEST_VERSION_ENV)";CRASH_INVEST_COMPILING_SHARED_LIB;WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>CPPUTILS_USING_STATIC_LIB_OR_OBJECTS;CRASH_INVEST_VERSION_NUM=$(CRASH_INVEST_VERSION_ENV);CRASH_INVEST_VERSION_STR="$(CRASH_INVEST_VERSION_ENV)";CRASH_INVEST_COMPILING_SHARED_LIB;WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\include;$(ProjectDir)..\..\..\contrib\cpputils\include;$(ProjectDir)..\..\..\src\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
@@ -225,7 +225,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>CRASH_INVEST_VERSION_NUM=$(CRASH_INVEST_VERSION_ENV);CRASH_INVEST_VERSION_STR="$(CRASH_INVEST_VERSION_ENV)";CRASH_INVEST_COMPILING_SHARED_LIB;WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>CPPUTILS_USING_STATIC_LIB_OR_OBJECTS;CRASH_INVEST_VERSION_NUM=$(CRASH_INVEST_VERSION_ENV);CRASH_INVEST_VERSION_STR="$(CRASH_INVEST_VERSION_ENV)";CRASH_INVEST_COMPILING_SHARED_LIB;WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\include;$(ProjectDir)..\..\..\contrib\cpputils\include;$(ProjectDir)..\..\..\src\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
@@ -245,7 +245,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>CRASH_INVEST_VERSION_NUM=$(CRASH_INVEST_VERSION_ENV);CRASH_INVEST_VERSION_STR="$(CRASH_INVEST_VERSION_ENV)";CRASH_INVEST_COMPILING_SHARED_LIB;WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>CPPUTILS_USING_STATIC_LIB_OR_OBJECTS;CRASH_INVEST_VERSION_NUM=$(CRASH_INVEST_VERSION_ENV);CRASH_INVEST_VERSION_STR="$(CRASH_INVEST_VERSION_ENV)";CRASH_INVEST_COMPILING_SHARED_LIB;WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\include;$(ProjectDir)..\..\..\contrib\cpputils\include;$(ProjectDir)..\..\..\src\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
@@ -265,7 +265,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>CRASH_INVEST_VERSION_NUM=$(CRASH_INVEST_VERSION_ENV);CRASH_INVEST_VERSION_STR="$(CRASH_INVEST_VERSION_ENV)";CRASH_INVEST_COMPILING_SHARED_LIB;WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>CPPUTILS_USING_STATIC_LIB_OR_OBJECTS;CRASH_INVEST_VERSION_NUM=$(CRASH_INVEST_VERSION_ENV);CRASH_INVEST_VERSION_STR="$(CRASH_INVEST_VERSION_ENV)";CRASH_INVEST_COMPILING_SHARED_LIB;WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\include;$(ProjectDir)..\..\..\contrib\cpputils\include;$(ProjectDir)..\..\..\src\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
@@ -283,7 +283,7 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>CRASH_INVEST_VERSION_NUM=$(CRASH_INVEST_VERSION_ENV);CRASH_INVEST_VERSION_STR="$(CRASH_INVEST_VERSION_ENV)";CRASH_INVEST_COMPILING_SHARED_LIB;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>CPPUTILS_USING_STATIC_LIB_OR_OBJECTS;CRASH_INVEST_VERSION_NUM=$(CRASH_INVEST_VERSION_ENV);CRASH_INVEST_VERSION_STR="$(CRASH_INVEST_VERSION_ENV)";CRASH_INVEST_COMPILING_SHARED_LIB;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\include;$(ProjectDir)..\..\..\contrib\cpputils\include;$(ProjectDir)..\..\..\src\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
@@ -301,7 +301,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>CRASH_INVEST_VERSION_NUM=$(CRASH_INVEST_VERSION_ENV);CRASH_INVEST_VERSION_STR="$(CRASH_INVEST_VERSION_ENV)";CRASH_INVEST_COMPILING_SHARED_LIB;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>CPPUTILS_USING_STATIC_LIB_OR_OBJECTS;CRASH_INVEST_VERSION_NUM=$(CRASH_INVEST_VERSION_ENV);CRASH_INVEST_VERSION_STR="$(CRASH_INVEST_VERSION_ENV)";CRASH_INVEST_COMPILING_SHARED_LIB;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\include;$(ProjectDir)..\..\..\contrib\cpputils\include;$(ProjectDir)..\..\..\src\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
@@ -321,6 +321,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\contrib\cpputils\src\core\cpputils_inscopecleaner.cpp" />
+    <ClCompile Include="..\..\..\contrib\cpputils\src\core\cpputils_thread_local.cpp" />
     <ClCompile Include="..\..\..\src\core\backtrace\crash_investigator_backtrace_unix.cpp" />
     <ClCompile Include="..\..\..\src\core\backtrace\crash_investigator_backtrace_windows.cpp" />
     <ClCompile Include="..\..\..\src\core\basic\crash_investigator_alloc_dealloc_analyze.cpp" />
