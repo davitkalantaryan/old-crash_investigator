@@ -595,7 +595,8 @@ static FailureAction DefaultFailureClbk(const FailureData& a_data)
         PrintStack(a_data.stackAlloc);
         break;
     default:
-        assert(false);
+        //assert(false);
+		(*s_clbkData.errorClbk)(s_clbkData.userData,"line: %d, a_data.failureType=%d\n",__LINE__,(int)a_data.failureType);
         break;
     } // switch(a_data.failureType){
 
@@ -800,7 +801,8 @@ static void* InitFailureDataAndCallClbk(const SMemoryItem& a_item, MemoryType a_
         return CRASH_INVEST_NULL;
 
     default:
-        assert(false);
+        //assert(false);
+		(*s_clbkData.errorClbk)(s_clbkData.userData,"line: %d, a_data.failureType=%d\n",__LINE__,(int)a_failureType);
         break;
     } // switch(a_failureType){
 
