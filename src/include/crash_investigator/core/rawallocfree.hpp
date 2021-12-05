@@ -30,8 +30,10 @@ CRASH_INVEST_DLL_PRIVATE void* mallocn  ( size_t a_count ) CRASH_INVEST_NODISCAR
 CRASH_INVEST_DLL_PRIVATE void* reallocn ( void* a_ptr, size_t a_count ) CRASH_INVEST_NODISCARD;
 CRASH_INVEST_DLL_PRIVATE void* callocn  ( size_t a_nmemb, size_t a_size ) CRASH_INVEST_NODISCARD;
 CRASH_INVEST_DLL_PRIVATE void  freen    ( void* a_ptr ) CRASH_INVEST_NOEXCEPT;
-CRASH_INVEST_DLL_PRIVATE bool  SystemSpecificEarlyRealloc( void* a_ptr, size_t a_count, void** a_ppReturn ) CRASH_INVEST_NODISCARD ;
-CRASH_INVEST_DLL_PRIVATE bool  SystemSpecificEarlyDealloc( void* a_ptr ) CRASH_INVEST_NOEXCEPT ;
+CRASH_INVEST_DLL_PRIVATE bool  SystemSpecificLibInitialRealloc( void* a_ptr, size_t a_count, void** a_ppReturn ) CRASH_INVEST_NODISCARD ;
+CRASH_INVEST_DLL_PRIVATE bool  SystemSpecificLibInitialDealloc( void* a_ptr ) CRASH_INVEST_NOEXCEPT ;
+CRASH_INVEST_DLL_PRIVATE void* SystemSpecificGlibcRealloc( void* a_ptr, size_t a_count ) CRASH_INVEST_NODISCARD ;
+CRASH_INVEST_DLL_PRIVATE void  SystemSpecificGlibcDealloc( void* a_ptr ) CRASH_INVEST_NOEXCEPT ;
 #endif
 
 }  // namespace crash_investigator {

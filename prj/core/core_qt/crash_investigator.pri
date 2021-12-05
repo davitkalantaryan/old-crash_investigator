@@ -37,6 +37,7 @@ SOURCES += "$${PWD}/../../../src/core/backtrace/crash_investigator_backtrace_uni
 SOURCES += "$${PWD}/../../../src/cpputilsm/cpputilsm_hashitemsbyptr.cpp"
 SOURCES += "$${PWD}/../../../src/cpputilsm/cpputilsm_memorypool.cpp"
 SOURCES += "$${PWD}/../../../contrib/cpputils/src/core/cpputils_inscopecleaner.cpp"
+SOURCES += "$${PWD}/../../../contrib/cpputils/src/core/cpputils_thread_local.cpp"
 #SOURCES += "$${PWD}/../../../contrib/cpputils/src/core/cpputils_hashtbl.cpp"
 
 HEADERS += "$${SRC_CORE_BASIC_DIR}/crash_investigator_alloc_dealloc.hpp"
