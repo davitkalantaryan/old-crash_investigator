@@ -435,11 +435,12 @@ static void SignalSigsegvHandler(int)
 CrashInvestAnalizerInit::CrashInvestAnalizerInit()
 {
 	IsAllocingHandler aHandler;
+	
+#ifdef CRASH_INVEST_VERBOSE
 	(*s_clbkData.infoClbk)(s_clbkData.userData, "+-+-+-+-+-+-+-+-+-+- Crash investigator lib version "
 												CRASH_INVEST_VERSION_STR
-												" +-+-+-+-+-+-+-+-+-+-\n");
-	//printf("going to sleep\n");fflush(stdout);sleep(10);
-	
+												" +-+-+-+-+-+-+-+-+-+-\n");	
+#endif
 		
 #ifdef _WIN32
 	m_funcInitial = reinterpret_cast<void (*)(int)>(signal(SIGSEGV,&SignalSigsegvHandler));
@@ -458,17 +459,19 @@ CrashInvestAnalizerInit::CrashInvestAnalizerInit()
 
 CrashInvestAnalizerInit::~CrashInvestAnalizerInit()
 {
-	int nSizeOfUnallocated = 0;
+	SMemoryItem* pMemItem;
 	IsAllocingHandler aHandler;
 	TypeHashTbl::iterator iter = s_memoryItems.begin();
 	
+	
+#ifdef CRASH_INVEST_VERBOSE
+	int nSizeOfUnallocated = 0;
 	for(;iter!=TypeHashTbl::s_endIter;++iter){
 		if(iter->second.status==MemoryStatus::Allocated){
 			++nSizeOfUnallocated;
 		}
 	}
 	
-	SMemoryItem* pMemItem;
 	::std::vector< StackItem> aStack;
 	if(nSizeOfUnallocated){
 		(*s_clbkData.infoClbk)(s_clbkData.userData, "\n\nProgram is about to finish. Number of unallocated memories %d\n",nSizeOfUnallocated);
@@ -483,6 +486,13 @@ CrashInvestAnalizerInit::~CrashInvestAnalizerInit()
 		FreeBacktraceData(pMemItem->deallocTrace);
 		FreeBacktraceData(pMemItem->allocTrace);
 	}
+#else
+	for(;iter!=TypeHashTbl::s_endIter;++iter){
+		pMemItem = &(iter->second);
+		FreeBacktraceData(pMemItem->deallocTrace);
+		FreeBacktraceData(pMemItem->allocTrace);
+	}
+#endif
 	
 #ifdef _WIN32
     signal(SIGSEGV, m_funcInitial);
