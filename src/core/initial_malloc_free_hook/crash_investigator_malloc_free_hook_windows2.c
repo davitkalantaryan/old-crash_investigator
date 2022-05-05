@@ -14,26 +14,26 @@
 
 
 
-CRASH_INVEST_BEGIN_C
+CPPUTILS_BEGIN_C
 
-CRASH_INVEST_DLL_PRIVATE void  free_default(void* a_ptr){LocalFree(a_ptr);}
-CRASH_INVEST_DLL_PRIVATE void* malloc_default(size_t a_count) { return LocalAlloc(LMEM_FIXED, CRASH_INVEST_STATIC_CAST(SIZE_T, a_count)); }
-CRASH_INVEST_DLL_PRIVATE void* realloc_default(void* a_ptr, size_t a_count) { return LocalReAlloc(a_ptr, CRASH_INVEST_STATIC_CAST(SIZE_T, a_count), LMEM_FIXED); }
-CRASH_INVEST_DLL_PRIVATE void* calloc_default(size_t a_nmemb, size_t a_size) {
+CPPUTILS_DLL_PRIVATE void  free_default(void* a_ptr){LocalFree(a_ptr);}
+CPPUTILS_DLL_PRIVATE void* malloc_default(size_t a_count) { return LocalAlloc(LMEM_FIXED, CPPUTILS_STATIC_CAST(SIZE_T, a_count)); }
+CPPUTILS_DLL_PRIVATE void* realloc_default(void* a_ptr, size_t a_count) { return LocalReAlloc(a_ptr, CPPUTILS_STATIC_CAST(SIZE_T, a_count), LMEM_FIXED); }
+CPPUTILS_DLL_PRIVATE void* calloc_default(size_t a_nmemb, size_t a_size) {
 	const size_t unCount = a_nmemb * a_size;
-	return LocalAlloc(LMEM_FIXED | LMEM_ZEROINIT, CRASH_INVEST_STATIC_CAST(SIZE_T, unCount));
+	return LocalAlloc(LMEM_FIXED | LMEM_ZEROINIT, CPPUTILS_STATIC_CAST(SIZE_T, unCount));
 }
 
 
 #define CRASH_INVEST_INTERFACE_NOT_KNOWN
-CRASH_INVEST_INTERFACE_NOT_KNOWN CRASH_INVEST_DLL_PRIVATE void _windows_crt_all_unknown_functionsWeak(void) {}
+CRASH_INVEST_INTERFACE_NOT_KNOWN CPPUTILS_DLL_PRIVATE void _windows_crt_all_unknown_functionsWeak(void) {}
 #pragma comment(linker, "/alternatename:_RTC_InitBase=_windows_crt_all_unknown_functionsWeak")
 #pragma comment(linker, "/alternatename:_RTC_Shutdown=_windows_crt_all_unknown_functionsWeak")
 #pragma comment(linker, "/alternatename:_DllMainCRTStartup=_windows_crt_all_unknown_functionsWeak")
 #pragma comment(linker, "/alternatename:__security_check_cookie=_windows_crt_all_unknown_functionsWeak")
 
 
-CRASH_INVEST_END_C
+CPPUTILS_END_C
 
 
 #endif  // #ifdef _WIN32

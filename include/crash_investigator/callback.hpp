@@ -77,7 +77,7 @@ CRASH_INVEST_EXPORT SCallback GetFailureClbk(void);
 } // namespace crash_investigator {
 
 #ifdef _MSC_VER
-CRASH_INVEST_BEGIN_C
+CPPUTILS_BEGIN_C
 CRASH_INVEST_EXPORT void crash_investiator_new_malloc_init(void);
-CRASH_INVEST_END_C
+CPPUTILS_END_C
 #endif

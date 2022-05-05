@@ -18,5 +18,8 @@
     <ClCompile Include="..\..\..\src\tests\main_double_free01_test.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\src\core\basic\crash_investigator_new_delete.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

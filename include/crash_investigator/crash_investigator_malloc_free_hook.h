@@ -12,7 +12,7 @@
 #include <stddef.h>
 
 
-CRASH_INVEST_BEGIN_C
+CPPUTILS_BEGIN_C
 
 typedef void* (*TypeMalloc)(size_t);
 typedef void* (*TypeCalloc)(size_t a_nmemb, size_t a_size);
@@ -25,7 +25,7 @@ extern CRASH_INVEST_HOOK_EXPORT TypeRealloc		g_callers_realloc;
 extern CRASH_INVEST_HOOK_EXPORT TypeFree		g_callers_free;
 
 
-CRASH_INVEST_END_C
+CPPUTILS_END_C
 
 
 #endif  // #ifndef SRC_INCLUDE_CRASH_INVEST_MALLOC_FREE_HOOK_H

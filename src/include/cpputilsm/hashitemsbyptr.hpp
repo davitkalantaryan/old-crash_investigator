@@ -52,7 +52,7 @@ public:
 	iterator begin();
 	
 	static void* operator new( ::std::size_t a_count );
-	void operator delete  ( void* a_ptr ) CRASH_INVEST_NOEXCEPT ;
+	void operator delete  ( void* a_ptr ) CPPUTILS_NOEXCEPT ;
 	
 private:
     Item* FindEntryRaw(const TypeIntKey& a_key, size_t* a_punSize);

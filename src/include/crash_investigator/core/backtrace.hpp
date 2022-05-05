@@ -16,8 +16,8 @@ namespace crash_investigator {
 
 struct Backtrace;
 
-CRASH_INVEST_DLL_PRIVATE Backtrace* InitBacktraceDataForCurrentStack(int goBackInTheStackCalc);
-CRASH_INVEST_DLL_PRIVATE void ConvertBacktraceToNames(const Backtrace* data, ::std::vector< StackItem>*  pStack);
-CRASH_INVEST_DLL_PRIVATE void FreeBacktraceData(Backtrace* data);
+CPPUTILS_DLL_PRIVATE Backtrace* InitBacktraceDataForCurrentStack(int goBackInTheStackCalc);
+CPPUTILS_DLL_PRIVATE void ConvertBacktraceToNames(const Backtrace* data, ::std::vector< StackItem>*  pStack);
+CPPUTILS_DLL_PRIVATE void FreeBacktraceData(Backtrace* data);
 
 }  // namespace crash_investigator {

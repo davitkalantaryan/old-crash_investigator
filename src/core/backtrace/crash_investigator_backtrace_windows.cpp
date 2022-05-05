@@ -36,7 +36,7 @@ struct Backtrace{
 };
 
 
-CRASH_INVEST_DLL_PRIVATE void FreeBacktraceData(Backtrace* a_data)
+CPPUTILS_DLL_PRIVATE void FreeBacktraceData(Backtrace* a_data)
 {
 	if (a_data) {
 		freen(a_data->ppBuffer);
@@ -45,21 +45,21 @@ CRASH_INVEST_DLL_PRIVATE void FreeBacktraceData(Backtrace* a_data)
 }
 
 
-CRASH_INVEST_DLL_PRIVATE Backtrace* InitBacktraceDataForCurrentStack(int a_goBackInTheStackCalc)
+CPPUTILS_DLL_PRIVATE Backtrace* InitBacktraceDataForCurrentStack(int a_goBackInTheStackCalc)
 {
 	++a_goBackInTheStackCalc;
 	void** ppBuffer = static_cast<void**>(alloca(static_cast<size_t>(64) * sizeof(void*)));
-	WORD countOfStacks = CaptureStackBackTrace(static_cast<DWORD>(a_goBackInTheStackCalc), static_cast<DWORD>(64 - a_goBackInTheStackCalc), ppBuffer, CRASH_INVEST_NULL);
+	WORD countOfStacks = CaptureStackBackTrace(static_cast<DWORD>(a_goBackInTheStackCalc), static_cast<DWORD>(64 - a_goBackInTheStackCalc), ppBuffer, CPPUTILS_NULL);
 
-	if (countOfStacks < 1) { return CRASH_INVEST_NULL; }
+	if (countOfStacks < 1) { return CPPUTILS_NULL; }
 
     Backtrace* pReturn = static_cast<Backtrace*>(mallocn(sizeof(Backtrace)));
-    if(!pReturn){return CRASH_INVEST_NULL;}
+    if(!pReturn){return CPPUTILS_NULL;}
 
 	pReturn->stackDeepness = static_cast<int>(countOfStacks);
 
 	pReturn->ppBuffer = static_cast<void**>(mallocn(static_cast<size_t>(pReturn->stackDeepness) * sizeof(void*)));
-	if (!(pReturn->ppBuffer)) { FreeBacktraceData(pReturn); return CRASH_INVEST_NULL; }
+	if (!(pReturn->ppBuffer)) { FreeBacktraceData(pReturn); return CPPUTILS_NULL; }
 
 	memcpy(pReturn->ppBuffer, ppBuffer, static_cast<size_t>(pReturn->stackDeepness) * sizeof(void*));
 
@@ -68,7 +68,7 @@ CRASH_INVEST_DLL_PRIVATE Backtrace* InitBacktraceDataForCurrentStack(int a_goBac
 
 static void GetSymbolInfo(StackItem* a_pItem);
 
-CRASH_INVEST_DLL_PRIVATE void ConvertBacktraceToNames(const Backtrace* a_data, ::std::vector< StackItem>*  a_pStack)
+CPPUTILS_DLL_PRIVATE void ConvertBacktraceToNames(const Backtrace* a_data, ::std::vector< StackItem>*  a_pStack)
 {
 	StackItem* pStackItem;
 	const size_t cunSynbols(a_data->stackDeepness);
@@ -82,12 +82,12 @@ CRASH_INVEST_DLL_PRIVATE void ConvertBacktraceToNames(const Backtrace* a_data, :
 	}
 }
 
-static HANDLE s_currentProcess = CRASH_INVEST_NULL;
+static HANDLE s_currentProcess = CPPUTILS_NULL;
 class SymIniter {
 public:
 	SymIniter() {
 		s_currentProcess = GetCurrentProcess();
-		if (!SymInitialize(s_currentProcess, CRASH_INVEST_NULL, TRUE)){
+		if (!SymInitialize(s_currentProcess, CPPUTILS_NULL, TRUE)){
 			// SymInitialize failed
 			DWORD error = GetLastError();
 			fprintf(stderr,"SymInitialize returned error : %d\n", static_cast<int>(error));

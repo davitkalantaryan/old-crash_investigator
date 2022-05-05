@@ -15,7 +15,7 @@ namespace cpputilsm{
 
 
 template <typename TypeIntKey, typename TypeData, TypeAlloc allocFn, TypeFree freeFn>
-typename HashItemsByPtr<TypeIntKey,TypeData,allocFn,freeFn>::iterator   HashItemsByPtr<TypeIntKey,TypeData,allocFn,freeFn>::s_endIter(CRASH_INVEST_NULL);
+typename HashItemsByPtr<TypeIntKey,TypeData,allocFn,freeFn>::iterator   HashItemsByPtr<TypeIntKey,TypeData,allocFn,freeFn>::s_endIter(CPPUTILS_NULL);
 
 template <typename TypeIntKey, typename TypeData, TypeAlloc allocFn, TypeFree freeFn>
 HashItemsByPtr<TypeIntKey,TypeData,allocFn,freeFn>::HashItemsByPtr()
@@ -23,7 +23,7 @@ HashItemsByPtr<TypeIntKey,TypeData,allocFn,freeFn>::HashItemsByPtr()
 #ifdef NEW_FREEE_USED
 	  m_ppItems(static_cast<Item**>(allocFn(CPPUTILSM_HASH_SIZE*sizeof(Item*)))),
 #endif
-	  m_pFirstItem(CRASH_INVEST_NULL)
+	  m_pFirstItem(CPPUTILS_NULL)
 {	
 #ifdef NEW_FREEE_USED
 	if(!m_ppItems){
@@ -72,14 +72,14 @@ AddEntryWithKnownHash(const TypeIntKey& a_key, size_t a_hash, const TypeData& a_
 	
     pItem->unIndex = a_hash;
 	//
-	pItem->prev = CRASH_INVEST_NULL;
+	pItem->prev = CPPUTILS_NULL;
 	pItem->next = m_ppItems[pItem->unIndex];
 	if(m_ppItems[pItem->unIndex]){
 		m_ppItems[pItem->unIndex]->prev = pItem;
 	}
 	m_ppItems[pItem->unIndex] = pItem;
 	//
-	pItem->prevInTheList = CRASH_INVEST_NULL;
+	pItem->prevInTheList = CPPUTILS_NULL;
 	pItem->nextInTheList = m_pFirstItem;
 	if(m_pFirstItem){
 		m_pFirstItem->prev = pItem;
@@ -126,7 +126,7 @@ RemoveEntry(const iterator& a_iter)
 		if(a_iter.m_pItem == m_pFirstItem){m_pFirstItem=a_iter.m_pItem->nextInTheList;}
 		//
 		freeFn(a_iter.m_pItem);
-		a_iter.m_pItem = CRASH_INVEST_NULL;
+		a_iter.m_pItem = CPPUTILS_NULL;
 	}
 }
 
@@ -141,7 +141,7 @@ FindEntryRaw(const TypeIntKey& a_key, size_t* a_punSize)
 		if(pItem->first == a_key){return pItem;}
 		pItem = pItem->next;
 	}
-	return CRASH_INVEST_NULL;
+	return CPPUTILS_NULL;
 }
 
 
@@ -153,7 +153,7 @@ void* HashItemsByPtr<TypeIntKey,TypeData,allocFn,freeFn>::operator new( ::std::s
 
 
 template <typename TypeIntKey, typename TypeData, TypeAlloc allocFn, TypeFree freeFn>
-void HashItemsByPtr<TypeIntKey,TypeData,allocFn,freeFn>::operator delete  ( void* a_ptr ) CRASH_INVEST_NOEXCEPT
+void HashItemsByPtr<TypeIntKey,TypeData,allocFn,freeFn>::operator delete  ( void* a_ptr ) CPPUTILS_NOEXCEPT
 {
 	freeFn(a_ptr);
 }

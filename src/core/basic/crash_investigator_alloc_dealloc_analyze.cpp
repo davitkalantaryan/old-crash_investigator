@@ -53,7 +53,7 @@ struct SMemoryItem{
     Backtrace*      deallocTrace;
 };
 
-static SCallback    s_clbkData = {CRASH_INVEST_NULL,&DefaultFailureClbk,&DefaultInfoReportStatic,&DefaultErrorReportStatic};
+static SCallback    s_clbkData = { CPPUTILS_NULL,&DefaultFailureClbk,&DefaultInfoReportStatic,&DefaultErrorReportStatic};
 
 static thread_local bool s_bIsAllocingOrDeallocing = false;
 class IsAllocingHandler{
@@ -78,7 +78,7 @@ public:
 typedef cpputilsm::HashItemsByPtr<void*,SMemoryItem,&mallocn,&freen>  TypeHashTbl;
 
 
-class CRASH_INVEST_DLL_PRIVATE CrashInvestAnalizerInit{
+class CPPUTILS_DLL_PRIVATE CrashInvestAnalizerInit{
 public:
     CrashInvestAnalizerInit();
 	~CrashInvestAnalizerInit();
@@ -150,17 +150,17 @@ static inline void* AddNewAllocatedMemoryAndCleanOldEntry(MemoryType a_memoryTyp
 #define CRASH_INVEST_ANALIZE_COUNT_0(_count, _bThrow)   \
     if((_count)==0){                                      \
         if(_bThrow){throw ::std::bad_alloc();}          \
-        else{return CRASH_INVEST_NULL;}                 \
+        else{return CPPUTILS_NULL;}                 \
     }
 
-CRASH_INVEST_DLL_PRIVATE void TestOperatorDelete(void* a_ptr, MemoryType a_typeExpected, int a_goBackInTheStackCalc ) CRASH_INVEST_NOEXCEPT
+CRASH_INVEST_ALLOC_EXP void TestOperatorDelete(void* a_ptr, MemoryType a_typeExpected, int a_goBackInTheStackCalc ) CPPUTILS_NOEXCEPT
 {
 	if(!a_ptr){return;}
 	if (s_bIsAllocingOrDeallocing) { ::crash_investigator::freen(a_ptr); return; } // not handling here
 	IsAllocingHandler aHandler;
 
 	TypeHashTbl::iterator memItemIter;
-	void* pToDelete = CRASH_INVEST_NULL;
+	void* pToDelete = CPPUTILS_NULL;
     Backtrace*const pAnalizeTrace = InitBacktraceDataForCurrentStack(++a_goBackInTheStackCalc);
 
 
@@ -213,7 +213,7 @@ CRASH_INVEST_DLL_PRIVATE void TestOperatorDelete(void* a_ptr, MemoryType a_typeE
 }
 
 
-CRASH_INVEST_DLL_PRIVATE void* TestOperatorAlloc  ( size_t a_count, MemoryType a_memoryType, bool a_bThrow, int a_goBackInTheStackCalc )
+CRASH_INVEST_ALLOC_EXP void* TestOperatorAlloc  ( size_t a_count, MemoryType a_memoryType, bool a_bThrow, int a_goBackInTheStackCalc )
 {
 	if(s_bIsAllocingOrDeallocing){return ::crash_investigator::mallocn(a_count);}
 	IsAllocingHandler aHandler;
@@ -223,14 +223,14 @@ CRASH_INVEST_DLL_PRIVATE void* TestOperatorAlloc  ( size_t a_count, MemoryType a
 	void* pReturn = ::crash_investigator::mallocn(a_count);
 	if(!pReturn){
 		if(a_bThrow){throw ::std::bad_alloc();}
-		else{return CRASH_INVEST_NULL;}
+		else{return CPPUTILS_NULL;}
 	}
 
     return AddNewAllocatedMemoryAndCleanOldEntry(a_memoryType,pReturn,++a_goBackInTheStackCalc);
 }
 
 
-CRASH_INVEST_DLL_PRIVATE void* TestOperatorCalloc(size_t a_nmemb, size_t a_size, int a_goBackInTheStackCalc )
+CRASH_INVEST_ALLOC_EXP void* TestOperatorCalloc(size_t a_nmemb, size_t a_size, int a_goBackInTheStackCalc )
 {
 	if (s_bIsAllocingOrDeallocing) { return ::crash_investigator::callocn(a_nmemb,a_size); }
 	IsAllocingHandler aHandler;
@@ -238,14 +238,14 @@ CRASH_INVEST_DLL_PRIVATE void* TestOperatorCalloc(size_t a_nmemb, size_t a_size,
     CRASH_INVEST_ANALIZE_COUNT_0(a_nmemb*a_size,false)
 
 	void* pReturn = ::crash_investigator::callocn(a_nmemb, a_size);
-	if (!pReturn) {return CRASH_INVEST_NULL;}
+	if (!pReturn) {return CPPUTILS_NULL;}
 
     return AddNewAllocatedMemoryAndCleanOldEntry(MemoryType::Malloc,pReturn,++a_goBackInTheStackCalc);
 }
 
 
 
-CRASH_INVEST_DLL_PRIVATE void* TestOperatorReAlloc  ( void* a_ptr, size_t a_count, int a_goBackInTheStackCalc2 )
+CRASH_INVEST_ALLOC_EXP void* TestOperatorReAlloc  ( void* a_ptr, size_t a_count, int a_goBackInTheStackCalc2 )
 {
 	if(s_bIsAllocingOrDeallocing){return ::crash_investigator::reallocn(a_ptr,a_count);}
     if(!a_ptr){return TestOperatorAlloc(a_count,MemoryType::Malloc,false,++a_goBackInTheStackCalc2);}
@@ -255,7 +255,7 @@ CRASH_INVEST_DLL_PRIVATE void* TestOperatorReAlloc  ( void* a_ptr, size_t a_coun
 	// in the case if 0 length provided, we delete initial memory
 	if(!a_count){
 		TestOperatorDelete(a_ptr,MemoryType::Malloc,++a_goBackInTheStackCalc2);
-		return CRASH_INVEST_NULL;
+		return CPPUTILS_NULL;
 	}
 	
 	void* pReturn;
@@ -310,16 +310,16 @@ CRASH_INVEST_DLL_PRIVATE void* TestOperatorReAlloc  ( void* a_ptr, size_t a_coun
 }
 
 
-#ifdef CRASH_INVEST_CPP_17_DEFINED
+#ifdef CPPUTILS_CPP_17_DEFINED
 
-CRASH_INVEST_DLL_PRIVATE void* TestOperatorNewAligned(size_t a_count, MemoryType a_memoryType, bool a_bThrow, size_t a_align, int a_goBackInTheStackCalc)
+CRASH_INVEST_ALLOC_EXP void* TestOperatorNewAligned(size_t a_count, MemoryType a_memoryType, bool a_bThrow, size_t a_align, int a_goBackInTheStackCalc)
 {
 	if (s_bIsAllocingOrDeallocing) { return ::crash_investigator::mallocn(a_count); }
 	IsAllocingHandler aHandler;
 
 	if (!a_count) {
 		if (a_bThrow) { throw ::std::bad_alloc(); }
-		else { return CRASH_INVEST_NULL; }
+		else { return CPPUTILS_NULL; }
 	}
 
 	if (a_align < __STDCPP_DEFAULT_NEW_ALIGNMENT__) {
@@ -348,7 +348,7 @@ CRASH_INVEST_DLL_PRIVATE void* TestOperatorNewAligned(size_t a_count, MemoryType
     void* pReturn = ::crash_investigator::mallocn(actually_allocating);
     if (!pReturn) {
 		if (a_bThrow) { throw ::std::bad_alloc(); }
-		else { return CRASH_INVEST_NULL; }
+		else { return CPPUTILS_NULL; }
 	}
 
     void* pReturnRet = pReturn;
@@ -361,10 +361,10 @@ CRASH_INVEST_DLL_PRIVATE void* TestOperatorNewAligned(size_t a_count, MemoryType
 	}
 
 	if (a_bThrow) { throw ::std::bad_alloc(); }
-	return CRASH_INVEST_NULL;
+	return CPPUTILS_NULL;
 }
 
-#endif  // #ifdef CRASH_INVEST_CPP_17_DEFINED
+#endif  // #ifdef CPPUTILS_CPP_17_DEFINED
 
 
 
@@ -424,7 +424,7 @@ static void SignalSigsegvHandler(int)
 	CMemoryItem* pMemoryItem = s_crashInvestAnalizerInit.m_handlerMemory.get();
 	if(pMemoryItem){
 		Backtrace*const pAnalizeTrace = pMemoryItem->deallocTrace;
-		pMemoryItem->deallocTrace = CRASH_INVEST_NULL;
+		pMemoryItem->deallocTrace = CPPUTILS_NULL;
 		InitFailureDataAndCallClbk(*pMemoryItem,MemoryType::NotProvided,pMemoryItem->realAddress,pMemoryItem->count,
 								   pMemoryItem->failureType,pAnalizeTrace);
 	}
@@ -518,8 +518,8 @@ CMemoryItem::CMemoryItem()
 {
 	this->type = MemoryType::NotProvided;
 	this->status = MemoryStatus::DoesNotExistAtAll;
-	this->allocTrace = CRASH_INVEST_NULL;
-	this->deallocTrace = CRASH_INVEST_NULL;
+	this->allocTrace = CPPUTILS_NULL;
+	this->deallocTrace = CPPUTILS_NULL;
 }
 
 
@@ -670,7 +670,7 @@ static void* InitFailureDataAndCallClbk(const SMemoryItem& a_item, MemoryType a_
             (*s_clbkData.errorClbk)(s_clbkData.userData, "Bad FailureAction is provided (%d). Exiting app\n",static_cast<int>(clbkRet));
             exit(1);
         }  // switch(clbkRet){
-        return CRASH_INVEST_NULL;
+        return CPPUTILS_NULL;
 
     case FailureType::DoubleFree:
         aFailureData.allocType = a_item.type;
@@ -698,7 +698,7 @@ static void* InitFailureDataAndCallClbk(const SMemoryItem& a_item, MemoryType a_
             (*s_clbkData.errorClbk)(s_clbkData.userData, "Bad FailureAction is provided (%d). Exiting app\n",static_cast<int>(clbkRet));
             exit(1);
         }  // switch(clbkRet){
-        return CRASH_INVEST_NULL;
+        return CPPUTILS_NULL;
 
     case FailureType::BadReallocMemNotExist:
         aFailureData.allocType = MemoryType::NotProvided;
@@ -724,7 +724,7 @@ static void* InitFailureDataAndCallClbk(const SMemoryItem& a_item, MemoryType a_
             (*s_clbkData.errorClbk)(s_clbkData.userData, "Bad FailureAction is provided (%d). Exiting app\n",static_cast<int>(clbkRet));
             exit(1);
         }  // switch(clbkRet){
-        return CRASH_INVEST_NULL;
+        return CPPUTILS_NULL;
 
     case FailureType::BadReallocDeletedMem:
         aFailureData.allocType = a_item.type;
@@ -752,7 +752,7 @@ static void* InitFailureDataAndCallClbk(const SMemoryItem& a_item, MemoryType a_
             (*s_clbkData.errorClbk)(s_clbkData.userData, "Bad FailureAction is provided (%d). Exiting app\n",static_cast<int>(clbkRet));
             exit(1);
         }  // switch(clbkRet){
-        return CRASH_INVEST_NULL;
+        return CPPUTILS_NULL;
 
     case FailureType::BadReallocCreatedByWrongAlloc:
         aFailureData.allocType = a_item.type;
@@ -779,7 +779,7 @@ static void* InitFailureDataAndCallClbk(const SMemoryItem& a_item, MemoryType a_
             (*s_clbkData.errorClbk)(s_clbkData.userData, "Bad FailureAction is provided (%d). Exiting app\n",static_cast<int>(clbkRet));
             exit(1);
         }  // switch(clbkRet){
-        return CRASH_INVEST_NULL;
+        return CPPUTILS_NULL;
 
     case FailureType::FreeMissmatch:
         aFailureData.allocType = a_item.type;
@@ -806,14 +806,14 @@ static void* InitFailureDataAndCallClbk(const SMemoryItem& a_item, MemoryType a_
             (*s_clbkData.errorClbk)(s_clbkData.userData, "Bad FailureAction is provided (%d). Exiting app\n",static_cast<int>(clbkRet));
             exit(1);
         }  // switch(clbkRet){
-        return CRASH_INVEST_NULL;
+        return CPPUTILS_NULL;
 
     default:
         assert(false);
         break;
     } // switch(a_failureType){
 
-    return CRASH_INVEST_NULL;
+    return CPPUTILS_NULL;
 }
 
 
