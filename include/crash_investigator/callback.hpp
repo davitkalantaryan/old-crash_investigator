@@ -75,9 +75,3 @@ CRASH_INVEST_EXPORT SCallback ReplaceFailureClbk(const SCallback& a_newClbk);
 CRASH_INVEST_EXPORT SCallback GetFailureClbk(void);
 
 } // namespace crash_investigator {
-
-#ifdef _MSC_VER
-CPPUTILS_BEGIN_C
-CRASH_INVEST_EXPORT void crash_investiator_new_malloc_init(void);
-CPPUTILS_END_C
-#endif

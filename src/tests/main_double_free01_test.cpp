@@ -37,10 +37,6 @@ int main(int a_argc, char* a_argv[])
 	printf("If debugging is needed, then connect with debugger, then press enter to proceed  ! ");
 	fflush(stdout);
 	getchar();
-
-#ifdef _MSC_VER
-	crash_investiator_new_malloc_init();
-#endif
 	
 	if(a_argc<2){
         fprintf(stderr,"ERROR: specify number [1..6] to select hook to test\n");

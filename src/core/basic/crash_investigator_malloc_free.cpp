@@ -44,13 +44,6 @@ CRASH_INVEST_EXPORT void CorrectName(free)(void* a_ptr)
     ::crash_investigator::TestOperatorDelete(a_ptr,::crash_investigator::MemoryType::Malloc,1);
 }
 
-#ifdef _MSC_VER
-
-CRASH_INVEST_EXPORT void crash_investiator_new_malloc_init(void) {}
-
-
-#endif  // #ifdef _MSC_VER
-
 
 CPPUTILS_END_C
 
