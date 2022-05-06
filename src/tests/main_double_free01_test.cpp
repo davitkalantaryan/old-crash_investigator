@@ -26,8 +26,8 @@ static void Corruption09();
 #ifdef _MSC_VER
 #pragma warning (disable:4996)
 // crash_investiator_new_malloc.lib;initial_malloc_free_test.lib
-#pragma comment(lib,"crash_investiator_new_malloc.lib")
-#pragma comment(lib,"initial_malloc_free.lib")
+//#pragma comment(lib,"crash_investiator_new_malloc.lib")
+//#pragma comment(lib,"initial_malloc_free.lib")
 //#pragma comment(lib,"Dbghelp.lib")
 #endif
 
