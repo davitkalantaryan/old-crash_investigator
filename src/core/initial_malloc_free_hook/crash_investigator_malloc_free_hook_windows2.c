@@ -16,12 +16,12 @@
 
 CPPUTILS_BEGIN_C
 
-CPPUTILS_DLL_PRIVATE void  free_default(void* a_ptr){LocalFree(a_ptr);}
-CPPUTILS_DLL_PRIVATE void* malloc_default(size_t a_count) { return LocalAlloc(LMEM_FIXED, CPPUTILS_STATIC_CAST(SIZE_T, a_count)); }
-CPPUTILS_DLL_PRIVATE void* realloc_default(void* a_ptr, size_t a_count) { return LocalReAlloc(a_ptr, CPPUTILS_STATIC_CAST(SIZE_T, a_count), LMEM_FIXED); }
+CPPUTILS_DLL_PRIVATE void  free_default(void* a_ptr){HeapFree(GetProcessHeap(), 0, a_ptr);}
+CPPUTILS_DLL_PRIVATE void* malloc_default(size_t a_count) { return HeapAlloc(GetProcessHeap(), 0, CPPUTILS_STATIC_CAST(SIZE_T, a_count));}
+CPPUTILS_DLL_PRIVATE void* realloc_default(void* a_ptr, size_t a_count) { return HeapReAlloc(GetProcessHeap(), 0, a_ptr, CPPUTILS_STATIC_CAST(SIZE_T, a_count));}
 CPPUTILS_DLL_PRIVATE void* calloc_default(size_t a_nmemb, size_t a_size) {
 	const size_t unCount = a_nmemb * a_size;
-	return LocalAlloc(LMEM_FIXED | LMEM_ZEROINIT, CPPUTILS_STATIC_CAST(SIZE_T, unCount));
+	return HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, CPPUTILS_STATIC_CAST(SIZE_T, unCount));
 }
 
 
