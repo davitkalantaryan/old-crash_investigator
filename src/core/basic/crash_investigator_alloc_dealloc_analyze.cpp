@@ -45,6 +45,16 @@ enum class MemoryStatus : uint32_t {
 };
 //CPPUTILS_ENUM_FAST_RAW(251,MemoryStatus,uint32_t,Allocated,Deallocated);
 
+typedef Backtrace* BacktracePtr;
+
+struct BackTrcHasher {
+    size_t operator()(const BacktracePtr& a_intDt) const { return HashOfTheStack(a_intDt); }
+};
+
+struct BackTrcEql {
+    bool operator()(const BacktracePtr& a_lhs, const BacktracePtr& a_rhs) const { return IsTheSameStack(a_lhs,a_rhs); }
+};
+
 
 struct SMemoryItem{
 	MemoryType		type;
@@ -76,7 +86,8 @@ public:
 	size_t count;
 };
 
-typedef cpputilsm::HashItemsByPtr<void*,SMemoryItem, cpputilsm::IntHasher<void*>,&mallocn,&freen>  TypeHashTbl;
+typedef cpputilsm::HashItemsByPtr<void*,SMemoryItem, cpputilsm::IntHasher<void*>, cpputilsm::SmpEqual<void*>,&mallocn,&freen>  TypeHashTbl;
+typedef cpputilsm::HashItemsByPtr<Backtrace*, int*, BackTrcHasher, BackTrcEql, &mallocn, &freen>  TypeStackTbl;
 
 
 class CPPUTILS_DLL_PRIVATE CrashInvestAnalizerInit{
@@ -87,6 +98,7 @@ public:
 	TypeHashTbl								m_memoryItems;
 	std::mutex								m_mutexForMap;
 	cpputils::tls_ptr_fast<CMemoryItem>		m_handlerMemory;
+    TypeStackTbl                            m_stackItems;
 #ifdef _WIN32
 	void (*m_funcInitial)(int);
 #else
@@ -131,10 +143,10 @@ static inline void* AddNewAllocatedMemoryAndCleanOldEntryNoLock(MemoryType a_mem
         s_memoryItems.AddEntryWithKnownHash(a_pReturn,unHash,aItem);
     }
     else{
-        assert(false);
-        //FreeBacktraceData(memIter->second.deallocTrace);
-        //FreeBacktraceData(memIter->second.allocTrace);
-        //memIter->second = aItem;
+        //assert(false); // because of double free issue investigations, assert here is not true
+        FreeBacktraceData(memIter->second.deallocTrace);
+        FreeBacktraceData(memIter->second.allocTrace);
+        memIter->second = aItem;
     }
     return a_pReturn;
 }
@@ -251,7 +263,6 @@ CRASH_INVEST_ALLOC_EXP void* TestOperatorReAlloc  ( void* a_ptr, size_t a_count,
 {
 	if(s_bIsAllocingOrDeallocing){return ::crash_investigator::reallocn(a_ptr,a_count);}
     if(!a_ptr){return TestOperatorAlloc(a_count,MemoryType::Malloc,false,++a_goBackInTheStackCalc2);}
-	IsAllocingHandler aHandler;
 	
     //CRASH_INVEST_ANALIZE_COUNT_0(a_count,false)
 	// in the case if 0 length provided, we delete initial memory
@@ -259,6 +270,8 @@ CRASH_INVEST_ALLOC_EXP void* TestOperatorReAlloc  ( void* a_ptr, size_t a_count,
 		TestOperatorDelete(a_ptr,MemoryType::Malloc,++a_goBackInTheStackCalc2);
 		return CPPUTILS_NULL;
 	}
+
+    IsAllocingHandler aHandler;
 	
 	void* pReturn;
 	TypeHashTbl::iterator memItemIter;

@@ -17,11 +17,16 @@ struct IntHasher {
 	size_t operator()(const TypeIntKey& a_intDt) const {return (size_t)a_intDt;}
 };
 
+template <typename TypeIntKey>
+struct SmpEqual {
+	bool operator()(const TypeIntKey& a_lhs, const TypeIntKey& a_rhs) const { return a_lhs==a_rhs; }
+};
+
 
 typedef void* (*TypeAlloc)  ( size_t );
 typedef void  (*TypeFree)  ( void* );
 
-template <typename TypeIntKey, typename TypeData, typename HashT = IntHasher<TypeIntKey>, TypeAlloc allocFn= :: malloc, TypeFree freeFn= :: free>
+template <typename TypeIntKey, typename TypeData, typename HashT = IntHasher<TypeIntKey>, typename EqlT = SmpEqual<TypeIntKey>, TypeAlloc allocFn= :: malloc, TypeFree freeFn= :: free>
 class HashItemsByPtr
 {
 public:
