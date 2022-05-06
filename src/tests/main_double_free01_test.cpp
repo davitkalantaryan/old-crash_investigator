@@ -21,6 +21,7 @@ static void Corruption05();
 static void Corruption06();
 static void Corruption07();
 static void Corruption08();
+static void Corruption09();
 
 #ifdef _MSC_VER
 #pragma warning (disable:4996)
@@ -39,7 +40,7 @@ int main(int a_argc, char* a_argv[])
 	getchar();
 	
 	if(a_argc<2){
-        fprintf(stderr,"ERROR: specify number [1..8] to select hook to test\n");
+        fprintf(stderr,"ERROR: specify number [1..9] to select hook to test\n");
 		return 1;
 	}
 	
@@ -69,8 +70,11 @@ int main(int a_argc, char* a_argv[])
     case 8:
         Corruption08();
         break;
+	case 9:
+		Corruption09();
+		break;
 	default:
-		fprintf(stderr,"ERROR: Number of hook should be in the region [1..8]\n");
+		fprintf(stderr,"ERROR: Number of hook should be in the region [1..9]\n");
 		return 1;
 	}
 	
@@ -122,5 +126,10 @@ static void Corruption08(){  // indirect double free
 	if(pFile){
 		fclose(pFile);
 		fclose(pFile);
+	}
+}
+static void Corruption09() {  // memory leak
+	for (int i(0); i < 12; ++i) {
+		new int;
 	}
 }

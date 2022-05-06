@@ -109,7 +109,7 @@ begin()
 
 template <typename TypeIntKey, typename TypeData, typename HashT, typename EqlT, TypeAlloc allocFn, TypeFree freeFn>
 void HashItemsByPtr<TypeIntKey,TypeData, HashT, EqlT,allocFn,freeFn>::
-RemoveEntry(const iterator& a_iter)
+RemoveEntry(iterator& a_iter)
 {
 	if(a_iter.m_pItem){
 		//

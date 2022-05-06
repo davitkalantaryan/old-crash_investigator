@@ -58,7 +58,7 @@ public:
 public:
     void     AddEntryWithKnownHash(const TypeIntKey& a_key, size_t a_hash, const TypeData& a_data);
     iterator FindEntry(const TypeIntKey& a_key, size_t* a_punSize);
-	void     RemoveEntry(const iterator& iter);
+	void     RemoveEntry(iterator& iter);
 	iterator begin();
 	
 	static void* operator new( ::std::size_t a_count );
