@@ -34,6 +34,7 @@ enum class FailureType : uint32_t{
     BadReallocCreatedByWrongAlloc,
     FreeMissmatch,
     PossibilityOfMemoryLeak,
+    SigSegvHandler
 };
 
 struct StackItem{

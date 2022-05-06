@@ -407,10 +407,8 @@ CRASH_INVEST_ALLOC_EXP void* TestOperatorNewAligned(size_t a_count, MemoryType a
 	}
 
     void* pReturnRet = pReturn;
-	MY_NEW_PRINTF("line:%d\n", __LINE__);
 
     if (std::align(a_align, a_count, pReturnRet, actually_allocating)) {
-		MY_NEW_PRINTF("line:%d\n", __LINE__);
         AddNewAllocatedMemoryAndCleanOldEntry(a_memoryType,pReturn,++a_goBackInTheStackCalc);
         return pReturnRet;
 	}
@@ -477,12 +475,15 @@ static inline void PrintStack(const ::std::vector< StackItem>& a_stack)
 static void SignalSigsegvHandler(int)
 {
 	CMemoryItem* pMemoryItem = s_crashInvestAnalizerInit.m_handlerMemory.get();
+    Backtrace* const pAnalizeTrace = InitBacktraceDataForCurrentStack(1);
 	if(pMemoryItem){
-		Backtrace*const pAnalizeTrace = pMemoryItem->deallocTrace;
-		pMemoryItem->deallocTrace = CPPUTILS_NULL;
-		InitFailureDataAndCallClbk(*pMemoryItem,MemoryType::NotProvided,pMemoryItem->realAddress,pMemoryItem->count,
-								   pMemoryItem->failureType,pAnalizeTrace);
+		InitFailureDataAndCallClbk(*pMemoryItem, pMemoryItem->type,pMemoryItem->realAddress,pMemoryItem->count,
+            FailureType::SigSegvHandler,pAnalizeTrace);
 	}
+    else {
+        const SMemoryItem aItem({ MemoryType::NotProvided,MemoryStatus::DoesNotExistAtAll,CPPUTILS_NULL,CPPUTILS_NULL,CPPUTILS_NULL});
+        InitFailureDataAndCallClbk(aItem, MemoryType::NotProvided, CPPUTILS_NULL, 0,FailureType::DeallocOfNonExistingMemory, pAnalizeTrace);
+    }
 	exit(3);
 }
 
@@ -661,6 +662,10 @@ static FailureAction DefaultFailureClbk(const FailureData& a_data)
     case FailureType::PossibilityOfMemoryLeak:
         (*s_clbkData.errorClbk)(s_clbkData.userData, "There is a probability for memory leak in the following stack\n");
         PrintStack(a_data.stackAlloc);
+        break;
+    case FailureType::SigSegvHandler:
+        (*s_clbkData.errorClbk)(s_clbkData.userData, "Sig segv handler\n");
+        PrintStack(a_data.analizeStack);
         break;
     default:
         assert(false);
@@ -876,6 +881,32 @@ static void* InitFailureDataAndCallClbk(const SMemoryItem& a_item, MemoryType a_
         aFailureData.badReallocSecondArg = 0;
         ConvertBacktraceToNames(a_item.allocTrace, &(aFailureData.stackAlloc));
 
+        clbkRet = (*s_clbkData.clbkFnc)(aFailureData);
+        switch (clbkRet) {
+        case FailureAction::MakeAction:
+            // ok if you want we will try our luck
+            ::crash_investigator::freen(a_failureAddress);
+        case FailureAction::DoNotMakeActionToPreventCrash:
+            // preventing crash
+            break;
+        case FailureAction::ExitApp:
+            // exiting app
+            exit(1);
+        default:
+            (*s_clbkData.errorClbk)(s_clbkData.userData, "Bad FailureAction is provided (%d). Exiting app\n", static_cast<int>(clbkRet));
+            exit(1);
+        }  // switch(clbkRet){
+        return CPPUTILS_NULL;
+
+    case FailureType::SigSegvHandler:
+        aFailureData.allocType = a_item.type;
+        aFailureData.freeType = a_freeType;
+        aFailureData.reserved01 = 0;
+        aFailureData.clbkData = s_clbkData.userData;
+        aFailureData.failureAddress = a_failureAddress;
+        aFailureData.badReallocSecondArg = 0;
+        ConvertBacktraceToNames(a_pAnalizeTrace, &(aFailureData.analizeStack));
+        
         clbkRet = (*s_clbkData.clbkFnc)(aFailureData);
         switch (clbkRet) {
         case FailureAction::MakeAction:

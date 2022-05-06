@@ -14,7 +14,7 @@
 #include <new>
 
 #ifdef _MSC_VER
-#pragma comment(lib,"crash_investiator_new_malloc.lib")
+//#pragma comment(lib,"crash_investiator_new_malloc.lib")
 #endif
 
 

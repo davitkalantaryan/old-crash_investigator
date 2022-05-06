@@ -39,6 +39,7 @@
     <Keyword>Win32Proj</Keyword>
     <ProjectGuid>{06629854-9779-4338-bc64-919d6a46b5c8}</ProjectGuid>
     <RootNamespace>crashinvestiatornewmalloc</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -178,6 +179,7 @@
       <PreprocessorDefinitions>CRASH_INVEST_HOOK_IMPORT_FROM_SHARED_LIB;CRASH_INVEST_VERSION_NUM=$(CRASH_INVEST_VERSION_ENV);CRASH_INVEST_VERSION_STR="$(CRASH_INVEST_VERSION_ENV)";CRASH_INVEST_COMPILING_SHARED_LIB;WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\include;$(ProjectDir)..\..\..\contrib\cpputils\include;$(ProjectDir)..\..\..\src\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -194,6 +196,7 @@
       <PreprocessorDefinitions>CRASH_INVEST_HOOK_IMPORT_FROM_SHARED_LIB;CRASH_INVEST_VERSION_NUM=$(CRASH_INVEST_VERSION_ENV);CRASH_INVEST_VERSION_STR="$(CRASH_INVEST_VERSION_ENV)";CRASH_INVEST_COMPILING_SHARED_LIB;WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\include;$(ProjectDir)..\..\..\contrib\cpputils\include;$(ProjectDir)..\..\..\src\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -210,6 +213,7 @@
       <PreprocessorDefinitions>CRASH_INVEST_HOOK_IMPORT_FROM_SHARED_LIB;CRASH_INVEST_VERSION_NUM=$(CRASH_INVEST_VERSION_ENV);CRASH_INVEST_VERSION_STR="$(CRASH_INVEST_VERSION_ENV)";CRASH_INVEST_COMPILING_SHARED_LIB;WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\include;$(ProjectDir)..\..\..\contrib\cpputils\include;$(ProjectDir)..\..\..\src\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -228,6 +232,7 @@
       <PreprocessorDefinitions>CRASH_INVEST_HOOK_IMPORT_FROM_SHARED_LIB;CRASH_INVEST_VERSION_NUM=$(CRASH_INVEST_VERSION_ENV);CRASH_INVEST_VERSION_STR="$(CRASH_INVEST_VERSION_ENV)";CRASH_INVEST_COMPILING_SHARED_LIB;WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\include;$(ProjectDir)..\..\..\contrib\cpputils\include;$(ProjectDir)..\..\..\src\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -248,6 +253,7 @@
       <PreprocessorDefinitions>CRASH_INVEST_HOOK_IMPORT_FROM_SHARED_LIB;CRASH_INVEST_VERSION_NUM=$(CRASH_INVEST_VERSION_ENV);CRASH_INVEST_VERSION_STR="$(CRASH_INVEST_VERSION_ENV)";CRASH_INVEST_COMPILING_SHARED_LIB;WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\include;$(ProjectDir)..\..\..\contrib\cpputils\include;$(ProjectDir)..\..\..\src\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -268,6 +274,7 @@
       <PreprocessorDefinitions>CRASH_INVEST_HOOK_IMPORT_FROM_SHARED_LIB;CRASH_INVEST_VERSION_NUM=$(CRASH_INVEST_VERSION_ENV);CRASH_INVEST_VERSION_STR="$(CRASH_INVEST_VERSION_ENV)";CRASH_INVEST_COMPILING_SHARED_LIB;WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\include;$(ProjectDir)..\..\..\contrib\cpputils\include;$(ProjectDir)..\..\..\src\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -286,6 +293,7 @@
       <PreprocessorDefinitions>CRASH_INVEST_HOOK_IMPORT_FROM_SHARED_LIB;CRASH_INVEST_VERSION_NUM=$(CRASH_INVEST_VERSION_ENV);CRASH_INVEST_VERSION_STR="$(CRASH_INVEST_VERSION_ENV)";CRASH_INVEST_COMPILING_SHARED_LIB;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\include;$(ProjectDir)..\..\..\contrib\cpputils\include;$(ProjectDir)..\..\..\src\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -304,6 +312,7 @@
       <PreprocessorDefinitions>CRASH_INVEST_HOOK_IMPORT_FROM_SHARED_LIB;CRASH_INVEST_VERSION_NUM=$(CRASH_INVEST_VERSION_ENV);CRASH_INVEST_VERSION_STR="$(CRASH_INVEST_VERSION_ENV)";CRASH_INVEST_COMPILING_SHARED_LIB;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\include;$(ProjectDir)..\..\..\contrib\cpputils\include;$(ProjectDir)..\..\..\src\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
