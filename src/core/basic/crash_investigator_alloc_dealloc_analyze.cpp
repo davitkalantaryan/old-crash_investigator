@@ -135,6 +135,19 @@ CRASH_INVEST_EXPORT SCallback GetFailureClbk(void)
     return s_clbkData;
 }
 
+CRASH_INVEST_EXPORT size_t GetMaxAllowedAllocInTheSameStack(void)
+{
+    return s_unMaxNumberOfAllocFromTheSameStack;
+}
+
+
+CRASH_INVEST_EXPORT size_t SetMaxAllowedAllocInTheSameStack(size_t a_newNumber)
+{
+    const size_t cunRet(s_unMaxNumberOfAllocFromTheSameStack);
+    s_unMaxNumberOfAllocFromTheSameStack = a_newNumber;
+    return cunRet;
+}
+
 
 static inline void* AddNewAllocatedMemoryAndCleanOldEntryNoLock(MemoryType a_memoryType,void* a_pReturn,Backtrace* a_pBacktrace, ::std::unique_lock<::std::mutex>* a_pLock)
 {

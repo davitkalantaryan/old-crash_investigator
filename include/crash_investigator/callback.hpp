@@ -74,5 +74,7 @@ struct SCallback{
 
 CRASH_INVEST_EXPORT SCallback ReplaceFailureClbk(const SCallback& a_newClbk);
 CRASH_INVEST_EXPORT SCallback GetFailureClbk(void);
+CRASH_INVEST_EXPORT size_t GetMaxAllowedAllocInTheSameStack(void);
+CRASH_INVEST_EXPORT size_t SetMaxAllowedAllocInTheSameStack(size_t newNumber);
 
 } // namespace crash_investigator {
