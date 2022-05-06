@@ -176,7 +176,7 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>CRASH_INVEST_HOOK_IMPORT_FROM_SHARED_LIB;CRASH_INVEST_VERSION_NUM=$(CRASH_INVEST_VERSION_ENV);CRASH_INVEST_VERSION_STR="$(CRASH_INVEST_VERSION_ENV)";CRASH_INVEST_COMPILING_SHARED_LIB;WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>CRASH_INVEST_DO_NOT_USE_MAL_FREE;CRASH_INVEST_HOOK_IMPORT_FROM_SHARED_LIB;CRASH_INVEST_VERSION_NUM=$(CRASH_INVEST_VERSION_ENV);CRASH_INVEST_VERSION_STR="$(CRASH_INVEST_VERSION_ENV)";CRASH_INVEST_COMPILING_SHARED_LIB;WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\include;$(ProjectDir)..\..\..\contrib\cpputils\include;$(ProjectDir)..\..\..\src\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
@@ -193,7 +193,7 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>CRASH_INVEST_HOOK_IMPORT_FROM_SHARED_LIB;CRASH_INVEST_VERSION_NUM=$(CRASH_INVEST_VERSION_ENV);CRASH_INVEST_VERSION_STR="$(CRASH_INVEST_VERSION_ENV)";CRASH_INVEST_COMPILING_SHARED_LIB;WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>CRASH_INVEST_DO_NOT_USE_MAL_FREE;CRASH_INVEST_HOOK_IMPORT_FROM_SHARED_LIB;CRASH_INVEST_VERSION_NUM=$(CRASH_INVEST_VERSION_ENV);CRASH_INVEST_VERSION_STR="$(CRASH_INVEST_VERSION_ENV)";CRASH_INVEST_COMPILING_SHARED_LIB;WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\include;$(ProjectDir)..\..\..\contrib\cpputils\include;$(ProjectDir)..\..\..\src\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
@@ -210,7 +210,7 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>CRASH_INVEST_HOOK_IMPORT_FROM_SHARED_LIB;CRASH_INVEST_VERSION_NUM=$(CRASH_INVEST_VERSION_ENV);CRASH_INVEST_VERSION_STR="$(CRASH_INVEST_VERSION_ENV)";CRASH_INVEST_COMPILING_SHARED_LIB;WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>CRASH_INVEST_DO_NOT_USE_MAL_FREE;CRASH_INVEST_HOOK_IMPORT_FROM_SHARED_LIB;CRASH_INVEST_VERSION_NUM=$(CRASH_INVEST_VERSION_ENV);CRASH_INVEST_VERSION_STR="$(CRASH_INVEST_VERSION_ENV)";CRASH_INVEST_COMPILING_SHARED_LIB;WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\include;$(ProjectDir)..\..\..\contrib\cpputils\include;$(ProjectDir)..\..\..\src\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
@@ -229,7 +229,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>CRASH_INVEST_HOOK_IMPORT_FROM_SHARED_LIB;CRASH_INVEST_VERSION_NUM=$(CRASH_INVEST_VERSION_ENV);CRASH_INVEST_VERSION_STR="$(CRASH_INVEST_VERSION_ENV)";CRASH_INVEST_COMPILING_SHARED_LIB;WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>CRASH_INVEST_DO_NOT_USE_MAL_FREE;CRASH_INVEST_HOOK_IMPORT_FROM_SHARED_LIB;CRASH_INVEST_VERSION_NUM=$(CRASH_INVEST_VERSION_ENV);CRASH_INVEST_VERSION_STR="$(CRASH_INVEST_VERSION_ENV)";CRASH_INVEST_COMPILING_SHARED_LIB;WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\include;$(ProjectDir)..\..\..\contrib\cpputils\include;$(ProjectDir)..\..\..\src\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
@@ -250,7 +250,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>CRASH_INVEST_HOOK_IMPORT_FROM_SHARED_LIB;CRASH_INVEST_VERSION_NUM=$(CRASH_INVEST_VERSION_ENV);CRASH_INVEST_VERSION_STR="$(CRASH_INVEST_VERSION_ENV)";CRASH_INVEST_COMPILING_SHARED_LIB;WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>CRASH_INVEST_DO_NOT_USE_MAL_FREE;CRASH_INVEST_HOOK_IMPORT_FROM_SHARED_LIB;CRASH_INVEST_VERSION_NUM=$(CRASH_INVEST_VERSION_ENV);CRASH_INVEST_VERSION_STR="$(CRASH_INVEST_VERSION_ENV)";CRASH_INVEST_COMPILING_SHARED_LIB;WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\include;$(ProjectDir)..\..\..\contrib\cpputils\include;$(ProjectDir)..\..\..\src\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
@@ -271,7 +271,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>CRASH_INVEST_HOOK_IMPORT_FROM_SHARED_LIB;CRASH_INVEST_VERSION_NUM=$(CRASH_INVEST_VERSION_ENV);CRASH_INVEST_VERSION_STR="$(CRASH_INVEST_VERSION_ENV)";CRASH_INVEST_COMPILING_SHARED_LIB;WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>CRASH_INVEST_DO_NOT_USE_MAL_FREE;CRASH_INVEST_HOOK_IMPORT_FROM_SHARED_LIB;CRASH_INVEST_VERSION_NUM=$(CRASH_INVEST_VERSION_ENV);CRASH_INVEST_VERSION_STR="$(CRASH_INVEST_VERSION_ENV)";CRASH_INVEST_COMPILING_SHARED_LIB;WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\include;$(ProjectDir)..\..\..\contrib\cpputils\include;$(ProjectDir)..\..\..\src\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
@@ -290,7 +290,7 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>CRASH_INVEST_HOOK_IMPORT_FROM_SHARED_LIB;CRASH_INVEST_VERSION_NUM=$(CRASH_INVEST_VERSION_ENV);CRASH_INVEST_VERSION_STR="$(CRASH_INVEST_VERSION_ENV)";CRASH_INVEST_COMPILING_SHARED_LIB;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>CRASH_INVEST_DO_NOT_USE_MAL_FREE;CRASH_INVEST_HOOK_IMPORT_FROM_SHARED_LIB;CRASH_INVEST_VERSION_NUM=$(CRASH_INVEST_VERSION_ENV);CRASH_INVEST_VERSION_STR="$(CRASH_INVEST_VERSION_ENV)";CRASH_INVEST_COMPILING_SHARED_LIB;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\include;$(ProjectDir)..\..\..\contrib\cpputils\include;$(ProjectDir)..\..\..\src\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
@@ -309,7 +309,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>CRASH_INVEST_HOOK_IMPORT_FROM_SHARED_LIB;CRASH_INVEST_VERSION_NUM=$(CRASH_INVEST_VERSION_ENV);CRASH_INVEST_VERSION_STR="$(CRASH_INVEST_VERSION_ENV)";CRASH_INVEST_COMPILING_SHARED_LIB;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>CRASH_INVEST_DO_NOT_USE_MAL_FREE;CRASH_INVEST_HOOK_IMPORT_FROM_SHARED_LIB;CRASH_INVEST_VERSION_NUM=$(CRASH_INVEST_VERSION_ENV);CRASH_INVEST_VERSION_STR="$(CRASH_INVEST_VERSION_ENV)";CRASH_INVEST_COMPILING_SHARED_LIB;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\include;$(ProjectDir)..\..\..\contrib\cpputils\include;$(ProjectDir)..\..\..\src\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>

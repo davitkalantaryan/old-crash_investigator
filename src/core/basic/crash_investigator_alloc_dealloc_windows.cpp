@@ -9,11 +9,9 @@
 #ifndef CRASH_INVEST_DO_NOT_USE_AT_ALL
 
 #include "crash_investigator_alloc_dealloc.hpp"
-#ifndef CRASH_INVEST_DO_NOT_USE_MAL_FREE
 #include <WinSock2.h>
 #include <WS2tcpip.h>
 #include <Windows.h>
-#endif
 
 #ifdef _DEBUG
 #define CRASH_INVEST_CRUN_LIB	"ucrtbased.dll"

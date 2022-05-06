@@ -15,7 +15,9 @@
 
 #ifdef _MSC_VER
 #pragma comment(lib,"crash_investiator_new_malloc.lib")
+#ifndef CRASH_INVEST_DO_NOT_USE_MAL_FREE
 #pragma comment(lib,"initial_malloc_free.lib")
+#endif
 #endif
 
 
