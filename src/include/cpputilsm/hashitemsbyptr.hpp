@@ -12,11 +12,16 @@ namespace cpputilsm{
 
 #define CPPUTILSM_HASH_SIZE	4096
 
+template <typename TypeIntKey>
+struct IntHasher {
+	size_t operator()(const TypeIntKey& a_intDt) const {return (size_t)a_intDt;}
+};
+
 
 typedef void* (*TypeAlloc)  ( size_t );
 typedef void  (*TypeFree)  ( void* );
 
-template <typename TypeIntKey, typename TypeData, TypeAlloc allocFn= :: malloc, TypeFree freeFn= :: free>
+template <typename TypeIntKey, typename TypeData, typename HashT = IntHasher<TypeIntKey>, TypeAlloc allocFn= :: malloc, TypeFree freeFn= :: free>
 class HashItemsByPtr
 {
 public:

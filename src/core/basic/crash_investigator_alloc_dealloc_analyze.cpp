@@ -23,6 +23,7 @@
 #endif
 #include <string.h>
 #include <signal.h>
+#include <assert.h>
 
 
 namespace crash_investigator {
@@ -40,7 +41,7 @@ enum class MemoryStatus : uint32_t {
 	DoesNotExistAtAll,
 	Allocated,
 	Deallocated,
-    DuringReallocChanged=MemoryStatus::Deallocated,
+    DuringReallocChanged=static_cast<uint32_t>(MemoryStatus::Deallocated),
 };
 //CPPUTILS_ENUM_FAST_RAW(251,MemoryStatus,uint32_t,Allocated,Deallocated);
 
@@ -75,7 +76,7 @@ public:
 	size_t count;
 };
 
-typedef cpputilsm::HashItemsByPtr<void*,SMemoryItem,&mallocn,&freen>  TypeHashTbl;
+typedef cpputilsm::HashItemsByPtr<void*,SMemoryItem, cpputilsm::IntHasher<void*>,&mallocn,&freen>  TypeHashTbl;
 
 
 class CPPUTILS_DLL_PRIVATE CrashInvestAnalizerInit{
@@ -130,9 +131,10 @@ static inline void* AddNewAllocatedMemoryAndCleanOldEntryNoLock(MemoryType a_mem
         s_memoryItems.AddEntryWithKnownHash(a_pReturn,unHash,aItem);
     }
     else{
-        FreeBacktraceData(memIter->second.deallocTrace);
-        FreeBacktraceData(memIter->second.allocTrace);
-        memIter->second = aItem;
+        assert(false);
+        //FreeBacktraceData(memIter->second.deallocTrace);
+        //FreeBacktraceData(memIter->second.allocTrace);
+        //memIter->second = aItem;
     }
     return a_pReturn;
 }

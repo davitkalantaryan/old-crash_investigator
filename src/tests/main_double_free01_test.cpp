@@ -39,7 +39,7 @@ int main(int a_argc, char* a_argv[])
 	getchar();
 	
 	if(a_argc<2){
-        fprintf(stderr,"ERROR: specify number [1..6] to select hook to test\n");
+        fprintf(stderr,"ERROR: specify number [1..8] to select hook to test\n");
 		return 1;
 	}
 	
@@ -70,7 +70,7 @@ int main(int a_argc, char* a_argv[])
         Corruption08();
         break;
 	default:
-		fprintf(stderr,"ERROR: Number of hook should be in the region [1..3]\n");
+		fprintf(stderr,"ERROR: Number of hook should be in the region [1..8]\n");
 		return 1;
 	}
 	

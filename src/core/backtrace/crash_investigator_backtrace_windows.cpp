@@ -36,6 +36,24 @@ struct Backtrace{
 };
 
 
+CPPUTILS_DLL_PRIVATE bool IsTheSameStack(const Backtrace* a_stack1, const Backtrace* a_stack2)
+{
+	return (a_stack1->stackDeepness > 0) && (a_stack1->stackDeepness == a_stack2->stackDeepness) &&
+		(memcmp(a_stack1->ppBuffer, a_stack2->ppBuffer, CPPUTILS_STATIC_CAST(size_t, a_stack1->stackDeepness) * sizeof(void*)) == 0);
+}
+
+
+CPPUTILS_DLL_PRIVATE size_t HashOfTheStack(const Backtrace* a_stack)
+{
+	size_t cunRet(0);
+	size_t unMult(1);
+	for (int i(0); i < a_stack->stackDeepness; ++i, unMult*=1000) {
+		cunRet += ((size_t)a_stack->ppBuffer[i]) * unMult;
+	}
+	return cunRet;
+}
+
+
 CPPUTILS_DLL_PRIVATE void FreeBacktraceData(Backtrace* a_data)
 {
 	if (a_data) {

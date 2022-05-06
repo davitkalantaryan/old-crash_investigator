@@ -26,8 +26,25 @@ struct Backtrace{
     int    reserved01;
 };
 
+CPPUTILS_DLL_PRIVATE bool IsTheSameStack(const Backtrace* a_stack1, const Backtrace* a_stack2)
+{
+	return (a_stack1->stackDeepness > 0) && (a_stack1->stackDeepness == a_stack2->stackDeepness) &&
+		(memcmp(a_stack1->ppBuffer, a_stack2->ppBuffer, CPPUTILS_STATIC_CAST(size_t, a_stack1->stackDeepness)*sizeof(void*)) == 0);
+}
 
-CRASH_INVEST_DLL_PRIVATE void FreeBacktraceData(Backtrace* a_data)
+
+CPPUTILS_DLL_PRIVATE size_t HashOfTheStack(const Backtrace* a_stack)
+{
+	size_t cunRet(0);
+	size_t unMult(1);
+	for (int i(0); i < a_stack->stackDeepness; ++i, unMult *= 1000) {
+		cunRet += ((size_t)a_stack->ppBuffer[i]) * unMult;
+	}
+	return cunRet;
+}
+
+
+CPPUTILS_DLL_PRIVATE void FreeBacktraceData(Backtrace* a_data)
 {
     if(a_data){
         freen(a_data->ppBuffer);
@@ -36,10 +53,10 @@ CRASH_INVEST_DLL_PRIVATE void FreeBacktraceData(Backtrace* a_data)
 }
 
 
-CRASH_INVEST_DLL_PRIVATE Backtrace* InitBacktraceDataForCurrentStack(int a_goBackInTheStackCalc)
+CPPUTILS_DLL_PRIVATE Backtrace* InitBacktraceDataForCurrentStack(int a_goBackInTheStackCalc)
 {
     Backtrace* pReturn = static_cast<Backtrace*>(mallocn(sizeof(Backtrace)));
-    if(!pReturn){return CRASH_INVEST_NULL;}
+    if(!pReturn){return CPPUTILS_NULL;}
 
     const int cnMaxSymbolCount = CRASH_INVEST_SYMBOLS_COUNT_MAX+a_goBackInTheStackCalc;
 
@@ -50,13 +67,13 @@ CRASH_INVEST_DLL_PRIVATE Backtrace* InitBacktraceDataForCurrentStack(int a_goBac
     if(nInitialDeepness>a_goBackInTheStackCalc){
         pReturn->stackDeepness = nInitialDeepness-a_goBackInTheStackCalc;
         pReturn->ppBuffer = static_cast<void**>(mallocn(static_cast<size_t>(pReturn->stackDeepness)*sizeof(void*)));
-        if(!(pReturn->ppBuffer)){FreeBacktraceData(pReturn);return CRASH_INVEST_NULL;}
+        if(!(pReturn->ppBuffer)){FreeBacktraceData(pReturn);return CPPUTILS_NULL;}
 		memcpy(pReturn->ppBuffer,&(ppBuffer[a_goBackInTheStackCalc]),static_cast<size_t>(pReturn->stackDeepness)*sizeof(void*));
     }
     else{
         pReturn->stackDeepness = nInitialDeepness;
         pReturn->ppBuffer = static_cast<void**>(mallocn(static_cast<size_t>(pReturn->stackDeepness)*sizeof(void*)));
-        if(!(pReturn->ppBuffer)){FreeBacktraceData(pReturn);return CRASH_INVEST_NULL;}
+        if(!(pReturn->ppBuffer)){FreeBacktraceData(pReturn);return CPPUTILS_NULL;}
 		memcpy(pReturn->ppBuffer,ppBuffer,static_cast<size_t>(pReturn->stackDeepness)*sizeof(void*));
     }
 
@@ -64,7 +81,7 @@ CRASH_INVEST_DLL_PRIVATE Backtrace* InitBacktraceDataForCurrentStack(int a_goBac
 }
 
 
-CRASH_INVEST_DLL_PRIVATE void ConvertBacktraceToNames(const Backtrace* a_data, ::std::vector< StackItem>*  a_pStack)
+CPPUTILS_DLL_PRIVATE void ConvertBacktraceToNames(const Backtrace* a_data, ::std::vector< StackItem>*  a_pStack)
 {
     if(a_data){
         char** ppStrings = backtrace_symbols(a_data->ppBuffer,a_data->stackDeepness);
