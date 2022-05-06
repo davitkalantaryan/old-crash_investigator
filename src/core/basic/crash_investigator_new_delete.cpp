@@ -13,6 +13,10 @@
 #include "crash_investigator_alloc_dealloc.hpp"
 #include <new>
 
+#ifdef _MSC_VER
+#pragma comment(lib,"crash_investiator_new_malloc.lib")
+#endif
+
 
 void* operator new  ( std::size_t a_count ){
         return crash_investigator::TestOperatorAlloc(a_count,crash_investigator::MemoryType::New, true, 1);
