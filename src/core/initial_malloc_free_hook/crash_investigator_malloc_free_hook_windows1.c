@@ -14,16 +14,16 @@
 
 CPPUTILS_BEGIN_C
 
-extern CPPUTILS_DLL_PRIVATE void  free_default(void* a_ptr);
-extern CPPUTILS_DLL_PRIVATE void* malloc_default(size_t a_count);
-extern CPPUTILS_DLL_PRIVATE void* realloc_default(void* a_ptr, size_t a_count);
-extern CPPUTILS_DLL_PRIVATE void* calloc_default(size_t a_nmemb, size_t a_size);
+extern CPPUTILS_DLL_PRIVATE void  CrInvAllocFree_free_default(void* a_ptr);
+extern CPPUTILS_DLL_PRIVATE void* CrInvAllocFree_malloc_default(size_t a_count);
+extern CPPUTILS_DLL_PRIVATE void* CrInvAllocFree_realloc_default(void* a_ptr, size_t a_count);
+extern CPPUTILS_DLL_PRIVATE void* CrInvAllocFree_calloc_default(size_t a_nmemb, size_t a_size);
 
 
-CPPUTILS_DLL_PUBLIC TypeMalloc		g_callers_malloc	= &malloc_default;
-CPPUTILS_DLL_PUBLIC TypeCalloc		g_callers_calloc	= &calloc_default;
-CPPUTILS_DLL_PUBLIC TypeRealloc		g_callers_realloc	= &realloc_default;
-CPPUTILS_DLL_PUBLIC TypeFree		g_callers_free		= &free_default;
+CPPUTILS_DLL_PUBLIC TypeMalloc		g_callers_malloc	= &CrInvAllocFree_malloc_default;
+CPPUTILS_DLL_PUBLIC TypeCalloc		g_callers_calloc	= &CrInvAllocFree_calloc_default;
+CPPUTILS_DLL_PUBLIC TypeRealloc		g_callers_realloc	= &CrInvAllocFree_realloc_default;
+CPPUTILS_DLL_PUBLIC TypeFree		g_callers_free		= &CrInvAllocFree_free_default;
 
 
 CPPUTILS_DLL_PUBLIC void* malloc(size_t a_count)
