@@ -24,6 +24,8 @@ extern CRASH_INVEST_HOOK_EXPORT TypeCalloc		g_callers_calloc;
 extern CRASH_INVEST_HOOK_EXPORT TypeRealloc		g_callers_realloc;
 extern CRASH_INVEST_HOOK_EXPORT TypeFree		g_callers_free;
 
+CPPUTILS_DLL_PUBLIC void initialize_initial_malloc_free(void);
+
 
 CPPUTILS_END_C
 
