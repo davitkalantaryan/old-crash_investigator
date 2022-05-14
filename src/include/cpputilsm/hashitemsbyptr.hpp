@@ -12,11 +12,21 @@ namespace cpputilsm{
 
 #define CPPUTILSM_HASH_SIZE	4096
 
+template <typename TypeIntKey>
+struct IntHasher {
+	size_t operator()(const TypeIntKey& a_intDt) const {return (size_t)a_intDt;}
+};
+
+template <typename TypeIntKey>
+struct SmpEqual {
+	bool operator()(const TypeIntKey& a_lhs, const TypeIntKey& a_rhs) const { return a_lhs==a_rhs; }
+};
+
 
 typedef void* (*TypeAlloc)  ( size_t );
 typedef void  (*TypeFree)  ( void* );
 
-template <typename TypeIntKey, typename TypeData, TypeAlloc allocFn= :: malloc, TypeFree freeFn= :: free>
+template <typename TypeIntKey, typename TypeData, typename HashT = IntHasher<TypeIntKey>, typename EqlT = SmpEqual<TypeIntKey>, TypeAlloc allocFn= :: malloc, TypeFree freeFn= :: free>
 class HashItemsByPtr
 {
 public:
@@ -48,11 +58,11 @@ public:
 public:
     void     AddEntryWithKnownHash(const TypeIntKey& a_key, size_t a_hash, const TypeData& a_data);
     iterator FindEntry(const TypeIntKey& a_key, size_t* a_punSize);
-	void     RemoveEntry(const iterator& iter);
+	void     RemoveEntry(iterator& iter);
 	iterator begin();
 	
 	static void* operator new( ::std::size_t a_count );
-	void operator delete  ( void* a_ptr ) CRASH_INVEST_NOEXCEPT ;
+	void operator delete  ( void* a_ptr ) CPPUTILS_NOEXCEPT ;
 	
 private:
     Item* FindEntryRaw(const TypeIntKey& a_key, size_t* a_punSize);

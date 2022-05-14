@@ -9,11 +9,9 @@
 #ifndef CRASH_INVEST_DO_NOT_USE_AT_ALL
 
 #include "crash_investigator_alloc_dealloc.hpp"
-#ifndef CRASH_INVEST_DO_NOT_USE_MAL_FREE
 #include <WinSock2.h>
 #include <WS2tcpip.h>
 #include <Windows.h>
-#endif
 
 #ifdef _DEBUG
 #define CRASH_INVEST_CRUN_LIB	"ucrtbased.dll"
@@ -23,22 +21,22 @@
 
 namespace crash_investigator {
 
-CRASH_INVEST_DLL_PRIVATE bool SystemSpecificLibInitialRealloc( void*, size_t, void** a_ppReturn ) CRASH_INVEST_NODISCARD
+CPPUTILS_DLL_PRIVATE bool SystemSpecificLibInitialRealloc( void*, size_t, void** a_ppReturn ) CPPUTILS_NODISCARD
 {
-	*a_ppReturn = CRASH_INVEST_NULL;
+	*a_ppReturn = CPPUTILS_NULL;
 	return false;
 }
 
 
-CRASH_INVEST_DLL_PRIVATE bool SystemSpecificLibInitialDealloc( void* ) CRASH_INVEST_NOEXCEPT
+CPPUTILS_DLL_PRIVATE bool SystemSpecificLibInitialDealloc( void* ) CPPUTILS_NOEXCEPT
 {
 	return false;
 }
 
 
-CRASH_INVEST_DLL_PRIVATE void* SystemSpecificGlibcRealloc(void* a_ptr, size_t a_count) CRASH_INVEST_NODISCARD
+CPPUTILS_DLL_PRIVATE void* SystemSpecificGlibcRealloc(void* a_ptr, size_t a_count) CPPUTILS_NODISCARD
 {
-	void* pReturn = CRASH_INVEST_NULL;
+	void* pReturn = CPPUTILS_NULL;
 	HMODULE cranLib = LoadLibraryA(CRASH_INVEST_CRUN_LIB);
 	if (cranLib) {
 		void* (*reallocPtr)(void*, size_t) = (void*(*)(void*,size_t))GetProcAddress(cranLib,"realloc");
@@ -52,7 +50,7 @@ CRASH_INVEST_DLL_PRIVATE void* SystemSpecificGlibcRealloc(void* a_ptr, size_t a_
 }
 
 
-CRASH_INVEST_DLL_PRIVATE void  SystemSpecificGlibcDealloc(void* a_ptr) CRASH_INVEST_NOEXCEPT
+CPPUTILS_DLL_PRIVATE void  SystemSpecificGlibcDealloc(void* a_ptr) CPPUTILS_NOEXCEPT
 {
 	HMODULE cranLib = LoadLibraryA(CRASH_INVEST_CRUN_LIB);
 	if (cranLib) {
@@ -65,28 +63,28 @@ CRASH_INVEST_DLL_PRIVATE void  SystemSpecificGlibcDealloc(void* a_ptr) CRASH_INV
 }
 
 
-CRASH_INVEST_DLL_PRIVATE void* mallocn  ( size_t a_count ) CRASH_INVEST_NODISCARD
+CPPUTILS_DLL_PRIVATE void* mallocn  ( size_t a_count ) CPPUTILS_NODISCARD
 {
-	return LocalAlloc(LMEM_FIXED, static_cast<SIZE_T>(a_count));
+    return HeapAlloc(GetProcessHeap(),0,static_cast<SIZE_T>(a_count));
 }
 
 
-CRASH_INVEST_DLL_PRIVATE void* reallocn( void* a_ptr, size_t a_count ) CRASH_INVEST_NODISCARD
+CPPUTILS_DLL_PRIVATE void* reallocn( void* a_ptr, size_t a_count ) CPPUTILS_NODISCARD
 {
-	return LocalReAlloc(a_ptr, static_cast<SIZE_T>(a_count), LMEM_FIXED);
+    return HeapReAlloc(GetProcessHeap(),0,a_ptr,static_cast<SIZE_T>(a_count));
 }
 
 
-CRASH_INVEST_DLL_PRIVATE void* callocn(size_t a_nmemb, size_t a_size) CRASH_INVEST_NODISCARD
+CPPUTILS_DLL_PRIVATE void* callocn(size_t a_nmemb, size_t a_size) CPPUTILS_NODISCARD
 {
 	const size_t unCount(a_nmemb * a_size);
-	return LocalAlloc(LMEM_FIXED|LMEM_ZEROINIT, static_cast<SIZE_T>(unCount));
+    return HeapAlloc(GetProcessHeap(),HEAP_ZERO_MEMORY,static_cast<SIZE_T>(unCount));
 }
 
 
-CRASH_INVEST_DLL_PRIVATE void freen( void* a_ptr ) CRASH_INVEST_NOEXCEPT
+CPPUTILS_DLL_PRIVATE void freen( void* a_ptr ) CPPUTILS_NOEXCEPT
 {
-	LocalFree(a_ptr);
+    HeapFree(GetProcessHeap(),0,a_ptr);
 }
 
 

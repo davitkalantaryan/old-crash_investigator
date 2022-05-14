@@ -33,6 +33,8 @@ enum class FailureType : uint32_t{
     BadReallocDeletedMem,
     BadReallocCreatedByWrongAlloc,
     FreeMissmatch,
+    PossibilityOfMemoryLeak,
+    SigSegvHandler
 };
 
 struct StackItem{
@@ -73,11 +75,7 @@ struct SCallback{
 
 CRASH_INVEST_EXPORT SCallback ReplaceFailureClbk(const SCallback& a_newClbk);
 CRASH_INVEST_EXPORT SCallback GetFailureClbk(void);
+CRASH_INVEST_EXPORT size_t GetMaxAllowedAllocInTheSameStack(void);
+CRASH_INVEST_EXPORT size_t SetMaxAllowedAllocInTheSameStack(size_t newNumber);
 
 } // namespace crash_investigator {
-
-#ifdef _MSC_VER
-CRASH_INVEST_BEGIN_C
-CRASH_INVEST_EXPORT void crash_investiator_new_malloc_init(void);
-CRASH_INVEST_END_C
-#endif

@@ -21,12 +21,13 @@ static void Corruption05();
 static void Corruption06();
 static void Corruption07();
 static void Corruption08();
+static void Corruption09();
 
 #ifdef _MSC_VER
 #pragma warning (disable:4996)
 // crash_investiator_new_malloc.lib;initial_malloc_free_test.lib
-#pragma comment(lib,"crash_investiator_new_malloc.lib")
-#pragma comment(lib,"initial_malloc_free.lib")
+//#pragma comment(lib,"crash_investiator_new_malloc.lib")
+//#pragma comment(lib,"initial_malloc_free.lib")
 //#pragma comment(lib,"Dbghelp.lib")
 #endif
 
@@ -37,13 +38,9 @@ int main(int a_argc, char* a_argv[])
 	printf("If debugging is needed, then connect with debugger, then press enter to proceed  ! ");
 	fflush(stdout);
 	getchar();
-
-#ifdef _MSC_VER
-	crash_investiator_new_malloc_init();
-#endif
 	
 	if(a_argc<2){
-        fprintf(stderr,"ERROR: specify number [1..6] to select hook to test\n");
+        fprintf(stderr,"ERROR: specify number [1..9] to select hook to test\n");
 		return 1;
 	}
 	
@@ -73,8 +70,11 @@ int main(int a_argc, char* a_argv[])
     case 8:
         Corruption08();
         break;
+	case 9:
+		Corruption09();
+		break;
 	default:
-		fprintf(stderr,"ERROR: Number of hook should be in the region [1..3]\n");
+		fprintf(stderr,"ERROR: Number of hook should be in the region [1..9]\n");
 		return 1;
 	}
 	
@@ -126,5 +126,10 @@ static void Corruption08(){  // indirect double free
 	if(pFile){
 		fclose(pFile);
 		fclose(pFile);
+	}
+}
+static void Corruption09() {  // memory leak
+	for (int i(0); i < 12; ++i) {
+		new int;
 	}
 }

@@ -16,7 +16,7 @@
 #include <string.h>
 
 
-CRASH_INVEST_BEGIN_C
+CPPUTILS_BEGIN_C
 
 //#pragma comment(linker, "/alternatename:_pmalloc=_pmallocWin")
 //#pragma comment(linker, "/alternatename:_pfree=_pfreeWin")
@@ -44,45 +44,8 @@ CRASH_INVEST_EXPORT void CorrectName(free)(void* a_ptr)
     ::crash_investigator::TestOperatorDelete(a_ptr,::crash_investigator::MemoryType::Malloc,1);
 }
 
-#ifdef _MSC_VER
 
-CRASH_INVEST_EXPORT void crash_investiator_new_malloc_init(void) {}
-
-
-#if 0
-
-#pragma section(".CRT$XCU",read)
-#define INITIALIZER_RAW_(f,p) \
-        static void f(void); \
-        __declspec(allocate(".CRT$XCU")) void (*f##_)(void) = f; \
-        __pragma(comment(linker,"/include:" p #f "_")) \
-        static void f(void)
-
-#if defined(_WIN64) || defined(_M_ARM)
-#define XDR_MINI_INITIALIZER(f) INITIALIZER_RAW_(f,"")
-#else
-#define XDR_MINI_INITIALIZER(f) INITIALIZER_RAW_(f,"_")
-#endif
-
-XDR_MINI_INITIALIZER(MiniXdrRpcInitializationRoutine)
-{
-    //m_callers_malloc = g_callers_malloc;
-    //m_callers_calloc = g_callers_calloc;
-    //m_callers_realloc = g_callers_realloc;
-    //m_callers_free = g_callers_free;
-
-    g_callers_malloc = &(CorrectName(malloc));
-    g_callers_calloc = &(CorrectName(calloc));
-    g_callers_realloc = &(CorrectName(realloc));
-    g_callers_free = &(CorrectName(free));
-}
-
-#endif  // #ifdef _MSC_VER
-
-#endif  // #ifdef _MSC_VER
-
-
-CRASH_INVEST_END_C
+CPPUTILS_END_C
 
 #ifdef _MSC_VER
 

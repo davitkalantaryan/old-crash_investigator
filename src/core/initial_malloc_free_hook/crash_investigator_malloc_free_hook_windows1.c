@@ -12,45 +12,45 @@
 
 
 
-CRASH_INVEST_BEGIN_C
+CPPUTILS_BEGIN_C
 
-extern CRASH_INVEST_DLL_PRIVATE void  free_default(void* a_ptr);
-extern CRASH_INVEST_DLL_PRIVATE void* malloc_default(size_t a_count);
-extern CRASH_INVEST_DLL_PRIVATE void* realloc_default(void* a_ptr, size_t a_count);
-extern CRASH_INVEST_DLL_PRIVATE void* calloc_default(size_t a_nmemb, size_t a_size);
-
-
-CRASH_INVEST_DLL_PUBLIC TypeMalloc		g_callers_malloc	= &malloc_default;
-CRASH_INVEST_DLL_PUBLIC TypeCalloc		g_callers_calloc	= &calloc_default;
-CRASH_INVEST_DLL_PUBLIC TypeRealloc		g_callers_realloc	= &realloc_default;
-CRASH_INVEST_DLL_PUBLIC TypeFree		g_callers_free		= &free_default;
+extern CPPUTILS_DLL_PRIVATE void  CrInvAllocFree_free_default(void* a_ptr);
+extern CPPUTILS_DLL_PRIVATE void* CrInvAllocFree_malloc_default(size_t a_count);
+extern CPPUTILS_DLL_PRIVATE void* CrInvAllocFree_realloc_default(void* a_ptr, size_t a_count);
+extern CPPUTILS_DLL_PRIVATE void* CrInvAllocFree_calloc_default(size_t a_nmemb, size_t a_size);
 
 
-CRASH_INVEST_DLL_PUBLIC void* malloc(size_t a_count)
+CPPUTILS_DLL_PUBLIC TypeMalloc		g_callers_malloc	= &CrInvAllocFree_malloc_default;
+CPPUTILS_DLL_PUBLIC TypeCalloc		g_callers_calloc	= &CrInvAllocFree_calloc_default;
+CPPUTILS_DLL_PUBLIC TypeRealloc		g_callers_realloc	= &CrInvAllocFree_realloc_default;
+CPPUTILS_DLL_PUBLIC TypeFree		g_callers_free		= &CrInvAllocFree_free_default;
+
+
+CPPUTILS_DLL_PUBLIC void* malloc(size_t a_count)
 {
 	return (*g_callers_malloc)(a_count);
 }
 
 
-CRASH_INVEST_DLL_PUBLIC void* calloc(size_t a_nmemb, size_t a_size)
+CPPUTILS_DLL_PUBLIC void* calloc(size_t a_nmemb, size_t a_size)
 {
 	return (*g_callers_calloc)(a_nmemb,a_size);
 }
 
 
-CRASH_INVEST_DLL_PUBLIC void* realloc(void* a_ptr, size_t a_count)
+CPPUTILS_DLL_PUBLIC void* realloc(void* a_ptr, size_t a_count)
 {
 	return (*g_callers_realloc)(a_ptr,a_count);
 }
 
 
-CRASH_INVEST_DLL_PUBLIC void free(void* a_ptr)
+CPPUTILS_DLL_PUBLIC void free(void* a_ptr)
 {
 	(*g_callers_free)(a_ptr);
 }
 
 
-CRASH_INVEST_END_C
+CPPUTILS_END_C
 
 
 #endif  // #ifdef _WIN32

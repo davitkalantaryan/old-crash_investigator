@@ -16,12 +16,12 @@
 namespace crash_investigator {
 
 
-CRASH_INVEST_DLL_PRIVATE void* TestOperatorAlloc( size_t a_count, MemoryType a_memoryType, bool a_bThrow, int goBackInTheStackCalc );
-CRASH_INVEST_DLL_PRIVATE void* TestOperatorCalloc(size_t a_nmemb, size_t a_size, int goBackInTheStackCalc);
-CRASH_INVEST_DLL_PRIVATE void* TestOperatorReAlloc(void* a_ptr, size_t a_count, int goBackInTheStackCalc);
-CRASH_INVEST_DLL_PRIVATE void  TestOperatorDelete(void* a_ptr, MemoryType a_typeExpected, int goBackInTheStackCalc) CRASH_INVEST_NOEXCEPT;
-#ifdef CRASH_INVEST_CPP_17_DEFINED
-CRASH_INVEST_DLL_PRIVATE void* TestOperatorNewAligned  ( size_t a_count, MemoryType a_memoryType, bool a_bThrow, size_t a_align, int goBackInTheStackCalc );
+CRASH_INVEST_ALLOC_EXP void* TestOperatorAlloc( size_t a_count, MemoryType a_memoryType, bool a_bThrow, int goBackInTheStackCalc );
+CRASH_INVEST_ALLOC_EXP void* TestOperatorCalloc(size_t a_nmemb, size_t a_size, int goBackInTheStackCalc);
+CRASH_INVEST_ALLOC_EXP void* TestOperatorReAlloc(void* a_ptr, size_t a_count, int goBackInTheStackCalc);
+CRASH_INVEST_ALLOC_EXP void  TestOperatorDelete(void* a_ptr, MemoryType a_typeExpected, int goBackInTheStackCalc) CPPUTILS_NOEXCEPT;
+#ifdef CPPUTILS_CPP_17_DEFINED
+CRASH_INVEST_ALLOC_EXP void* TestOperatorNewAligned  ( size_t a_count, MemoryType a_memoryType, bool a_bThrow, size_t a_align, int goBackInTheStackCalc );
 #endif
 
 #ifdef _MSC_VER
