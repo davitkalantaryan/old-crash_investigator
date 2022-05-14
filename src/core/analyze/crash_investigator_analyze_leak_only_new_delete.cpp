@@ -27,7 +27,7 @@
 extern thread_local bool g_bIgnoreThisStack;
 thread_local bool g_bIgnoreThisStack = false;
 static thread_local bool s_bOperatorDeleteCalled = false;
-static size_t s_unMaxNumberOfAllocInTheStack = 200;
+static size_t s_unMaxNumberOfAllocInTheStack = 1000;
 
 static void* AllocMem(size_t a_size, int a_goBackInTheStackCalc);
 static void  FreeMem(void* a_ptr, int a_goBackInTheStackCalc);
@@ -220,9 +220,6 @@ static void* AllocMem(size_t a_size, int a_goBackInTheStackCalc)
 {
     size_t unHashStack;
     size_t unHashMem;
-
-    //++s_nOperatorDeleteCalled;
-    //::cpputils::InScopeCleaner aCleaner([](void*){--s_nOperatorDeleteCalled;});
 
     if(s_exitOngoing || (s_isOngoing>0) || g_bIgnoreThisStack){
         return :: malloc(a_size);
