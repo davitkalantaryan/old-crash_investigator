@@ -14,7 +14,6 @@
 #include <new>
 #include <mutex>
 #include <stdlib.h>
-#include <malloc.h>
 #include <assert.h>
 #ifdef _WIN32
 #include <crtdbg.h>
@@ -140,6 +139,8 @@ struct BackTrcEql {
 //typedef ::std::unordered_map<void*,Backtrace*,BtVoidPtr> HashMem;
 //typedef ::std::unordered_map<Backtrace*,size_t,BtHash,BackTrcEql> HashStack;
 
+#ifdef _WIN32
+
 CPPUTILS_DLL_PRIVATE void  free_default(void* a_ptr){HeapFree(GetProcessHeap(), 0, a_ptr);}
 CPPUTILS_DLL_PRIVATE void* malloc_default(size_t a_count) { return HeapAlloc(GetProcessHeap(), 0, CPPUTILS_STATIC_CAST(SIZE_T, a_count));}
 CPPUTILS_DLL_PRIVATE void* realloc_default(void* a_ptr, size_t a_count) { return HeapReAlloc(GetProcessHeap(), 0, a_ptr, CPPUTILS_STATIC_CAST(SIZE_T, a_count));}
@@ -148,10 +149,11 @@ CPPUTILS_DLL_PRIVATE void* calloc_default(size_t a_nmemb, size_t a_size) {
     return HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, CPPUTILS_STATIC_CAST(SIZE_T, unCount));
 }
 
-#ifdef _WIN32
 typedef ::cpputils::hash::Hash<void*,Backtrace*,BtVoidPtr,::std::equal_to<void*>,512,malloc_default,calloc_default,realloc_default,free_default> HashMem;
 typedef ::cpputils::hash::Hash<Backtrace*,size_t,BtHash,BackTrcEql,512,malloc_default,calloc_default,realloc_default,free_default> HashStack;
 #else
+#define malloc_default malloc
+#define free_default free
 typedef ::cpputils::hash::Hash<void*,Backtrace*,BtVoidPtr> HashMem;
 typedef ::cpputils::hash::Hash<Backtrace*,size_t,BtHash,BackTrcEql> HashStack;
 #endif
@@ -333,18 +335,21 @@ static void  FreeMem(void* a_ptr, int a_goBackInTheStackCalc)
 
 static Backtrace* CloneBackTrace(const Backtrace* a_btr)
 {
-    Backtrace* pReturn = static_cast<Backtrace*>(malloc_default(sizeof(Backtrace)));
-    if(!pReturn){return pReturn;}
-    pReturn->stackDeepness = a_btr->stackDeepness;
-    pReturn->reserved01 = a_btr->reserved01;
-    pReturn->ppBuffer = static_cast<void**>(malloc_default(static_cast<size_t>(pReturn->stackDeepness) * sizeof(void*)));
-    if(!pReturn->ppBuffer){
-        free_default(pReturn);
-        return nullptr;
-    }
+    if(a_btr){
+        Backtrace* pReturn = static_cast<Backtrace*>(malloc_default(sizeof(Backtrace)));
+        if(!pReturn){return pReturn;}
+        pReturn->stackDeepness = a_btr->stackDeepness;
+        pReturn->reserved01 = a_btr->reserved01;
+        pReturn->ppBuffer = static_cast<void**>(malloc_default(static_cast<size_t>(pReturn->stackDeepness) * sizeof(void*)));
+        if(!pReturn->ppBuffer){
+            free_default(pReturn);
+            return nullptr;
+        }
 
-    memcpy(pReturn->ppBuffer, a_btr->ppBuffer, CPPUTILS_STATIC_CAST(size_t, a_btr->stackDeepness) * sizeof(void*));
-    return pReturn;
+        memcpy(pReturn->ppBuffer, a_btr->ppBuffer, CPPUTILS_STATIC_CAST(size_t, a_btr->stackDeepness) * sizeof(void*));
+        return pReturn;
+    }
+    return nullptr;
 }
 
 
@@ -384,6 +389,19 @@ static Backtrace* InitBacktraceDataForCurrentStack(int a_goBackInTheStackCalc)
     return pReturn;
 }
 #else
+static void FreeBacktraceData(Backtrace* a_data)
+{
+    if (a_data) {
+        free_default(a_data->ppBuffer);
+        free_default(a_data);
+    }
+}
+
+static Backtrace* InitBacktraceDataForCurrentStack(int a_goBackInTheStackCalc)
+{
+    static_cast<void>(a_goBackInTheStackCalc);
+    return nullptr;
+}
 #endif
 
 #if defined(_MSC_VER) && defined(_DEBUG)
