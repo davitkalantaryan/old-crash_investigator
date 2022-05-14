@@ -17,6 +17,7 @@
 #include <malloc.h>
 #include <assert.h>
 #ifdef _WIN32
+#include <crtdbg.h>
 #include <WS2tcpip.h>
 #include <WS2tcpip.h>
 #include <Windows.h>
@@ -25,11 +26,9 @@
 
 extern thread_local bool s_bIgnoreThisStack;
 thread_local bool s_bIgnoreThisStack = false;
-extern thread_local int s_nOperatorDeleteCalled;
-thread_local int s_nOperatorDeleteCalled = 0;
-extern thread_local void* s_pMemoryToInvestigate;
-thread_local void* s_pMemoryToInvestigate = nullptr;
-static size_t s_unMaxNumberOfAllocInTheStack = 500;
+extern thread_local bool s_bOperatorDeleteCalled;
+thread_local bool s_bOperatorDeleteCalled = false;
+static size_t s_unMaxNumberOfAllocInTheStack = 200;
 
 static void* AllocMem(size_t a_size, int a_goBackInTheStackCalc);
 static void  FreeMem(void* a_ptr, int a_goBackInTheStackCalc);
@@ -161,6 +160,11 @@ typedef ::cpputils::hash::Hash<Backtrace*,size_t,BtHash,BackTrcEql> HashStack;
 static thread_local int s_isOngoing = 0;
 static bool s_exitOngoing = false;
 
+#if defined(_MSC_VER) && defined(_DEBUG)
+static _CRT_ALLOC_HOOK s_initialAllocHook = CPPUTILS_NULL;
+static int __CRTDECL CrashInvestMemHook(int, void*, size_t, int, long, unsigned char const*, int);
+#endif
+
 class IntHandler{
 public:
     IntHandler(){++s_isOngoing;}
@@ -173,10 +177,16 @@ public:
         IntHandler aHnd;
         m_pStack = new HashStack();
         m_pMem = new HashMem();
+#if defined(_MSC_VER) && defined(_DEBUG)
+        s_initialAllocHook = _CrtSetAllocHook(&CrashInvestMemHook);
+#endif
     }
     ~MemAnalyzeData(){
         s_exitOngoing = true;
         IntHandler aHnd;
+#if defined(_MSC_VER) && defined(_DEBUG)
+        _CrtSetAllocHook(s_initialAllocHook);
+#endif
         delete m_pMem;
         delete m_pStack;
         m_pMem = nullptr;
@@ -195,7 +205,6 @@ static inline void TakeStackOut(const HashMem::iterator& a_iterMem)
 {
     HashStack::iterator iterStack = s_memData.m_pStack->find(a_iterMem->second);
     assert (iterStack != s_memData.m_pStack->end());
-    //assert (iterStack != HashStack::s_nullIter);
 
     if(iterStack->second==1){
         Backtrace* pBacktrace2 = iterStack->first;
@@ -207,7 +216,6 @@ static inline void TakeStackOut(const HashMem::iterator& a_iterMem)
     }
 }
 
-static Backtrace* s_pBacktraceRem = nullptr;
 
 static void* AllocMem(size_t a_size, int a_goBackInTheStackCalc)
 {
@@ -232,14 +240,6 @@ static void* AllocMem(size_t a_size, int a_goBackInTheStackCalc)
 		return pRet;
 	}
 
-    if((s_pMemoryToInvestigate==nullptr) && s_pBacktraceRem){
-        const BackTrcEql aEql;
-        if(aEql(s_pBacktraceRem,pBacktrace)){
-            s_pMemoryToInvestigate = pRet;
-            qDebug()<<"We find interesting stack!";
-        }
-    }
-
 
     {
         ::std::unique_lock<std::mutex> aGuard(s_memData.m_mutex);
@@ -247,21 +247,17 @@ static void* AllocMem(size_t a_size, int a_goBackInTheStackCalc)
 
         iterMem = s_memData.m_pMem->find(pRet,&unHashMem);
 
-        //assert (iterMem == s_memData.m_pMem->end()); // todo: understand why this does not works, for now we simply replace
+#if !defined(_MSC_VER) || defined(_DEBUG)
+        assert (iterMem == s_memData.m_pMem->end());
+#else
         // we have this because this memory deallocated in the library level, and we are not able to monitor that memory
         if(iterMem != s_memData.m_pMem->end()){
-            //QtUtilsCritical()<<"----------- assert (iterMem == s_memData.m_pMem->end());";
             TakeStackOut(iterMem);
             Backtrace* pBacktraceRem = iterMem->second;
             s_memData.m_pMem->RemoveEntryRaw(iterMem);
-            //FreeBacktraceData(pBacktraceRem);
-            if(s_pBacktraceRem){
-                FreeBacktraceData(pBacktraceRem);
-            }
-            else{
-                s_pBacktraceRem = pBacktraceRem;
-            }
+            FreeBacktraceData(pBacktraceRem);
         }
+#endif
 
         //(*s_memData.m_pMem)[pRet]=pBacktrace;
         s_memData.m_pMem->AddEntryWithKnownHashC(::std::pair<void*,Backtrace*>(pRet,pBacktrace),unHashMem);
@@ -296,12 +292,9 @@ static void* AllocMem(size_t a_size, int a_goBackInTheStackCalc)
 }
 
 
-static void  FreeMem(void* a_ptr, int a_goBackInTheStackCalc)
+static void  FreeMemAnalyze(void* a_ptr, int a_goBackInTheStackCalc)
 {
-    if(s_exitOngoing){
-        :: free(a_ptr);
-        return;
-    }
+    if(s_exitOngoing){return;}
     IntHandler aHndl;
 
     HashMem::iterator iterMem;
@@ -313,13 +306,8 @@ static void  FreeMem(void* a_ptr, int a_goBackInTheStackCalc)
         }
 
         iterMem = s_memData.m_pMem->find(a_ptr);
-        //assert (iterMem != s_memData.m_pMem->end());// todo understand
-        if(iterMem == s_memData.m_pMem->end()){
-            ++s_nOperatorDeleteCalled;
-            ::cpputils::InScopeCleaner aCleaner([](void*){--s_nOperatorDeleteCalled;});
-            :: free(a_ptr);
-            return;
-        }
+        // this (below line) can happen when we have early allocation, or a_ptr=null
+        if(iterMem == s_memData.m_pMem->end()){return;}
 
         TakeStackOut(iterMem);
         Backtrace* pBacktraceRem = iterMem->second;
@@ -328,9 +316,19 @@ static void  FreeMem(void* a_ptr, int a_goBackInTheStackCalc)
     }
 
     static_cast<void>(a_goBackInTheStackCalc);
-    ++s_nOperatorDeleteCalled;
-    ::cpputils::InScopeCleaner aCleaner([](void*){--s_nOperatorDeleteCalled;});
-    :: free(a_ptr);
+}
+
+
+static void  FreeMem(void* a_ptr, int a_goBackInTheStackCalc)
+{
+    FreeMemAnalyze(a_ptr,++a_goBackInTheStackCalc);
+
+    {
+        s_bOperatorDeleteCalled=true;
+        ::cpputils::InScopeCleaner aCleaner([](void*){s_bOperatorDeleteCalled=false;});
+        :: free(a_ptr);
+    }
+
 }
 
 
@@ -388,6 +386,24 @@ static Backtrace* InitBacktraceDataForCurrentStack(int a_goBackInTheStackCalc)
 }
 #else
 #endif
+
+#if defined(_MSC_VER) && defined(_DEBUG)
+
+static int __CRTDECL CrashInvestMemHook(int a_allocType, void* a_ptr, size_t, int, long, unsigned char const*, int)
+{
+    if(s_bOperatorDeleteCalled){return TRUE;}
+
+    switch(a_allocType){
+    case _HOOK_FREE: case _HOOK_REALLOC:
+        FreeMemAnalyze(a_ptr,1);
+        break;
+    default:
+        break;
+    }
+    return TRUE;
+}
+
+#endif  // #if defined(_MSC_VER) && defined(_DEBUG)
 
 
 #endif  //  #ifdef use_crash_investigator_analyze_leak_only_new_delete
