@@ -24,10 +24,9 @@
 #else
 #endif
 
-extern thread_local bool s_bIgnoreThisStack;
-thread_local bool s_bIgnoreThisStack = false;
-extern thread_local bool s_bOperatorDeleteCalled;
-thread_local bool s_bOperatorDeleteCalled = false;
+extern thread_local bool g_bIgnoreThisStack;
+thread_local bool g_bIgnoreThisStack = false;
+static thread_local bool s_bOperatorDeleteCalled = false;
 static size_t s_unMaxNumberOfAllocInTheStack = 200;
 
 static void* AllocMem(size_t a_size, int a_goBackInTheStackCalc);
@@ -225,7 +224,7 @@ static void* AllocMem(size_t a_size, int a_goBackInTheStackCalc)
     //++s_nOperatorDeleteCalled;
     //::cpputils::InScopeCleaner aCleaner([](void*){--s_nOperatorDeleteCalled;});
 
-    if(s_exitOngoing || (s_isOngoing>0) || s_bIgnoreThisStack){
+    if(s_exitOngoing || (s_isOngoing>0) || g_bIgnoreThisStack){
         return :: malloc(a_size);
     }
     IntHandler aHndl;
