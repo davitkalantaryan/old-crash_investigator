@@ -26,9 +26,11 @@ CPPUTILS_BEGIN_C
 #if defined(_WIN64) || defined(_M_ARM)
 #define CR_INV_FNAME_PREFIX ""
 #define CR_INV_DS_FNAME_POSTFIX
+#define CR_INV_SEC_CH_FNC_NAME	"__security_check_cookie"
 #else
 #define CR_INV_FNAME_PREFIX "_"
 #define CR_INV_DS_FNAME_POSTFIX	"@12"
+#define CR_INV_SEC_CH_FNC_NAME	"@__security_check_cookie@4"
 #endif
 
 
@@ -94,6 +96,9 @@ CRASH_INVEST_INTERFACE_NOT_KNOWN CPPUTILS_DLL_PRIVATE void windows_crt_all_unkno
 #else
 #pragma comment(linker, "/alternatename:__RTC_CheckEsp=_windows_crt_all_unknown_functionsWeak")
 #endif
+#endif
+#ifndef _DEBUG
+#pragma comment(linker, "/alternatename:" CR_INV_SEC_CH_FNC_NAME "=" CR_INV_FNAME_PREFIX "windows_crt_all_unknown_functionsWeak")
 #endif
 
 
