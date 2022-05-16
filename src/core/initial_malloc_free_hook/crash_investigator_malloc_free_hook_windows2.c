@@ -23,6 +23,14 @@ CPPUTILS_BEGIN_C
 #define CRASH_INVEST_CRUN_LIB	"ucrtbase.dll"
 #endif
 
+#if defined(_WIN64) || defined(_M_ARM)
+#define CR_INV_FNAME_PREFIX ""
+#define CR_INV_DS_FNAME_POSTFIX
+#else
+#define CR_INV_FNAME_PREFIX "_"
+#define CR_INV_DS_FNAME_POSTFIX	"@12"
+#endif
+
 
 CPPUTILS_DLL_PRIVATE void  CrInvAllocFree_free_default(void* a_ptr){
 	HMODULE cranLib = LoadLibraryA(CRASH_INVEST_CRUN_LIB);
@@ -76,11 +84,17 @@ CPPUTILS_DLL_PRIVATE void* CrInvAllocFree_calloc_default(size_t a_nmemb, size_t 
 
 
 #define CRASH_INVEST_INTERFACE_NOT_KNOWN
-CRASH_INVEST_INTERFACE_NOT_KNOWN CPPUTILS_DLL_PRIVATE void _windows_crt_all_unknown_functionsWeak(void) {}
-#pragma comment(linker, "/alternatename:_RTC_InitBase=_windows_crt_all_unknown_functionsWeak")
-#pragma comment(linker, "/alternatename:_RTC_Shutdown=_windows_crt_all_unknown_functionsWeak")
-#pragma comment(linker, "/alternatename:_DllMainCRTStartup=_windows_crt_all_unknown_functionsWeak")
-#pragma comment(linker, "/alternatename:__security_check_cookie=_windows_crt_all_unknown_functionsWeak")
+CRASH_INVEST_INTERFACE_NOT_KNOWN CPPUTILS_DLL_PRIVATE void windows_crt_all_unknown_functionsWeak(void) {}
+#pragma comment(linker, "/alternatename:" CR_INV_FNAME_PREFIX "_RTC_Shutdown=" CR_INV_FNAME_PREFIX "windows_crt_all_unknown_functionsWeak")
+#pragma comment(linker, "/alternatename:" CR_INV_FNAME_PREFIX "_RTC_InitBase=" CR_INV_FNAME_PREFIX "windows_crt_all_unknown_functionsWeak")
+#pragma comment(linker, "/alternatename:" CR_INV_FNAME_PREFIX "_DllMainCRTStartup" CR_INV_DS_FNAME_POSTFIX "=" CR_INV_FNAME_PREFIX "windows_crt_all_unknown_functionsWeak")
+#ifndef _WIN64
+#ifdef _M_ARM
+#pragma comment(linker, "/alternatename:memset=CrInvAllocFree_memset")
+#else
+#pragma comment(linker, "/alternatename:__RTC_CheckEsp=_windows_crt_all_unknown_functionsWeak")
+#endif
+#endif
 
 
 static HMODULE  s_cranLib = CPPUTILS_NULL;
@@ -97,11 +111,7 @@ static void CrInvAllocFreeCleanupRoutineStatic(void);
         __pragma(comment(linker,"/include:" p #f "_")) \
         static void f(void)
 
-#if defined(_WIN64) || defined(_M_ARM)
-#define CR_INV_ALLOC_FREE_INITIALIZER(f) CR_INV_INITIALIZER_RAW_(f,"")
-#else
-#define CR_INV_ALLOC_FREE_INITIALIZER(f) CR_INV_INITIALIZER_RAW_(f,"_")
-#endif
+#define CR_INV_ALLOC_FREE_INITIALIZER(f) CR_INV_INITIALIZER_RAW_(f,CR_INV_FNAME_PREFIX)
 
 
 CR_INV_ALLOC_FREE_INITIALIZER(CrInvAllocFreeInitializationRoutine)
@@ -171,6 +181,19 @@ static void CrInvAllocFreeInitializationRoutineStatic(void)
 		(*atExitPtr)(&CrInvAllocFreeCleanupRoutineStatic);
 	}
 }
+
+#if !defined(_WIN64) && defined(_M_ARM)
+
+CPPUTILS_DLL_PRIVATE void* CrInvAllocFree_memset(void* a_dest, int a_c, size_t a_count)
+{
+	size_t i = 0;
+	char* pcData = CPPUTILS_STATIC_CAST(char*, a_dest);
+	for (;i<a_count;) {
+		pcData[i] = CPPUTILS_STATIC_CAST(char, a_c);
+	}
+}
+
+#endif  // #if !defined(_WIN64) && defined(_M_ARM)
 
 
 
