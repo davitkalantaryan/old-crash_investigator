@@ -32,7 +32,7 @@ CPPUTILS_BEGIN_C
 #endif
 
 
-CPPUTILS_DLL_PRIVATE void  CrInvAllocFree_free_default(void* a_ptr){
+static void  CrInvAllocFree_free_default(void* a_ptr){
 	HMODULE cranLib = LoadLibraryA(CRASH_INVEST_CRUN_LIB);
 	if (cranLib) {
 		TypeFree freePtr = (TypeFree)GetProcAddress(cranLib, "free");
@@ -42,7 +42,7 @@ CPPUTILS_DLL_PRIVATE void  CrInvAllocFree_free_default(void* a_ptr){
 		FreeLibrary(cranLib);
 	}
 }
-CPPUTILS_DLL_PRIVATE void* CrInvAllocFree_malloc_default(size_t a_count) {
+static void* CrInvAllocFree_malloc_default(size_t a_count) {
 	void* pReturn = CPPUTILS_NULL;
 	HMODULE cranLib = LoadLibraryA(CRASH_INVEST_CRUN_LIB);
 	if (cranLib) {
@@ -55,7 +55,7 @@ CPPUTILS_DLL_PRIVATE void* CrInvAllocFree_malloc_default(size_t a_count) {
 
 	return pReturn;
 }
-CPPUTILS_DLL_PRIVATE void* CrInvAllocFree_realloc_default(void* a_ptr, size_t a_count) {
+static void* CrInvAllocFree_realloc_default(void* a_ptr, size_t a_count) {
 	void* pReturn = CPPUTILS_NULL;
 	HMODULE cranLib = LoadLibraryA(CRASH_INVEST_CRUN_LIB);
 	if (cranLib) {
@@ -68,7 +68,7 @@ CPPUTILS_DLL_PRIVATE void* CrInvAllocFree_realloc_default(void* a_ptr, size_t a_
 
 	return pReturn;
 }
-CPPUTILS_DLL_PRIVATE void* CrInvAllocFree_calloc_default(size_t a_nmemb, size_t a_size) {
+static void* CrInvAllocFree_calloc_default(size_t a_nmemb, size_t a_size) {
 	void* pReturn = CPPUTILS_NULL;
 	HMODULE cranLib = LoadLibraryA(CRASH_INVEST_CRUN_LIB);
 	if (cranLib) {
@@ -105,13 +105,11 @@ static void CrInvAllocFreeCleanupRoutineStatic(void);
 #if 0
 
 #pragma section(".CRT$XCU",read)
-#define CR_INV_INITIALIZER_RAW_(f,p) \
+#define CR_INV_ALLOC_FREE_INITIALIZER(f) \
         static void f(void); \
         __declspec(allocate(".CRT$XCU")) void (*f##_)(void) = f; \
-        __pragma(comment(linker,"/include:" p #f "_")) \
+        __pragma(comment(linker,"/include:" CR_INV_FNAME_PREFIX #f "_")) \
         static void f(void)
-
-#define CR_INV_ALLOC_FREE_INITIALIZER(f) CR_INV_INITIALIZER_RAW_(f,CR_INV_FNAME_PREFIX)
 
 
 CR_INV_ALLOC_FREE_INITIALIZER(CrInvAllocFreeInitializationRoutine)
@@ -134,13 +132,22 @@ CPPUTILS_DLL_PUBLIC void CrInvAllocFreeCleanupRoutine(void)
 #endif // #if 0
 
 
+static struct SCrInvAllFreeFunctions s_fncsPointerCrInvAlloc = {
+	&CrInvAllocFree_free_default,
+	&CrInvAllocFree_malloc_default,
+	&CrInvAllocFree_calloc_default,
+	&CrInvAllocFree_realloc_default
+};
+
+CPPUTILS_DLL_PUBLIC struct SCrInvAllFreeFunctions* s_pCrInvAllocFncsPtrs = &s_fncsPointerCrInvAlloc;
+static struct SCrInvAllFreeFunctions* s_pCrInvAllocFncsPtrsAllocated = CPPUTILS_NULL;
+
 static void CrInvAllocFreeCleanupRoutineStatic(void)
 {
 	if (s_cranLib) {
-		g_callers_malloc = &CrInvAllocFree_malloc_default;
-		g_callers_calloc = &CrInvAllocFree_calloc_default;
-		g_callers_realloc = &CrInvAllocFree_realloc_default;
-		g_callers_free = &CrInvAllocFree_free_default;
+		s_pCrInvAllocFncsPtrs = &s_fncsPointerCrInvAlloc;
+		HeapFree(GetProcessHeap(), 0, s_pCrInvAllocFncsPtrsAllocated);
+		s_pCrInvAllocFncsPtrsAllocated = CPPUTILS_NULL;
 		FreeLibrary(s_cranLib);
 		s_cranLib = CPPUTILS_NULL;
 	}
@@ -150,36 +157,48 @@ static void CrInvAllocFreeCleanupRoutineStatic(void)
 
 static void CrInvAllocFreeInitializationRoutineStatic(void)
 {
+	struct SCrInvAllFreeFunctions* pFncs;
+	static HMODULE cranLib;
+	struct SCrInvAllFreeFunctions* pInitVal;
 	TypeAtexit atExitPtr = CPPUTILS_NULL;
 
 	if (s_cranLib) { return; }
 
-	s_cranLib = LoadLibraryA(CRASH_INVEST_CRUN_LIB);
-	if (s_cranLib) {
-		TypeMalloc mallocPtr;
-		TypeCalloc callocPtr;
-		TypeRealloc reallocPtr;
-		TypeFree freePtr;
-		mallocPtr = (TypeMalloc)GetProcAddress(s_cranLib, "malloc");
-		callocPtr = (TypeCalloc)GetProcAddress(s_cranLib, "calloc");
-		reallocPtr = (TypeRealloc)GetProcAddress(s_cranLib, "realloc");
-		freePtr = (TypeFree)GetProcAddress(s_cranLib, "free");
-		atExitPtr = (TypeAtexit)GetProcAddress(s_cranLib, "atexit");
-		if (mallocPtr && callocPtr && reallocPtr && freePtr) {
-			g_callers_malloc = mallocPtr;
-			g_callers_calloc = callocPtr;
-			g_callers_realloc = reallocPtr;
-			g_callers_free = freePtr;
-		}
-		else {
-			FreeLibrary(s_cranLib);
-			s_cranLib = CPPUTILS_NULL;
-		}
+	cranLib = LoadLibraryA(CRASH_INVEST_CRUN_LIB);
+	if (!cranLib) { return; }
+	
+	pFncs = (struct SCrInvAllFreeFunctions*)HeapAlloc(GetProcessHeap(), 0, sizeof(struct SCrInvAllFreeFunctions));
+	if (!pFncs) { return; }
+
+	pFncs->m_free = (TypeFree)GetProcAddress(cranLib, "free");
+	pFncs->m_malloc = (TypeMalloc)GetProcAddress(cranLib, "malloc");
+	pFncs->m_calloc = (TypeCalloc)GetProcAddress(cranLib, "calloc");
+	pFncs->m_realloc = (TypeRealloc)GetProcAddress(cranLib, "realloc");
+	atExitPtr = (TypeAtexit)GetProcAddress(cranLib, "atexit");
+	if ((!pFncs->m_free) || (!pFncs->m_malloc) || (!pFncs->m_calloc) || (!pFncs->m_realloc)) {
+		//g_callers_malloc = mallocPtr;
+		//g_callers_calloc = callocPtr;
+		//g_callers_realloc = reallocPtr;
+		//g_callers_free = freePtr;
+		FreeLibrary(cranLib);
+		return;
 	}
+
+	// todo: implement this
+	pInitVal = (struct SCrInvAllFreeFunctions*)InterlockedCompareExchangePointer((PVOID)s_pCrInvAllocFncsPtrs, (PVOID)pFncs, (PVOID)&s_fncsPointerCrInvAlloc);
+	if (pInitVal == (&s_fncsPointerCrInvAlloc)) {
+		// some other thread make this before as
+		HeapFree(GetProcessHeap(), 0, pFncs);
+		FreeLibrary(cranLib);
+		return;
+	}
+
+	s_pCrInvAllocFncsPtrsAllocated = pFncs;
 
 	if (atExitPtr) {
 		(*atExitPtr)(&CrInvAllocFreeCleanupRoutineStatic);
 	}
+
 }
 
 #if !defined(_WIN64) && defined(_M_ARM)

@@ -19,10 +19,15 @@ typedef void* (*TypeCalloc)(size_t a_nmemb, size_t a_size);
 typedef void* (*TypeRealloc)(void*, size_t);
 typedef void  (*TypeFree)(void*);
 
-extern CRASH_INVEST_HOOK_EXPORT TypeMalloc		g_callers_malloc;
-extern CRASH_INVEST_HOOK_EXPORT TypeCalloc		g_callers_calloc;
-extern CRASH_INVEST_HOOK_EXPORT TypeRealloc		g_callers_realloc;
-extern CRASH_INVEST_HOOK_EXPORT TypeFree		g_callers_free;
+struct SCrInvAllFreeFunctions {
+	TypeFree		m_free;
+	TypeMalloc		m_malloc;
+	TypeCalloc		m_calloc;
+	TypeRealloc		m_realloc;
+};
+
+extern CRASH_INVEST_HOOK_EXPORT struct SCrInvAllFreeFunctions* s_pCrInvAllocFncsPtrs;
+
 
 CRASH_INVEST_HOOK_EXPORT void CrInvAllocFreeInitializationRoutine(void);
 CRASH_INVEST_HOOK_EXPORT void CrInvAllocFreeCleanupRoutine(void);
