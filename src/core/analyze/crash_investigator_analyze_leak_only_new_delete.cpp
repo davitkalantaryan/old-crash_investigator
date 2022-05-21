@@ -8,7 +8,7 @@
 #ifdef use_crash_investigator_analyze_leak_only_new_delete
 
 #include <monitor/core/monitor_internal_header.h>
-#include <qtutils/core/logger.hpp>
+// #include <qtutils/core/logger.hpp>
 #include <cpputils/hash/hash.hpp>
 #include <cpputils/inscopecleaner.hpp>
 #include <new>
@@ -25,6 +25,9 @@
 
 extern thread_local bool g_bIgnoreThisStack;
 thread_local bool g_bIgnoreThisStack = false;
+extern bool g_exitOngoing;
+bool g_exitOngoing = false;
+static thread_local int s_isOngoing = 0;
 static thread_local bool s_bOperatorDeleteCalled = false;
 static size_t s_unMaxNumberOfAllocInTheStack = 1000;
 
@@ -158,9 +161,6 @@ typedef ::cpputils::hash::Hash<void*,Backtrace*,BtVoidPtr> HashMem;
 typedef ::cpputils::hash::Hash<Backtrace*,size_t,BtHash,BackTrcEql> HashStack;
 #endif
 
-static thread_local int s_isOngoing = 0;
-static bool s_exitOngoing = false;
-
 #if defined(_MSC_VER) && defined(_DEBUG)
 static _CRT_ALLOC_HOOK s_initialAllocHook = CPPUTILS_NULL;
 static int __CRTDECL CrashInvestMemHook(int, void*, size_t, int, long, unsigned char const*, int);
@@ -183,7 +183,7 @@ public:
 #endif
     }
     ~MemAnalyzeData(){
-        s_exitOngoing = true;
+        g_exitOngoing = true;
         IntHandler aHnd;
 #if defined(_MSC_VER) && defined(_DEBUG)
         _CrtSetAllocHook(s_initialAllocHook);
@@ -223,7 +223,7 @@ static void* AllocMem(size_t a_size, int a_goBackInTheStackCalc)
     size_t unHashStack;
     size_t unHashMem;
 
-    if(s_exitOngoing || (s_isOngoing>0) || g_bIgnoreThisStack){
+    if(g_exitOngoing || (s_isOngoing>0) || g_bIgnoreThisStack){
         return :: malloc(a_size);
     }
     IntHandler aHndl;
@@ -273,12 +273,12 @@ static void* AllocMem(size_t a_size, int a_goBackInTheStackCalc)
             // todo: delete statistic
             if(iterStack->second>s_unMaxInTheStack){
                 s_unMaxInTheStack = iterStack->second;
-                QtUtilsDebug()<<"!!!! new max alloc in the stack: "<<s_unMaxInTheStack;
+                //QtUtilsDebug()<<"!!!! new max alloc in the stack: "<<s_unMaxInTheStack;
             }
 
             if(iterStack->second>s_unMaxNumberOfAllocInTheStack){
                 aGuard.unlock();
-                QtUtilsCritical()<<"Possible memory leak!";
+                //QtUtilsCritical()<<"Possible memory leak!";
                 exit(1);
             }
         }
@@ -292,7 +292,7 @@ static void* AllocMem(size_t a_size, int a_goBackInTheStackCalc)
 
 static void  FreeMemAnalyze(void* a_ptr, int a_goBackInTheStackCalc)
 {
-    if(s_exitOngoing){return;}
+    if(g_exitOngoing){return;}
     IntHandler aHndl;
 
     HashMem::iterator iterMem;
