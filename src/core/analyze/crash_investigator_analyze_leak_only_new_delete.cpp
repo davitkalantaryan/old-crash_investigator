@@ -23,6 +23,10 @@
 #include <WS2tcpip.h>
 #include <Windows.h>
 #include <crtdbg.h>
+#include <DbgHelp.h>
+#ifdef _MSC_VER
+#pragma comment (lib,"Dbghelp.lib")
+#endif
 #else
 #include <execinfo.h>
 #include <unistd.h>
@@ -196,6 +200,8 @@ struct BackTrcEql
 
 #ifdef _WIN32
 
+static HANDLE s_currentProcess = CPPUTILS_NULL;
+
 CPPUTILS_DLL_PRIVATE void free_default(void *a_ptr)
 {
 	HeapFree(GetProcessHeap(), 0, a_ptr);
@@ -245,6 +251,7 @@ class MemAnalyzeData
 	~MemAnalyzeData(){
 		g_exitOngoing = true;
 		IntHandler aHnd;
+
 #if defined(_MSC_VER) && defined(_DEBUG)
 		_CrtSetAllocHook(s_initialAllocHook);
 #endif
@@ -272,6 +279,17 @@ private:
 #if defined(_MSC_VER) && defined(_DEBUG)
 		s_initialAllocHook = _CrtSetAllocHook(&CrashInvestMemHook);
 #endif
+
+#ifdef _WIN32
+		s_currentProcess = GetCurrentProcess();
+		if (!SymInitialize(s_currentProcess, CPPUTILS_NULL, TRUE)) {
+			// SymInitialize failed
+			DWORD error = GetLastError();
+			fprintf(stderr, "SymInitialize returned error : %d\n", static_cast<int>(error));
+			return;
+		}
+#endif
+
 	}
 
 } static s_memData;
@@ -367,7 +385,7 @@ static void *AllocMem(size_t a_size, int a_goBackInTheStackCalc)
 					const StackItem* pFrames = stackTracce.data();
 					fprintf(stderr,"!!!!!! possible place of memory leak\n");
 					for(size_t i(0); i<cunNumberOfFrames;++i){
-						fprintf(stderr,"\t%p, dll:\"%s\", fnc:\"%s\", src:\"%s\", ln:%d\n",
+						fprintf(stderr,"\t%p, bin:\"%s\", fnc:\"%s\", src:\"%s\", ln:%d\n",
 								pFrames[i].address,pFrames[i].dllName.c_str(),pFrames[i].funcName.c_str(),
 								pFrames[i].sourceFileName.c_str(), pFrames[i].line);
 					}
@@ -508,11 +526,6 @@ static void GetSymbolInfo(StackItem* a_pStackItem)
 		if (SymFromAddr(s_currentProcess, dwAddress, &dwDisplacement, pSymbol)) {
 			a_pStackItem->funcName = pSymbol->Name;
 		}
-		else {
-			// SymFromAddr failed
-			//DWORD error = GetLastError();
-			//fprintf(stderr, "SymFromAddr returned error : %d\n", static_cast<int>(error));
-		}
 	}
 
 	
@@ -532,12 +545,23 @@ static void GetSymbolInfo(StackItem* a_pStackItem)
 			a_pStackItem->line = static_cast<int>(line.LineNumber);
 		}
 		else{
-			// SymGetLineFromAddr64 failed
 			a_pStackItem->line = -1;
-			//DWORD error = GetLastError();
-			//fprintf(stderr,"SymGetLineFromAddr64 returned error : %d\n", static_cast<int>(error));
 		}
 	}
+
+
+	{
+		IMAGEHLP_MODULE aModuleInfo;
+		aModuleInfo.SizeOfStruct = sizeof(IMAGEHLP_MODULE);
+
+		if (SymGetModuleInfo(s_currentProcess, dwAddress, &aModuleInfo)) {
+			//printf("ModuleName=\"%s\"\n", aModuleInfo.ModuleName);
+			//printf("ImageName=\"%s\"\n", aModuleInfo.ImageName);
+			//printf("LoadedImageName=\"%s\"\n", aModuleInfo.LoadedImageName);
+			a_pStackItem->dllName = aModuleInfo.ImageName;
+		}
+	}
+
 
 }
 
