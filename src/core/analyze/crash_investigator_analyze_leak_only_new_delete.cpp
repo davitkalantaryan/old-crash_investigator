@@ -14,7 +14,10 @@
 #include <cpputils/hash/hash.hpp>
 #include <mutex>
 #include <new>
+#include <string>
+#include <vector>
 #include <stdlib.h>
+#include <stdio.h>
 #include <time.h>
 #ifdef _WIN32
 #include <WS2tcpip.h>
@@ -22,6 +25,9 @@
 #include <crtdbg.h>
 #else
 #include <execinfo.h>
+#include <unistd.h>
+#include <sys/prctl.h>
+#include <sys/wait.h>
 #endif
 
 #define CRASH_INVEST_SYMBOLS_COUNT_MAX 256
@@ -36,14 +42,6 @@ static thread_local bool s_bOperatorDeleteCalled = false;
 static size_t s_unMaxNumberOfAllocInTheStack = 100;
 
 static time_t s_init_time = 0;
-
-class InScopeCleaner{
-public:
-	InScopeCleaner(const std::function<void(void)> &a_cleaner) : m_cleaner(a_cleaner){}
-	~InScopeCleaner() {m_cleaner();}
-private:
-	const std::function<void(void)> m_cleaner;
-};
 
 
 static void* AllocMem(size_t a_size, int a_goBackInTheStackCalc);
@@ -144,11 +142,19 @@ void operator delete[](void *a_ptr, std::align_val_t) CPPUTILS_NOEXCEPT
 
 #endif // #ifdef CPPUTILS_CPP_17_DEFINED
 
-struct Backtrace
-{
+struct Backtrace{
 	void **ppBuffer;
 	int stackDeepness;
 	int reserved01;
+};
+
+struct StackItem{
+    void*           address;
+    ::std::string   dllName;
+    ::std::string   funcName;
+    ::std::string   sourceFileName;  // empty means unavailable
+    int             line;      // <0 means unknown (no debug info available)
+    int             reserved01;
 };
 
 static Backtrace *InitBacktraceDataForCurrentStack(int a_goBackInTheStackCalc);
@@ -208,6 +214,7 @@ CPPUTILS_DLL_PRIVATE void *calloc_default(size_t a_nmemb, size_t a_size)
 #define realloc_default realloc
 #define calloc_default calloc
 #endif
+#define free_c_lib	free
 
 typedef ::cpputils::hash::Hash<void *, Backtrace *, BtVoidPtr, ::std::equal_to<void *>, 512, malloc_default, calloc_default, realloc_default, free_default> HashMem;
 typedef ::cpputils::hash::Hash<Backtrace *, size_t, BtHash, BackTrcEql, 512, malloc_default, calloc_default, realloc_default, free_default> HashStack;
@@ -233,7 +240,7 @@ class MemAnalyzeData
 {
   public:
 	MemAnalyzeData(){
-		this->Init();
+		this->InitRaw();
 	}
 	~MemAnalyzeData(){
 		g_exitOngoing = true;
@@ -248,24 +255,25 @@ class MemAnalyzeData
 
 	void Init() {
 		if (!s_pMutex){
-			IntHandler aHnd;
-
 			std::call_once(s_call_once_flag, [this]() {
-				
-				s_init_time = time(&s_init_time);
-
-				s_pMutex = new ::std::mutex();
-				s_pStack = new HashStack(16384);
-				s_pMem = new HashMem(131072);
-#if defined(_MSC_VER) && defined(_DEBUG)
-				s_initialAllocHook = _CrtSetAllocHook(&CrashInvestMemHook);
-#endif
+				InitRaw();
 			});
 		} 
 	}
+	
+private:
+	void InitRaw(void){
+		IntHandler aHnd;
+		s_init_time = time(&s_init_time);
 
-  public:
-	::std::mutex m_mutex;
+		s_pMutex = new ::std::mutex();
+		s_pStack = new HashStack(8192);
+		s_pMem = new HashMem(131072);
+#if defined(_MSC_VER) && defined(_DEBUG)
+		s_initialAllocHook = _CrtSetAllocHook(&CrashInvestMemHook);
+#endif
+	}
+
 } static s_memData;
 
 
@@ -291,6 +299,9 @@ static inline void TakeStackOut(const HashMem::iterator &a_iterMem)
 }
 
 
+static void ConvertBacktraceToNames(const Backtrace* a_data, ::std::vector< StackItem>*  a_pStack);
+static void print_trace(void);
+
 static void *AllocMem(size_t a_size, int a_goBackInTheStackCalc)
 {
 	size_t unHashStack;
@@ -315,7 +326,7 @@ static void *AllocMem(size_t a_size, int a_goBackInTheStackCalc)
 	}
 
 	{
-		::std::unique_lock<std::mutex> aGuard(s_memData.m_mutex);
+		::std::unique_lock<std::mutex> aGuard(*s_pMutex);
 
 		iterMem = s_pMem->find(pRet, &unHashMem);
 
@@ -350,6 +361,17 @@ static void *AllocMem(size_t a_size, int a_goBackInTheStackCalc)
 				if (current_time - s_init_time >= CRASH_INVEST_INIT_TIME){
 					aGuard.unlock();
 					// todo: print stack frames
+					::std::vector<StackItem> stackTracce;
+					ConvertBacktraceToNames(pBacktrace,&stackTracce);
+					const size_t cunNumberOfFrames(stackTracce.size());
+					const StackItem* pFrames = stackTracce.data();
+					fprintf(stderr,"!!!!!! possible place of memory leak\n");
+					for(size_t i(0); i<cunNumberOfFrames;++i){
+						fprintf(stderr,"\t%p, dll:\"%s\", fnc:\"%s\", src:\"%s\", ln:%d\n",
+								pFrames[i].address,pFrames[i].dllName.c_str(),pFrames[i].funcName.c_str(),
+								pFrames[i].sourceFileName.c_str(), pFrames[i].line);
+					}
+					print_trace();
 					exit(1);
 				}
 			} // if (iterStack->second > s_unMaxNumberOfAllocInTheStack)
@@ -372,7 +394,7 @@ static void FreeMemAnalyze(void *a_ptr, int a_goBackInTheStackCalc)
 	HashMem::iterator iterMem;
 
 	{
-		::std::unique_lock<std::mutex> aGuard(s_memData.m_mutex, ::std::defer_lock);
+		::std::unique_lock<std::mutex> aGuard(*s_pMutex, ::std::defer_lock);
 		if (s_isOngoing < 2){
 			aGuard.lock();
 		}
@@ -399,8 +421,8 @@ static void FreeMem(void *a_ptr, int a_goBackInTheStackCalc)
 
 	{
 		s_bOperatorDeleteCalled = true;
-		InScopeCleaner aCleaner([]() { s_bOperatorDeleteCalled = false; });
 		free_default(a_ptr);
+		s_bOperatorDeleteCalled = false;
 	}
 }
 
@@ -469,6 +491,75 @@ static Backtrace *InitBacktraceDataForCurrentStack(int a_goBackInTheStackCalc)
 	return pReturn;
 }
 
+
+static void GetSymbolInfo(StackItem* a_pStackItem)
+{
+	// https://docs.microsoft.com/en-us/windows/win32/debug/retrieving-symbol-information-by-address
+	const DWORD64  dwAddress = static_cast<DWORD64>(reinterpret_cast<size_t>(a_pStackItem->address));
+
+	{
+		DWORD64  dwDisplacement = 0;
+		char buffer[sizeof(SYMBOL_INFO) + MAX_SYM_NAME * sizeof(TCHAR)];
+		PSYMBOL_INFO pSymbol = (PSYMBOL_INFO)buffer;
+
+		pSymbol->SizeOfStruct = sizeof(SYMBOL_INFO);
+		pSymbol->MaxNameLen = MAX_SYM_NAME;
+
+		if (SymFromAddr(s_currentProcess, dwAddress, &dwDisplacement, pSymbol)) {
+			a_pStackItem->funcName = pSymbol->Name;
+		}
+		else {
+			// SymFromAddr failed
+			//DWORD error = GetLastError();
+			//fprintf(stderr, "SymFromAddr returned error : %d\n", static_cast<int>(error));
+		}
+	}
+
+	
+	
+	{
+		DWORD  dwDisplacement;
+		IMAGEHLP_LINE64 line;
+
+		SymSetOptions(SYMOPT_LOAD_LINES);
+
+		line.SizeOfStruct = sizeof(IMAGEHLP_LINE64);
+
+		if (SymGetLineFromAddr64(s_currentProcess, dwAddress, &dwDisplacement, &line)){
+			if (line.FileName) {
+				a_pStackItem->sourceFileName = line.FileName;
+			}
+			a_pStackItem->line = static_cast<int>(line.LineNumber);
+		}
+		else{
+			// SymGetLineFromAddr64 failed
+			a_pStackItem->line = -1;
+			//DWORD error = GetLastError();
+			//fprintf(stderr,"SymGetLineFromAddr64 returned error : %d\n", static_cast<int>(error));
+		}
+	}
+
+}
+
+
+static void ConvertBacktraceToNames(const Backtrace* a_data, ::std::vector< StackItem>*  a_pStack)
+{
+	StackItem* pStackItem;
+	const size_t cunSynbols(a_data->stackDeepness);
+	a_pStack->resize(cunSynbols);
+
+	for (size_t i(0); i < cunSynbols; ++i) {
+		pStackItem = &(a_pStack->operator [](i));
+		pStackItem->reserved01 = 0;
+		pStackItem->address = a_data->ppBuffer[i];
+		GetSymbolInfo(pStackItem);
+	}
+}
+
+
+static void print_trace(void){}
+
+
 #else
 
 static Backtrace* InitBacktraceDataForCurrentStack(int a_goBackInTheStackCalc)
@@ -504,6 +595,45 @@ static Backtrace* InitBacktraceDataForCurrentStack(int a_goBackInTheStackCalc)
 	}
 
 	return pReturn;
+}
+
+static void ConvertBacktraceToNames(const Backtrace* a_data, ::std::vector< StackItem>*  a_pStack)
+{
+    if(a_data){
+        char** ppStrings = backtrace_symbols(a_data->ppBuffer,a_data->stackDeepness);
+        if(!ppStrings){return;}
+
+        StackItem* pStackItem;
+        const size_t cunSynbols(a_data->stackDeepness);
+        a_pStack->resize(cunSynbols);
+
+        for(size_t i(0); i < cunSynbols; ++i){
+            pStackItem = &(a_pStack->operator [](i));
+            pStackItem->address = a_data->ppBuffer[i];
+            pStackItem->dllName = ppStrings[i];
+			pStackItem->reserved01 = 0;
+			pStackItem->line = -1;
+        }
+
+        free_c_lib(ppStrings);
+    }
+}
+
+static void print_trace(void) 
+{
+    char pid_buf[30];
+    sprintf(pid_buf, "%d", getpid());
+    char name_buf[512];
+    name_buf[readlink("/proc/self/exe", name_buf, 511)]=0;
+    prctl(PR_SET_PTRACER, PR_SET_PTRACER_ANY, 0, 0, 0);
+    int child_pid = fork();
+    if (!child_pid) {
+        dup2(2,1); // redirect output to stderr - edit: unnecessary?
+        execl("/usr/bin/gdb", "gdb", "--batch", "-n", "-ex", "thread", "-ex", "bt", name_buf, pid_buf, NULL);
+        abort(); /* If gdb failed to start */
+    } else {
+        waitpid(child_pid,NULL,0);
+    }
 }
 
 #endif

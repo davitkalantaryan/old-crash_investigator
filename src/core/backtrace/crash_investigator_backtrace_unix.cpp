@@ -110,7 +110,8 @@ CPPUTILS_DLL_PRIVATE void ConvertBacktraceToNames(const Backtrace* a_data, ::std
 
 /*//// dwarf test*/
 
-#ifdef CRASH_INVEST_TRANSLATE_ADDRESSES_TO_LINES
+//#ifdef CRASH_INVEST_TRANSLATE_ADDRESSES_TO_LINES
+#if 1
 
 #include <libdwarf/dwarf.h>
 #include <libdwarf/libdwarf.h>
