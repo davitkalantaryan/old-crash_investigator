@@ -8,7 +8,7 @@
 #ifndef INCLUDE_CRASH_INVEST_INTERNAL_HEADER_H
 #define INCLUDE_CRASH_INVEST_INTERNAL_HEADER_H
 
-#include <cpputils_internal_header.h>
+#include <cpputils/internal_header.h>
 
 
 #if defined(CRASH_INVEST_COMPILING_SHARED_LIB)

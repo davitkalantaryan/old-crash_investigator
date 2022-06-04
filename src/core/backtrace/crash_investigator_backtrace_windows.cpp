@@ -114,11 +114,17 @@ public:
 	}
 }static s_SymIniter;
 
+#ifdef _WIN64
+typedef DWORD64  DWORD_ci;
+#else
+typedef DWORD  DWORD_ci;
+#endif
+
 
 static void GetSymbolInfo(StackItem* a_pStackItem)
 {
 	// https://docs.microsoft.com/en-us/windows/win32/debug/retrieving-symbol-information-by-address
-	const DWORD64  dwAddress = static_cast<DWORD64>(reinterpret_cast<size_t>(a_pStackItem->address));
+	const DWORD_ci  dwAddress = static_cast<DWORD_ci>(reinterpret_cast<size_t>(a_pStackItem->address));
 
 	{
 		DWORD64  dwDisplacement = 0;

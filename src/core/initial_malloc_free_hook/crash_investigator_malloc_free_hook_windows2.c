@@ -215,6 +215,8 @@ CPPUTILS_DLL_PRIVATE void* CrInvAllocFree_memset(void* a_dest, int a_c, size_t a
 	for (;i<a_count;) {
 		pcData[i] = CPPUTILS_STATIC_CAST(char, a_c);
 	}
+
+	return a_dest;
 }
 
 #endif  // #if !defined(_WIN64) && defined(_M_ARM)
