@@ -24,5 +24,8 @@
     <ClCompile Include="..\..\..\contrib\cpputils\src\core\cpputils_hashtbl.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\src\core\analyze\crash_investigator_analyze_leak_only_new_delete_std_hash.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

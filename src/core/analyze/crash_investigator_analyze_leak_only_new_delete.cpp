@@ -8,7 +8,6 @@
 
 #ifdef use_crash_investigator_analyze_leak_only_new_delete
 
-// #include <qtutils/core/logger.hpp>
 #include <functional>
 #include <assert.h>
 #include <cpputils/hash/hash.hpp>
