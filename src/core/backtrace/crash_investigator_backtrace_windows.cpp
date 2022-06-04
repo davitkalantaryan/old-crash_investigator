@@ -131,11 +131,6 @@ static void GetSymbolInfo(StackItem* a_pStackItem)
 		if (SymFromAddr(s_currentProcess, dwAddress, &dwDisplacement, pSymbol)) {
 			a_pStackItem->funcName = pSymbol->Name;
 		}
-		else {
-			// SymFromAddr failed
-			//DWORD error = GetLastError();
-			//fprintf(stderr, "SymFromAddr returned error : %d\n", static_cast<int>(error));
-		}
 	}
 
 	
@@ -161,6 +156,20 @@ static void GetSymbolInfo(StackItem* a_pStackItem)
 			//fprintf(stderr,"SymGetLineFromAddr64 returned error : %d\n", static_cast<int>(error));
 		}
 	}
+
+
+	{
+		IMAGEHLP_MODULE aModuleInfo;
+		aModuleInfo.SizeOfStruct = sizeof(IMAGEHLP_MODULE);
+
+		if (SymGetModuleInfo(s_currentProcess, dwAddress, &aModuleInfo)) {
+			//printf("ModuleName=\"%s\"\n", aModuleInfo.ModuleName);
+			//printf("ImageName=\"%s\"\n", aModuleInfo.ImageName);
+			//printf("LoadedImageName=\"%s\"\n", aModuleInfo.LoadedImageName);
+			a_pStackItem->dllName = aModuleInfo.ImageName;
+		}
+	}
+
 
 }
 
