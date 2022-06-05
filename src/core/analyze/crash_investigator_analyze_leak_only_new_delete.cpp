@@ -29,8 +29,10 @@
 #else
 #include <execinfo.h>
 #include <unistd.h>
+#ifdef __LINUX__
 #include <sys/prctl.h>
 #include <sys/wait.h>
+#endif
 #endif
 
 #define CRASH_INVEST_SYMBOLS_COUNT_MAX 256
@@ -640,6 +642,8 @@ static void ConvertBacktraceToNames(const Backtrace* a_data, ::std::vector< Stac
     }
 }
 
+#ifdef __LINUX__
+
 static void print_trace(void) 
 {
     char pid_buf[30];
@@ -656,6 +660,12 @@ static void print_trace(void)
         waitpid(child_pid,NULL,0);
     }
 }
+
+#else
+
+static void print_trace(void){}
+
+#endif
 
 #endif
 
