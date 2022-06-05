@@ -212,6 +212,9 @@ CPPUTILS_DLL_PRIVATE void *calloc_default(size_t a_nmemb, size_t a_size){
 #endif
 #define free_c_lib	free
 
+#define free_c_lib_no_clbk      :: free
+#define malloc_c_lib_no_clbk	:: malloc
+
 typedef ::cpputils::hash::Hash<void *, Backtrace *, BtVoidPtr, ::std::equal_to<void *>, 512, malloc_default, calloc_default, realloc_default, free_default> HashMem;
 typedef ::cpputils::hash::Hash<Backtrace *, size_t, BtHash, BackTrcEql, 512, malloc_default, calloc_default, realloc_default, free_default> HashStack;
 
@@ -316,12 +319,12 @@ static void *AllocMem(size_t a_size, int a_goBackInTheStackCalc)
 	size_t unHashMem;
 
 	if (g_initOrExitOngoing || (s_isOngoing > 0) || g_bIgnoreThisStack){
-		return malloc_default(a_size);
+        return malloc_c_lib_no_clbk(a_size);
 	}
 	IntHandler aHndl;
 	s_memData.Init();
 
-	void *pRet = malloc_default(a_size);
+    void *pRet = malloc_c_lib_no_clbk(a_size);
 	if (!pRet){
 		return pRet;
 	}
@@ -427,7 +430,7 @@ static void FreeMem(void *a_ptr, int a_goBackInTheStackCalc)
 
 	{
 		s_bOperatorDeleteCalled = true;
-		free_default(a_ptr);
+        free_c_lib_no_clbk(a_ptr);
 		s_bOperatorDeleteCalled = false;
 	}
 }
