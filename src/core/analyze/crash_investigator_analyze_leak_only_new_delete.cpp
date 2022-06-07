@@ -29,7 +29,10 @@
 #else
 #include <execinfo.h>
 #include <unistd.h>
-#ifdef __LINUX__
+#if defined(__linux__) || defined(__linux)
+#define CRASH_INVEST_PRCTL_DEFINED
+#endif
+#ifdef CRASH_INVEST_PRCTL_DEFINED
 #include <sys/prctl.h>
 #include <sys/wait.h>
 #endif
@@ -642,7 +645,7 @@ static void ConvertBacktraceToNames(const Backtrace* a_data, ::std::vector< Stac
     }
 }
 
-#ifdef __LINUX__
+#ifdef CRASH_INVEST_PRCTL_DEFINED
 
 static void print_trace(void) 
 {
