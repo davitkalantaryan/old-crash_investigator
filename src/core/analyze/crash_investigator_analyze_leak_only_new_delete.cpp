@@ -27,7 +27,12 @@
 #pragma comment (lib,"Dbghelp.lib")
 #endif
 #else
+#if !defined(__EMSCRIPTEN__)
+#define CRASH_INVESTEXECINFO_DEFINED
+#endif
+#ifdef CRASH_INVESTEXECINFO_DEFINED
 #include <execinfo.h>
+#endif
 #include <unistd.h>
 #if defined(__linux__) || defined(__linux)
 #define CRASH_INVEST_PRCTL_DEFINED
@@ -588,6 +593,9 @@ static void print_trace(void){}
 
 #else
 
+
+#ifdef CRASH_INVESTEXECINFO_DEFINED
+
 static Backtrace* InitBacktraceDataForCurrentStack(int a_goBackInTheStackCalc)
 {
 	Backtrace *pReturn = static_cast<Backtrace *>(malloc_default(sizeof(Backtrace)));
@@ -623,6 +631,8 @@ static Backtrace* InitBacktraceDataForCurrentStack(int a_goBackInTheStackCalc)
 	return pReturn;
 }
 
+
+
 static void ConvertBacktraceToNames(const Backtrace* a_data, ::std::vector< StackItem>*  a_pStack)
 {
     if(a_data){
@@ -644,6 +654,13 @@ static void ConvertBacktraceToNames(const Backtrace* a_data, ::std::vector< Stac
         free_c_lib(ppStrings);
     }
 }
+
+#else
+
+static Backtrace* InitBacktraceDataForCurrentStack(int){return nullptr;}
+static void ConvertBacktraceToNames(const Backtrace*, ::std::vector< StackItem>* ){}
+
+#endif
 
 #ifdef CRASH_INVEST_PRCTL_DEFINED
 
