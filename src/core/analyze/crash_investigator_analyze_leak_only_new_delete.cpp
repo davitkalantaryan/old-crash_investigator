@@ -220,7 +220,6 @@ CPPUTILS_DLL_PRIVATE void *calloc_default(size_t a_nmemb, size_t a_size){
 #define realloc_default realloc
 #define calloc_default calloc
 #endif
-#define free_c_lib	free
 
 #define free_c_lib_no_clbk      :: free
 #define malloc_c_lib_no_clbk	:: malloc
@@ -651,7 +650,7 @@ static void ConvertBacktraceToNames(const Backtrace* a_data, ::std::vector< Stac
 			pStackItem->line = -1;
         }
 
-        free_c_lib(ppStrings);
+		free_c_lib_no_clbk(ppStrings);
     }
 }
 
