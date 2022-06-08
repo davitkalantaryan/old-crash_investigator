@@ -10,7 +10,6 @@
 
 #include <cpputils/internal_header.h>
 #include <functional>
-#include <assert.h>
 #include <unordered_map>
 #include <mutex>
 #include <new>
@@ -19,6 +18,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <time.h>
+#include <string.h>
+#include <assert.h>
 #ifdef _WIN32
 #include <WS2tcpip.h>
 #include <Windows.h>
@@ -216,13 +217,13 @@ static HANDLE s_currentProcess = CPPUTILS_NULL;
 template<class Key, class T, class Hash, class KeyEqual, class Allocator = std::allocator< std::pair<const Key, T> > >
 struct NewHash : public ::std::unordered_map <Key, T, Hash, KeyEqual, Allocator> {
 	using ::std::unordered_map<Key, T, Hash, KeyEqual, Allocator>::unordered_map;
-	::std::unordered_map <Key, T, Hash, KeyEqual, Allocator>::iterator find(const Key& a_key, size_t* p = nullptr) {
+	typename ::std::unordered_map <Key, T, Hash, KeyEqual, Allocator>::iterator find(const Key& a_key, size_t* p = nullptr) {
 		static_cast<void>(p); return ::std::unordered_map<Key, T, Hash, KeyEqual, Allocator>::find(a_key);
 	}
 	void AddEntryWithKnownHashC(const ::std::pair<const Key, T>& a_pair, size_t) {
 		::std::unordered_map<Key, T, Hash, KeyEqual, Allocator>::insert(a_pair);
 	}
-	void RemoveEntryRaw(const ::std::unordered_map <Key, T, Hash, KeyEqual, Allocator>::iterator& a_iter) {
+	void RemoveEntryRaw(const typename ::std::unordered_map <Key, T, Hash, KeyEqual, Allocator>::iterator& a_iter) {
 		::std::unordered_map<Key, T, Hash, KeyEqual, Allocator>::erase(a_iter);
 	}
 };

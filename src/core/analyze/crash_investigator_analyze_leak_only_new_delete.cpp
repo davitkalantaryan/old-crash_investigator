@@ -8,9 +8,8 @@
 
 #ifdef use_crash_investigator_analyze_leak_only_new_delete
 
-#include <functional>
-#include <assert.h>
 #include <cpputils/hash/hash.hpp>
+#include <functional>
 #include <mutex>
 #include <new>
 #include <string>
@@ -18,6 +17,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <time.h>
+#include <string.h>
+#include <assert.h>
 #ifdef _WIN32
 #include <WS2tcpip.h>
 #include <Windows.h>

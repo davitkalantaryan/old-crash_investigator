@@ -36,5 +36,11 @@ SOURCES += "$${PWD}/../../../src/tests/main_memory_leak01_test.cpp"
 
 INCLUDEPATH += $${PWD}/../../../include
 INCLUDEPATH += $${PWD}/../../../contrib/cpputils/include
-SOURCES += "$${PWD}/../../../src/core/analyze/crash_investigator_analyze_leak_only_new_delete.cpp"
-SOURCES += "$${PWD}/../../../contrib/cpputils/src/core/cpputils_hashtbl.cpp"
+#SOURCES += "$${PWD}/../../../src/core/analyze/crash_investigator_analyze_leak_only_new_delete.cpp"
+#SOURCES += "$${PWD}/../../../contrib/cpputils/src/core/cpputils_hashtbl.cpp"
+SOURCES += "$${PWD}/../../../src/core/analyze/crash_investigator_analyze_leak_only_new_delete_std_hash.cpp"
+
+OTHER_FILES +=	\
+	"$${PWD}/../../../src/core/analyze/crash_investigator_analyze_leak_only_new_delete.cpp"		\
+	"$${PWD}/../../../contrib/cpputils/src/core/cpputils_hashtbl.cpp"				\
+	"$${PWD}/../../../src/core/analyze/crash_investigator_analyze_leak_only_new_delete_std_hash.cpp"
