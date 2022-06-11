@@ -8,8 +8,9 @@
 
 #ifdef use_crash_investigator_analyze_leak_only_new_delete
 
-#include <cpputils/hash/hash.hpp>
+#include <cpputils/internal_header.h>
 #include <functional>
+#include <unordered_map>
 #include <mutex>
 #include <new>
 #include <string>
@@ -207,26 +208,38 @@ struct BackTrcEql{
 
 static HANDLE s_currentProcess = CPPUTILS_NULL;
 
-CPPUTILS_DLL_PRIVATE void free_default(void *a_ptr){HeapFree(GetProcessHeap(), 0, a_ptr);}
-CPPUTILS_DLL_PRIVATE void *malloc_default(size_t a_count) { return HeapAlloc(GetProcessHeap(), 0, CPPUTILS_STATIC_CAST(SIZE_T, a_count)); }
-CPPUTILS_DLL_PRIVATE void *realloc_default(void *a_ptr, size_t a_count) { return HeapReAlloc(GetProcessHeap(), 0, a_ptr, CPPUTILS_STATIC_CAST(SIZE_T, a_count)); }
-CPPUTILS_DLL_PRIVATE void *calloc_default(size_t a_nmemb, size_t a_size){
-	const size_t unCount = a_nmemb * a_size;
-	return HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, CPPUTILS_STATIC_CAST(SIZE_T, unCount));
-}
-
 #else
-#define free_default free
-#define malloc_default malloc
-#define realloc_default realloc
-#define calloc_default calloc
 #endif
 
 #define free_c_lib_no_clbk      :: free
 #define malloc_c_lib_no_clbk	:: malloc
 
-typedef ::cpputils::hash::Hash<void *, Backtrace *, BtVoidPtr, ::std::equal_to<void *>, 512, malloc_default, calloc_default, realloc_default, free_default> HashMem;
-typedef ::cpputils::hash::Hash<Backtrace *, size_t, BtHash, BackTrcEql, 512, malloc_default, calloc_default, realloc_default, free_default> HashStack;
+template<class Key, class T, class Hash, class KeyEqual, class Allocator = std::allocator< std::pair<const Key, T> > >
+struct NewHash : public ::std::unordered_map <Key, T, Hash, KeyEqual, Allocator> {
+	using ::std::unordered_map<Key, T, Hash, KeyEqual, Allocator>::unordered_map;
+	typename ::std::unordered_map <Key, T, Hash, KeyEqual, Allocator>::iterator find(const Key& a_key, size_t* p = nullptr) {
+		static_cast<void>(p); return ::std::unordered_map<Key, T, Hash, KeyEqual, Allocator>::find(a_key);
+	}
+	void AddEntryWithKnownHashC(const ::std::pair<const Key, T>& a_pair, size_t) {
+		::std::unordered_map<Key, T, Hash, KeyEqual, Allocator>::insert(a_pair);
+	}
+	void RemoveEntryRaw(const typename ::std::unordered_map <Key, T, Hash, KeyEqual, Allocator>::iterator& a_iter) {
+		::std::unordered_map<Key, T, Hash, KeyEqual, Allocator>::erase(a_iter);
+	}
+};
+
+template <typename DataType>
+struct SAllocator : public ::std::allocator<DataType> {
+	DataType* allocate(size_t a_n, const void* a_hint = 0) {
+		static_cast<void>(a_hint); return malloc_c_lib_no_clbk(a_n * sizeof(DataType));
+	}
+	void deallocate(DataType* a_p, std::size_t a_n) {
+		static_cast<void>(a_n); free_c_lib_no_clbk(a_p);
+	}
+};
+
+typedef NewHash<void*, Backtrace*, BtVoidPtr, ::std::equal_to<void*>, SAllocator<std::pair<void* const, Backtrace*> > > HashMem;
+typedef NewHash<Backtrace*, size_t, BtHash, BackTrcEql, SAllocator<std::pair<Backtrace* const, size_t> > > HashStack;
 
 #if defined(_MSC_VER) && defined(_DEBUG)
 static _CRT_ALLOC_HOOK s_initialAllocHook = CPPUTILS_NULL;
@@ -449,15 +462,15 @@ static void FreeMem(void *a_ptr, int a_goBackInTheStackCalc)
 static Backtrace* CloneBackTrace(const Backtrace* a_btr)
 {
 	if (a_btr){
-		Backtrace *pReturn = static_cast<Backtrace *>(malloc_default(sizeof(Backtrace)));
+		Backtrace *pReturn = static_cast<Backtrace *>(malloc_c_lib_no_clbk(sizeof(Backtrace)));
 		if (!pReturn){
 			return pReturn;
 		}
 		pReturn->stackDeepness = a_btr->stackDeepness;
 		pReturn->reserved01 = a_btr->reserved01;
-		pReturn->ppBuffer = static_cast<void **>(malloc_default(static_cast<size_t>(pReturn->stackDeepness) * sizeof(void *)));
+		pReturn->ppBuffer = static_cast<void **>(malloc_c_lib_no_clbk(static_cast<size_t>(pReturn->stackDeepness) * sizeof(void *)));
 		if (!pReturn->ppBuffer){
-			free_default(pReturn);
+			free_c_lib_no_clbk(pReturn);
 			return nullptr;
 		}
 
@@ -471,8 +484,8 @@ static Backtrace* CloneBackTrace(const Backtrace* a_btr)
 static void FreeBacktraceData(Backtrace *a_data)
 {
 	if (a_data){
-		free_default(a_data->ppBuffer);
-		free_default(a_data);
+		free_c_lib_no_clbk(a_data->ppBuffer);
+		free_c_lib_no_clbk(a_data);
 	}
 }
 
@@ -490,7 +503,7 @@ static Backtrace *InitBacktraceDataForCurrentStack(int a_goBackInTheStackCalc)
 		return CPPUTILS_NULL;
 	}
 
-	Backtrace *pReturn = static_cast<Backtrace *>(malloc_default(sizeof(Backtrace)));
+	Backtrace *pReturn = static_cast<Backtrace *>(malloc_c_lib_no_clbk(sizeof(Backtrace)));
 	if (!pReturn)
 	{
 		return CPPUTILS_NULL;
@@ -498,7 +511,7 @@ static Backtrace *InitBacktraceDataForCurrentStack(int a_goBackInTheStackCalc)
 
 	pReturn->stackDeepness = static_cast<int>(countOfStacks);
 
-	pReturn->ppBuffer = static_cast<void **>(malloc_default(static_cast<size_t>(pReturn->stackDeepness) * sizeof(void *)));
+	pReturn->ppBuffer = static_cast<void **>(malloc_c_lib_no_clbk(static_cast<size_t>(pReturn->stackDeepness) * sizeof(void *)));
 	if (!(pReturn->ppBuffer))
 	{
 		FreeBacktraceData(pReturn);
@@ -598,7 +611,7 @@ static void print_trace(void){}
 
 static Backtrace* InitBacktraceDataForCurrentStack(int a_goBackInTheStackCalc)
 {
-	Backtrace *pReturn = static_cast<Backtrace *>(malloc_default(sizeof(Backtrace)));
+	Backtrace *pReturn = static_cast<Backtrace *>(malloc_c_lib_no_clbk(sizeof(Backtrace)));
 	if (!pReturn){
 		return CPPUTILS_NULL;
 	}
@@ -611,7 +624,7 @@ static Backtrace* InitBacktraceDataForCurrentStack(int a_goBackInTheStackCalc)
 	int nInitialDeepness = backtrace(ppBuffer, cnMaxSymbolCount);
 	if (nInitialDeepness > a_goBackInTheStackCalc){
 		pReturn->stackDeepness = nInitialDeepness - a_goBackInTheStackCalc;
-		pReturn->ppBuffer = static_cast<void **>(malloc_default(static_cast<size_t>(pReturn->stackDeepness) * sizeof(void *)));
+		pReturn->ppBuffer = static_cast<void **>(malloc_c_lib_no_clbk(static_cast<size_t>(pReturn->stackDeepness) * sizeof(void *)));
 		if (!(pReturn->ppBuffer)){
 			FreeBacktraceData(pReturn);
 			return CPPUTILS_NULL;
@@ -620,7 +633,7 @@ static Backtrace* InitBacktraceDataForCurrentStack(int a_goBackInTheStackCalc)
 	}
 	else{
 		pReturn->stackDeepness = nInitialDeepness;
-		pReturn->ppBuffer = static_cast<void **>(malloc_default(static_cast<size_t>(pReturn->stackDeepness) * sizeof(void *)));
+		pReturn->ppBuffer = static_cast<void **>(malloc_c_lib_no_clbk(static_cast<size_t>(pReturn->stackDeepness) * sizeof(void *)));
 		if (!(pReturn->ppBuffer)){
 			FreeBacktraceData(pReturn);
 			return CPPUTILS_NULL;

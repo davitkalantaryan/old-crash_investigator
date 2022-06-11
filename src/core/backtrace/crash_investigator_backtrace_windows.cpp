@@ -114,11 +114,17 @@ public:
 	}
 }static s_SymIniter;
 
+#ifdef _WIN64
+typedef DWORD64  DWORD_ci;
+#else
+typedef DWORD  DWORD_ci;
+#endif
+
 
 static void GetSymbolInfo(StackItem* a_pStackItem)
 {
 	// https://docs.microsoft.com/en-us/windows/win32/debug/retrieving-symbol-information-by-address
-	const DWORD64  dwAddress = static_cast<DWORD64>(reinterpret_cast<size_t>(a_pStackItem->address));
+	const DWORD_ci  dwAddress = static_cast<DWORD_ci>(reinterpret_cast<size_t>(a_pStackItem->address));
 
 	{
 		DWORD64  dwDisplacement = 0;
@@ -130,11 +136,6 @@ static void GetSymbolInfo(StackItem* a_pStackItem)
 
 		if (SymFromAddr(s_currentProcess, dwAddress, &dwDisplacement, pSymbol)) {
 			a_pStackItem->funcName = pSymbol->Name;
-		}
-		else {
-			// SymFromAddr failed
-			//DWORD error = GetLastError();
-			//fprintf(stderr, "SymFromAddr returned error : %d\n", static_cast<int>(error));
 		}
 	}
 
@@ -161,6 +162,20 @@ static void GetSymbolInfo(StackItem* a_pStackItem)
 			//fprintf(stderr,"SymGetLineFromAddr64 returned error : %d\n", static_cast<int>(error));
 		}
 	}
+
+
+	{
+		IMAGEHLP_MODULE aModuleInfo;
+		aModuleInfo.SizeOfStruct = sizeof(IMAGEHLP_MODULE);
+
+		if (SymGetModuleInfo(s_currentProcess, dwAddress, &aModuleInfo)) {
+			//printf("ModuleName=\"%s\"\n", aModuleInfo.ModuleName);
+			//printf("ImageName=\"%s\"\n", aModuleInfo.ImageName);
+			//printf("LoadedImageName=\"%s\"\n", aModuleInfo.LoadedImageName);
+			a_pStackItem->dllName = aModuleInfo.ImageName;
+		}
+	}
+
 
 }
 
