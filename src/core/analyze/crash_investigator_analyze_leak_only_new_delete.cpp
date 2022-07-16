@@ -8,6 +8,10 @@
 
 #ifdef use_crash_investigator_analyze_leak_only_new_delete
 
+#ifdef CPPUTILS_HASH_NO_NEW_DELETE
+#undef CPPUTILS_HASH_NO_NEW_DELETE
+#endif
+
 #include <cpputils/hash/hash.hpp>
 #include <functional>
 #include <mutex>
