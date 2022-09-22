@@ -8,6 +8,10 @@
 
 #ifdef use_crash_investigator_analyze_leak_only_new_delete
 
+#ifdef CPPUTILS_HASH_NO_NEW_DELETE
+#undef CPPUTILS_HASH_NO_NEW_DELETE
+#endif
+
 #include <cpputils/hash/hash.hpp>
 #include <functional>
 #include <mutex>
@@ -53,7 +57,8 @@ extern bool g_initOrExitOngoing;
 bool g_initOrExitOngoing = false;
 static thread_local int s_isOngoing = 0;
 static thread_local bool s_bOperatorDeleteCalled = false;
-static size_t s_unMaxNumberOfAllocInTheStack = 100;
+extern size_t g_unMaxNumberOfAllocInTheStack;
+size_t g_unMaxNumberOfAllocInTheStack = 100;
 
 static time_t s_init_time = 0;
 
@@ -377,7 +382,7 @@ static void *AllocMem(size_t a_size, int a_goBackInTheStackCalc)
 
 			++(iterStack->second);
 
-			if (iterStack->second > s_unMaxNumberOfAllocInTheStack){
+            if (iterStack->second > g_unMaxNumberOfAllocInTheStack){
 
 				if (current_time - s_init_time >= CRASH_INVEST_INIT_TIME){
 					aGuard.unlock();
