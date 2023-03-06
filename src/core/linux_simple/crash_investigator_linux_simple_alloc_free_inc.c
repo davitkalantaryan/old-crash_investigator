@@ -44,10 +44,16 @@ static void* MemoryHandlerReallocInitialStatic(void* a_ptr, size_t a_size);
 static void  MemoryHandlerFreeInitialStatic(void* a_ptr);
 
 static int s_nStartedInitLibrary = 0;
-CPPUTILS_DLL_PRIVATE TypeMemoryHandlerMalloc  g_malloc  = CPPUTILS_NULL;
-CPPUTILS_DLL_PRIVATE TypeMemoryHandlerCalloc  g_calloc  = CPPUTILS_NULL;
-CPPUTILS_DLL_PRIVATE TypeMemoryHandlerRealloc g_realloc = CPPUTILS_NULL;
-CPPUTILS_DLL_PRIVATE TypeMemoryHandlerFree    g_free    = CPPUTILS_NULL;
+static int s_nLibraryInited = 0;
+CPPUTILS_DLL_PRIVATE TypeMemoryHandlerMalloc  g_malloc  = &MemoryHandlerMallocInitialStatic;
+CPPUTILS_DLL_PRIVATE TypeMemoryHandlerCalloc  g_calloc  = &MemoryHandlerCallocInitialStatic;
+CPPUTILS_DLL_PRIVATE TypeMemoryHandlerRealloc g_realloc = &MemoryHandlerReallocInitialStatic;
+CPPUTILS_DLL_PRIVATE TypeMemoryHandlerFree    g_free    = &MemoryHandlerFreeInitialStatic;
+
+static TypeMemoryHandlerMalloc  s_malloc_tmp  = CPPUTILS_NULL;
+static TypeMemoryHandlerCalloc  s_calloc_tmp  = CPPUTILS_NULL;
+static TypeMemoryHandlerRealloc s_realloc_tmp = CPPUTILS_NULL;
+static TypeMemoryHandlerFree    s_free_tmp    = CPPUTILS_NULL;
 
 static TypeMemoryHandlerMalloc  s_malloc_c_lib  = CPPUTILS_NULL;
 static TypeMemoryHandlerCalloc  s_calloc_c_lib  = CPPUTILS_NULL;
@@ -56,6 +62,53 @@ static TypeMemoryHandlerFree    s_free_c_lib    = CPPUTILS_NULL;
 
 static size_t   s_unInitialMemoryOffset = 0;
 static char     s_vcInitialBuffer[MEMORY_HANDLER_INIT_MEM_SIZE];
+
+
+/*///////////////////////////////////////////////////////////////////////////////////////////////////////////////*/
+
+
+MEM_HANDLE_EXPORT void MemoryHandlerSetMallocFnc(TypeMemoryHandlerMalloc a_malloc)
+{
+    if(s_nLibraryInited){
+        g_malloc = a_malloc;
+    }
+    else{
+        s_malloc_tmp = a_malloc;
+    }
+}
+
+
+MEM_HANDLE_EXPORT void MemoryHandlerSetCallocFnc(TypeMemoryHandlerCalloc a_calloc)
+{
+    if(s_nLibraryInited){
+        g_calloc = a_calloc;
+    }
+    else{
+        s_calloc_tmp = a_calloc;
+    }
+}
+
+
+MEM_HANDLE_EXPORT void MemoryHandlerSetReallocFnc(TypeMemoryHandlerRealloc a_realloc)
+{
+    if(s_nLibraryInited){
+        g_realloc = a_realloc;
+    }
+    else{
+        s_realloc_tmp = a_realloc;
+    }
+}
+
+
+MEM_HANDLE_EXPORT void MemoryHandlerSetFreeFnc(TypeMemoryHandlerFree a_free)
+{
+    if(s_nLibraryInited){
+        g_free = a_free;
+    }
+    else{
+        s_free_tmp = a_free;
+    }
+}
 
 
 /*///////////////////////////////////////////////////////////////////////////////////////////////////////////////*/
@@ -98,21 +151,8 @@ static inline size_t MemoryHandlerCalculateRoundedMemorySizeInline(size_t a_init
 
 static inline void InitLibraryInline(void){
     if(!s_nStartedInitLibrary){
-        // let's backup the values.
-        // maybe some other piece of software changed the values of the pointers
-        // we should remember and set them back
-        const TypeMemoryHandlerMalloc  aMalloc = g_malloc;
-        const TypeMemoryHandlerCalloc  aCalloc = g_calloc;
-        const TypeMemoryHandlerRealloc aRealloc = g_realloc;
-        const TypeMemoryHandlerFree    aFree = g_free;
 
         s_nStartedInitLibrary = 1;
-
-        // let's make sure that the pointers are initial
-        g_malloc  = &MemoryHandlerMallocInitialStatic;
-        g_calloc  = &MemoryHandlerCallocInitialStatic;
-        g_realloc = &MemoryHandlerReallocInitialStatic;
-        g_free    = &MemoryHandlerFreeInitialStatic;
 
         s_malloc_c_lib  = (TypeMemoryHandlerMalloc)dlsym(RTLD_NEXT, "malloc");
         s_calloc_c_lib  = (TypeMemoryHandlerCalloc)dlsym(RTLD_NEXT, "calloc");
@@ -124,10 +164,12 @@ static inline void InitLibraryInline(void){
             exit(1);
         }
 
-        g_malloc  = aMalloc?aMalloc:s_malloc_c_lib;
-        g_calloc  = aCalloc?aCalloc:s_calloc_c_lib;
-        g_realloc = aRealloc?aRealloc:s_realloc_c_lib;
-        g_free    = aFree?aFree:s_free_c_lib;
+        g_malloc  = s_malloc_tmp?s_malloc_tmp:s_malloc_c_lib;
+        g_calloc  = s_calloc_tmp?s_calloc_tmp:s_calloc_c_lib;
+        g_realloc = s_realloc_tmp?s_realloc_tmp:s_realloc_c_lib;
+        g_free    = s_free_tmp?s_free_tmp:s_free_c_lib;
+
+        s_nLibraryInited = 1;
 
 #ifdef MEMORY_HANDLE_WAIT_FOR_DEBUGGER
         fprintf(stdout,"Press any key then press enter to continue "); fflush(stdout);
