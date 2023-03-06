@@ -8,7 +8,7 @@
 #ifndef INCLUDE_CRASH_INVEST_INTERNAL_HEADER_H
 #define INCLUDE_CRASH_INVEST_INTERNAL_HEADER_H
 
-#include <cpputils/internal_header.h>
+#include <cinternal/internal_header.h>
 
 
 #if defined(CRASH_INVEST_COMPILING_SHARED_LIB)
@@ -31,6 +31,8 @@
     //#define CRASH_INVEST_HOOK_EXPORT CPPUTILS_DLL_PRIVATE
     #define CRASH_INVEST_HOOK_EXPORT CPPUTILS_IMPORT_FROM_DLL
 #endif
+
+#define MEM_HANDLE_EXPORT CPPUTILS_DLL_PUBLIC
 
 #ifdef _MSC_VER
     #define CRASH_INVEST_ALLOC_EXP  CPPUTILS_DLL_PUBLIC

@@ -7,9 +7,9 @@
 
 PRJ_PWD			= $${PWD}/../../..
 repositoryRoot		= $${PWD}/../../..
-cpputilsRepoRoot	= $${repositoryRoot}/contrib/cpputils
+cinternalRepoRoot	= $${repositoryRoot}/contrib/cpputils/contrib/cinternal
 systemRepoRoot		= $${repositoryRoot}/contrib/system
-include ( "$${cpputilsRepoRoot}/prj/common/common_qt/sys_common.pri" )
+include ( "$${cinternalRepoRoot}/prj/common/common_qt/sys_common.pri" )
 
 CONFIG += c++14
 

@@ -14,7 +14,7 @@ namespace cpputilsm{
 
 void MemoryPoolBase::Init(void* a_pBuffer, size_t a_unBufferSize)
 {
-	m_pFirst = m_pLast = CRASH_INVEST_NULL;
+    m_pFirst = m_pLast = CPPUTILS_NULL;
 	m_pBuffer = (static_cast<uint8_t*>(a_pBuffer));
 	m_cunBufferSize = (a_unBufferSize);
 	m_unOffset = (0);
@@ -33,7 +33,7 @@ void* MemoryPoolBase::Alloc(size_t a_count)
 		else{
 			m_pFirst = pItem;
 		}
-		pItem->next = CRASH_INVEST_NULL;
+        pItem->next = CPPUTILS_NULL;
 		pItem->prev = m_pLast;
 		m_pLast = pItem;
 		pItem->count = a_count;
@@ -41,7 +41,7 @@ void* MemoryPoolBase::Alloc(size_t a_count)
 		m_unOffset += cunOverallSize;
 		return static_cast<void*>(pReturnRaw+sizeof(Item));
 	}
-	return CRASH_INVEST_NULL;
+    return CPPUTILS_NULL;
 }
 
 
@@ -64,7 +64,7 @@ bool MemoryPoolBase::Realloc(void* a_ptr, size_t a_count, void** a_ppRet)
 		if(ptrOffset<m_cunBufferSize){
 			assert(ptrOffset>=sizeof(Item));
 			if(a_count==0){
-				*a_ppRet = CRASH_INVEST_NULL;
+                *a_ppRet = CPPUTILS_NULL;
 				DeallocCheckedMemory(ptrOffset);
 				return true;
 			}
@@ -87,7 +87,7 @@ bool MemoryPoolBase::Realloc(void* a_ptr, size_t a_count, void** a_ppRet)
 							return true;
 						}
 						else{
-							*a_ppRet = CRASH_INVEST_NULL;
+                            *a_ppRet = CPPUTILS_NULL;
 							return true;
 						}
 					} // if(ofsetAfterAlloc==m_unOffset){
@@ -102,7 +102,7 @@ bool MemoryPoolBase::Realloc(void* a_ptr, size_t a_count, void** a_ppRet)
 			
 		}  // if(ptrOffset<m_cunBufferSize){
 		
-		*a_ppRet = CRASH_INVEST_NULL;
+        *a_ppRet = CPPUTILS_NULL;
 		return false;
 	}
 	
@@ -136,7 +136,7 @@ void MemoryPoolBase::DeallocCheckedMemory(size_t a_ptrOffset)
 		
 		if(pItem==m_pFirst){
 			m_unOffset = 0;
-			m_pFirst = m_pLast = CRASH_INVEST_NULL;
+            m_pFirst = m_pLast = CPPUTILS_NULL;
 			return;
 		}
 		
@@ -144,14 +144,14 @@ void MemoryPoolBase::DeallocCheckedMemory(size_t a_ptrOffset)
 		pItem = pItem->prev;
 		while(pItem){
 			if(pItem->isInUse){
-				pItem->next = CRASH_INVEST_NULL;
+                pItem->next = CPPUTILS_NULL;
 				m_pLast = pItem;
 				break;
 			}
 			
 			if(pItem==m_pFirst){
 				m_unOffset = 0;
-				m_pFirst = m_pLast = CRASH_INVEST_NULL;
+                m_pFirst = m_pLast = CPPUTILS_NULL;
 				return;
 			}
 			

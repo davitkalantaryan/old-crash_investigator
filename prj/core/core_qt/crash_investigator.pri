@@ -5,7 +5,6 @@
 # 
 
 
-include("$${PWD}/../../common/common_qt/sys_common.pri")
 include("$${PWD}/../../../ENVIRONMENT")
 
 
@@ -32,6 +31,7 @@ SRC_CORE_BASIC_DIR  = $${PWD}/../../../src/core/basic
 
 INCLUDEPATH += "$${PWD}/../../../include"
 INCLUDEPATH += "$${PWD}/../../../contrib/cpputils/include"
+INCLUDEPATH += "$${PWD}/../../../contrib/cpputils/contrib/cinternal/include"
 INCLUDEPATH += "$${PWD}/../../../src/include"
 
 SOURCES += "$${SRC_CORE_BASIC_DIR}/crash_investigator_alloc_dealloc_unix.cpp"

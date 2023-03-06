@@ -13,6 +13,8 @@ include("$${PWD}/crash_investigator.pri")
 
 TARGET_OLD=$${TARGET}
 
+DEFINES += CRASH_INVEST_COMPILING_SHARED_LIB
+
 macx {
         # case of MAC
         message ("!!!!!!!!!! mac")
@@ -71,7 +73,7 @@ macx {
 
 
 
-DESTDIR = $${PRJ_PWD}/$${SYSTEM_PATH}/lib$${TARGET_PATH_EXTRA}
+#DESTDIR = $${PRJ_PWD}/$${SYSTEM_PATH}/lib$${TARGET_PATH_EXTRA}
 TARGET = lib$${TARGET_OLD}_$${CRASH_INVEST_VERSION_ENV}.$${SYS_TARGET_EXT}
 
 QT -= gui

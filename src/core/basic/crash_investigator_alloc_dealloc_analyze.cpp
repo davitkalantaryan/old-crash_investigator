@@ -30,7 +30,7 @@ namespace crash_investigator {
 
 struct SMemoryItem;
 
-static size_t   s_unMaxNumberOfAllocFromTheSameStack = 10;
+static size_t   s_unMaxNumberOfAllocFromTheSameStack = 100;
 
 static FailureAction DefaultFailureClbk(const FailureData& a_data);
 static int DefaultInfoReportStatic(void* clbkData,const char* a_format,...);
@@ -553,7 +553,7 @@ CrashInvestAnalizerInit::~CrashInvestAnalizerInit()
 #ifdef _WIN32
     signal(SIGSEGV, m_funcInitial);
 #else
-	sigaction(SIGSEGV, &m_saInitial, CRASH_INVEST_NULL);
+    sigaction(SIGSEGV, &m_saInitial, CPPUTILS_NULL);
 #endif
 }
 

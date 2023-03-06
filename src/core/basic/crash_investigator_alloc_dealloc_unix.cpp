@@ -35,10 +35,10 @@ typedef void  (*TypeFree)(void*);
 static cpputilsm::MemoryPool<CRASH_INVEST_MEMORY_HANDLER_SIZE2> s_memPool;
 
 static pthread_once_t	s_once_control		= PTHREAD_ONCE_INIT;
-static TypeMalloc		s_orig_malloc		= CRASH_INVEST_NULL;
-static TypeCalloc		s_orig_calloc		= CRASH_INVEST_NULL;
-static TypeRealloc		s_orig_realloc		= CRASH_INVEST_NULL;
-static TypeFree			s_orig_free			= CRASH_INVEST_NULL;
+static TypeMalloc		s_orig_malloc		= CPPUTILS_NULL;
+static TypeCalloc		s_orig_calloc		= CPPUTILS_NULL;
+static TypeRealloc		s_orig_realloc		= CPPUTILS_NULL;
+static TypeFree			s_orig_free			= CPPUTILS_NULL;
 static bool				s_isInitFunction	= false;
 static bool				s_isNotInited		= true;
 
@@ -61,31 +61,31 @@ static void InitFunction(void)
 }
 
 
-CRASH_INVEST_DLL_PRIVATE bool SystemSpecificLibInitialRealloc  ( void* a_ptr, size_t a_count, void** a_ppReturn ) CRASH_INVEST_NODISCARD
+CPPUTILS_DLL_PRIVATE bool SystemSpecificLibInitialRealloc  ( void* a_ptr, size_t a_count, void** a_ppReturn ) CPPUTILS_NODISCARD
 {
 	return s_memPool.Realloc(a_ptr,a_count,a_ppReturn);
 }
 
 
-CRASH_INVEST_DLL_PRIVATE bool SystemSpecificLibInitialDealloc( void* a_ptr ) CRASH_INVEST_NOEXCEPT
+CPPUTILS_DLL_PRIVATE bool SystemSpecificLibInitialDealloc( void* a_ptr ) CPPUTILS_NOEXCEPT
 {
 	return s_memPool.Dealloc(a_ptr);
 }
 
 
-CRASH_INVEST_DLL_PRIVATE void* SystemSpecificGlibcRealloc( void* a_ptr, size_t a_count ) CRASH_INVEST_NODISCARD
+CPPUTILS_DLL_PRIVATE void* SystemSpecificGlibcRealloc( void* a_ptr, size_t a_count ) CPPUTILS_NODISCARD
 {
 	return (*s_orig_realloc)(a_ptr,a_count);
 }
 
 
-CRASH_INVEST_DLL_PRIVATE void  SystemSpecificGlibcDealloc( void* a_ptr ) CRASH_INVEST_NOEXCEPT 
+CPPUTILS_DLL_PRIVATE void  SystemSpecificGlibcDealloc( void* a_ptr ) CPPUTILS_NOEXCEPT
 {
 	(*s_orig_free)(a_ptr);
 }
 
 
-CRASH_INVEST_DLL_PRIVATE void* mallocn  ( size_t a_count ) CRASH_INVEST_NODISCARD
+CPPUTILS_DLL_PRIVATE void* mallocn  ( size_t a_count ) CPPUTILS_NODISCARD
 {
 	if(s_isInitFunction){
 		return s_memPool.Alloc(a_count);
@@ -95,21 +95,21 @@ CRASH_INVEST_DLL_PRIVATE void* mallocn  ( size_t a_count ) CRASH_INVEST_NODISCAR
 }
 
 
-CRASH_INVEST_DLL_PRIVATE void* reallocn( void* a_ptr, size_t a_count ) CRASH_INVEST_NODISCARD
+CPPUTILS_DLL_PRIVATE void* reallocn( void* a_ptr, size_t a_count ) CPPUTILS_NODISCARD
 {
 	if(s_isInitFunction){
 		void* pReturn;
 		if(s_memPool.Realloc(a_ptr,a_count,&pReturn)){
 			return pReturn;
 		}
-		return CRASH_INVEST_NULL;
+        return CPPUTILS_NULL;
 	}
 	if(s_isNotInited){pthread_once(&s_once_control,&InitFunction);}
 	return (*s_orig_realloc)(a_ptr,a_count);
 }
 
 
-CRASH_INVEST_DLL_PRIVATE void* callocn  ( size_t a_nmemb, size_t a_size ) CRASH_INVEST_NODISCARD
+CPPUTILS_DLL_PRIVATE void* callocn  ( size_t a_nmemb, size_t a_size ) CPPUTILS_NODISCARD
 {
 	if(s_isInitFunction){
 		return s_memPool.Calloc(a_nmemb,a_size);
@@ -119,7 +119,7 @@ CRASH_INVEST_DLL_PRIVATE void* callocn  ( size_t a_nmemb, size_t a_size ) CRASH_
 }
 
 
-CRASH_INVEST_DLL_PRIVATE void freen( void* a_ptr ) CRASH_INVEST_NOEXCEPT
+CPPUTILS_DLL_PRIVATE void freen( void* a_ptr ) CPPUTILS_NOEXCEPT
 {
 	if(s_isInitFunction){
 		s_memPool.Dealloc(a_ptr);

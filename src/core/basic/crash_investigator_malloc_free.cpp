@@ -13,7 +13,7 @@
 
 #include "crash_investigator_alloc_dealloc.hpp"
 #include <crash_investigator/crash_investigator_malloc_free_hook.h>
-#include <string.h>
+//#include <string.h>
 
 
 CPPUTILS_BEGIN_C
