@@ -7,6 +7,8 @@
 # CONFIG += 2test
 
 
+TEMPLATE = lib
+
 linux {
         # case of Linux
         message ("!!!!!!!!!! linux")
@@ -17,27 +19,23 @@ linux {
         QMAKE_CXXFLAGS += -Wno-attributes
         LIBS += -ldl
 
-        QMAKE_LFLAGS = -Wl,-E -pie -shared
-        TARGET_EXT = so
-        QMAKE_EXTENSION_SHLIB = so
-                SYS_TARGET_EXT = so
-        QMAKE_CXXFLAGS = -fPIC
-        QMAKE_CFLAGS = -fPIC
-        #QMAKE_LFLAGS = -Wl,-E -pie
         #QMAKE_LFLAGS = -Wl,-E -pie -shared
+        #TARGET_EXT = so
+        #QMAKE_EXTENSION_SHLIB = so
+        #SYS_TARGET_EXT = so
+        #QMAKE_CXXFLAGS = -fPIC
+        #QMAKE_CFLAGS = -fPIC
 }
 
 include($${PWD}/../../common/common_qt/sys_common.pri)
 include($${repositoryRoot}/ENVIRONMENT)
 
+VERSION = $$CRASH_INVEST_VERSION_ENV
+
 INCLUDEPATH += "$${repositoryRoot}/include"
 INCLUDEPATH += "$${cinternalRepoRoot}/include"
 INCLUDEPATH += "$${repositoryRoot}/contrib/stack_investigator/include"
 
-
-DESTDIR     = $${artifactRoot}/$${SYSTEM_PATH}/$$CONFIGURATION/lib
-TARGET_OLD=$${TARGET}
-TARGET = lib$${TARGET_OLD}_$${CRASH_INVEST_VERSION_ENV}.$${SYS_TARGET_EXT}
 
 DEFINES += CRASH_INVEST_COMPILING_SHARED_LIB
 DEFINES += STACK_INVEST_ANY_ALLOC=MemoryHandlerCLibMalloc
