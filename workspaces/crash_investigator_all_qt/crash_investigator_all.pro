@@ -14,7 +14,7 @@ TEMPLATE = subdirs
 CONFIG += ordered
 
 SUBDIRS		+=	"$${repositoryRoot}/prj/core/core_qt/linux_simple.pro"
-SUBDIRS		+=	"$${repositoryRoot}/prj/tests/any_test_qt/any_test.pro"
+#SUBDIRS		+=	"$${repositoryRoot}/prj/tests/any_test_qt/any_test.pro"
 #SUBDIRS         +=      $${repositoryRoot}/../.pitz/daq/prj/server/requestreplydaq_qt/requestreplydaq.pro
 
 wcsServer {
@@ -23,7 +23,7 @@ wcsServer {
 
 #crashInvestigatorLibs {
         #SUBDIRS		+=	"$${repositoryRoot}/prj/core/core_qt/crash_investigator_new.pro"
-        SUBDIRS		+=	"$${repositoryRoot}/prj/core/core_qt/crash_investigator_malloc.pro"
+        #SUBDIRS		+=	"$${repositoryRoot}/prj/core/core_qt/crash_investigator_malloc.pro"
         #SUBDIRS		+=	"$${repositoryRoot}/prj/core/core_qt/crash_investigator_new_malloc.pro"
 #}
 
