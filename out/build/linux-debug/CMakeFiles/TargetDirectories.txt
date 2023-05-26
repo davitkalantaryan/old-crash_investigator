@@ -1,5 +1,0 @@
-/mnt/d/tmp/crash_investigator/out/build/linux-debug/CMakeFiles/linux_simple.dir
-/mnt/d/tmp/crash_investigator/out/build/linux-debug/CMakeFiles/edit_cache.dir
-/mnt/d/tmp/crash_investigator/out/build/linux-debug/CMakeFiles/rebuild_cache.dir
-/mnt/d/tmp/crash_investigator/out/build/linux-debug/src/core/linux_simple/CMakeFiles/edit_cache.dir
-/mnt/d/tmp/crash_investigator/out/build/linux-debug/src/core/linux_simple/CMakeFiles/rebuild_cache.dir
