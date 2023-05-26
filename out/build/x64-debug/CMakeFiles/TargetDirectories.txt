@@ -1,0 +1,2 @@
+D:/tmp/crash_investigator/out/build/x64-debug/CMakeFiles/edit_cache.dir
+D:/tmp/crash_investigator/out/build/x64-debug/CMakeFiles/rebuild_cache.dir
