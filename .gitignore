@@ -31,6 +31,9 @@
 #*.out
 #*.app
 
+.vs
+out
+
 /.codes_to_investigate
 /.tests
 
