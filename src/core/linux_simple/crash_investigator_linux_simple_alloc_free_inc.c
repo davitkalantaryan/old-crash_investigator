@@ -158,6 +158,7 @@ MEM_HANDLE_EXPORT void* MemoryHandlerCLibRealloc(void* a_ptr, size_t a_size)
 MEM_HANDLE_EXPORT void MemoryHandlerCLibFree(void* a_ptr)
 {
     (*s_free_c_lib)(a_ptr);
+    //(*s_free_c_lib)(a_ptr);
 }
 
 
