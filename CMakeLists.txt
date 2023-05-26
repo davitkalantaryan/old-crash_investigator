@@ -21,6 +21,11 @@ set (
 
 add_library(${PROJECT_NAME} SHARED ${SOURCES})
 
+set_target_properties(
+	${PROJECT_NAME} PROPERTIES
+	SOVERSION ${CMAKE_PROJECT_VERSION}
+)
+
 # include directories
 set (
 	INCLUDEDIRS
