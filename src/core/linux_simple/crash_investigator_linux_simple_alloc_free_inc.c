@@ -38,13 +38,15 @@ struct CPPUTILS_DLL_PRIVATE SMemoryHandlerInitMemData{
     char        reserved[16-sizeof(size_t)];
 };
 
+
+static int s_nStartedInitLibrary = 0;
+static int s_nLibraryInited = 0;
+
 static void* MemoryHandlerMallocInitialStatic(size_t a_size);
 static void* MemoryHandlerCallocInitialStatic(size_t a_nmemb, size_t a_size);
 static void* MemoryHandlerReallocInitialStatic(void* a_ptr, size_t a_size);
 static void  MemoryHandlerFreeInitialStatic(void* a_ptr);
 
-static int s_nStartedInitLibrary = 0;
-static int s_nLibraryInited = 0;
 CPPUTILS_DLL_PRIVATE TypeMemoryHandlerMalloc  g_malloc  = &MemoryHandlerMallocInitialStatic;
 CPPUTILS_DLL_PRIVATE TypeMemoryHandlerCalloc  g_calloc  = &MemoryHandlerCallocInitialStatic;
 CPPUTILS_DLL_PRIVATE TypeMemoryHandlerRealloc g_realloc = &MemoryHandlerReallocInitialStatic;
@@ -59,6 +61,13 @@ static TypeMemoryHandlerMalloc  s_malloc_c_lib  = CPPUTILS_NULL;
 static TypeMemoryHandlerCalloc  s_calloc_c_lib  = CPPUTILS_NULL;
 static TypeMemoryHandlerRealloc s_realloc_c_lib = CPPUTILS_NULL;
 static TypeMemoryHandlerFree    s_free_c_lib    = CPPUTILS_NULL;
+
+#ifdef MEM_HANDLER_MMAP_NEEDED
+static void* MemoryHandlerMmapInitialStatic(void* a_addr, size_t a_len, int a_prot, int a_flags,int a_fildes, off_t a_off);
+CPPUTILS_DLL_PRIVATE TypeMemoryHandlerMmap  g_mmap  = &MemoryHandlerMmapInitialStatic;
+static TypeMemoryHandlerMmap    s_mmap_tmp  = CPPUTILS_NULL;
+static TypeMemoryHandlerMmap    s_mmap_c_lib = CPPUTILS_NULL;
+#endif
 
 static size_t   s_unInitialMemoryOffset = 0;
 static char     s_vcInitialBuffer[MEMORY_HANDLER_INIT_MEM_SIZE];
@@ -111,6 +120,21 @@ MEM_HANDLE_EXPORT void MemoryHandlerSetFreeFnc(TypeMemoryHandlerFree a_free)
 }
 
 
+#ifdef MEM_HANDLER_MMAP_NEEDED
+
+MEM_HANDLE_EXPORT void MemoryHandlerSetMmapFnc(TypeMemoryHandlerMmap a_mmap)
+{
+    if(s_nLibraryInited){
+        g_mmap = a_mmap;
+    }
+    else{
+        s_mmap_tmp = a_mmap;
+    }
+}
+
+#endif  //  #ifdef MEM_HANDLER_MMAP_NEEDED
+
+
 /*///////////////////////////////////////////////////////////////////////////////////////////////////////////////*/
 
 MEM_HANDLE_EXPORT void* MemoryHandlerCLibMalloc(size_t a_size)
@@ -135,6 +159,17 @@ MEM_HANDLE_EXPORT void MemoryHandlerCLibFree(void* a_ptr)
 {
     (*s_free_c_lib)(a_ptr);
 }
+
+
+#ifdef MEM_HANDLER_MMAP_NEEDED
+
+
+MEM_HANDLE_EXPORT void* MemoryHandlerCLibMmap(void* a_addr, size_t a_len, int a_prot, int a_flags,int a_fildes, off_t a_off)
+{
+    return (*s_mmap_c_lib)(a_addr,a_len,a_prot,a_flags,a_fildes,a_off);
+}
+
+#endif  //  #ifdef MEM_HANDLER_MMAP_NEEDED
 
 
 /*///////////////////////////////////////////////////////////////////////////////////////////////////////////////*/
@@ -163,6 +198,18 @@ static inline void InitLibraryInline(void){
             //fflush(stderr);
             exit(1);
         }
+
+#ifdef MEM_HANDLER_MMAP_NEEDED
+
+        s_mmap_c_lib    = (TypeMemoryHandlerMmap)dlsym(RTLD_NEXT, "mmap");
+        if(!s_mmap_c_lib){
+            //fprintf(stderr, "Unable to get addresses of original functions (malloc/realloc/free)\n. Application will exit");
+            //fflush(stderr);
+            exit(1);
+        }
+        g_mmap  = s_mmap_tmp?s_mmap_tmp:s_mmap_c_lib;
+
+#endif  //  #ifdef MEM_HANDLER_MMAP_NEEDED
 
         g_malloc  = s_malloc_tmp?s_malloc_tmp:s_malloc_c_lib;
         g_calloc  = s_calloc_tmp?s_calloc_tmp:s_calloc_c_lib;
@@ -267,6 +314,34 @@ static void MemoryHandlerFreeInitialStatic(void* a_ptr)
         // in case if (((pItem->totalSize)+cunOffset)!=s_unInitialMemoryOffset) we should forgot about existing memory
     }
 }
+
+
+#ifdef MEM_HANDLER_MMAP_NEEDED
+
+static void* MemoryHandlerMmapInitialStatic(void* a_addr, size_t a_size, int a_prot, int a_flags,int a_fildes, off_t a_off)
+{
+    InitLibraryInline();
+    if(a_size){
+        const size_t cunTotalSize = MemoryHandlerCalculateRoundedMemorySizeInline(a_size);
+        const size_t cunNewOffset = s_unInitialMemoryOffset + cunTotalSize;
+        if(cunNewOffset<MEMORY_HANDLER_INIT_MEM_SIZE){
+            char*const pcCurrentMemPointer = s_vcInitialBuffer + s_unInitialMemoryOffset;
+            struct SMemoryHandlerInitMemData*const pItem = (struct SMemoryHandlerInitMemData*)pcCurrentMemPointer;
+            pItem->totalSize = cunTotalSize;
+            return pcCurrentMemPointer + sizeof(struct SMemoryHandlerInitMemData);
+        }
+
+        CPPUTILS_STATIC_CAST(void,a_addr);
+        CPPUTILS_STATIC_CAST(void,a_prot);
+        CPPUTILS_STATIC_CAST(void,a_flags);
+        CPPUTILS_STATIC_CAST(void,a_fildes);
+        CPPUTILS_STATIC_CAST(void,a_off);
+    }
+
+    return CPPUTILS_NULL;
+}
+
+#endif  //  #ifdef MEM_HANDLER_MMAP_NEEDED
 
 
 

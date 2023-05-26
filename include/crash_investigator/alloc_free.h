@@ -11,6 +11,9 @@
 
 #include <crash_investigator/crash_investigator_internal_header.h>
 #include <stddef.h>
+#ifdef MEM_HANDLER_MMAP_NEEDED
+#include <bits/types.h>
+#endif
 
 
 CPPUTILS_BEGIN_C
@@ -32,6 +35,22 @@ MEM_HANDLE_EXPORT void* MemoryHandlerCLibMalloc(size_t a_size);
 MEM_HANDLE_EXPORT void* MemoryHandlerCLibCalloc(size_t a_nmemb, size_t a_size);
 MEM_HANDLE_EXPORT void* MemoryHandlerCLibRealloc(void* a_ptr, size_t a_size);
 MEM_HANDLE_EXPORT void  MemoryHandlerCLibFree(void* a_ptr);
+
+
+#ifdef MEM_HANDLER_MMAP_NEEDED
+#ifndef __off_t_defined
+# ifndef __USE_FILE_OFFSET64
+typedef __off_t off_t;
+# else
+typedef __off64_t off_t;
+# endif
+# define __off_t_defined
+#endif
+typedef void* (*TypeMemoryHandlerMmap)(void*,size_t,int,int,int,off_t);
+MEM_HANDLE_EXPORT void MemoryHandlerSetMmapFnc(TypeMemoryHandlerMmap a_mmap);
+MEM_HANDLE_EXPORT void* MemoryHandlerCLibMmap(void *addr, size_t len, int prot, int flags,int fildes, off_t off);
+#endif  //  #ifdef MEM_HANDLER_MMAP_NEEDED
+
 
 
 CPPUTILS_END_C

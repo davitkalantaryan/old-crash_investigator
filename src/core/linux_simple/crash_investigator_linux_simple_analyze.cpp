@@ -7,7 +7,7 @@
 
 
 #define MEMORY_LEAK_ANALYZE_INIT_TIME_SEC   100
-#define MEMORY_LEAK_ANALYZE_MAX_ALLOC       600
+#define MEMORY_LEAK_ANALYZE_MAX_ALLOC       300
 
 
 #define MEM_LEAK_ANALYZE_USE_STD_MUTEX
@@ -15,23 +15,27 @@
 #include <crash_investigator/alloc_free.h>
 #include <cinternal/hash/lhash.h>
 #include <stack_investigator/investigator.h>
+#include <mutex>
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 #include <assert.h>
-#include <sys/time.h>
+#include <time.h>
 #ifndef _GNU_SOURCE
 #define _GNU_SOURCE
 #endif
 #ifndef __USE_GNU
 #define __USE_GNU
 #endif
+#ifdef MAKE_LOCK_STAT
 #include <sys/syscall.h>
 #include <sys/types.h>
-#include <unistd.h>
-#ifdef MEM_LEAK_ANALYZE_USE_STD_MUTEX
-#include <mutex>
+#endif
+
+#ifdef _WIN32
+#define ctime_s_t(_timep,_buffer,_numberOfElements)     ctime_s(_buffer,_numberOfElements,_timep)
 #else
-#include <pthread.h>
+#define ctime_s_t(_timep,_buffer,_numberOfElements)     CPPUTILS_STATIC_CAST(void,_numberOfElements);ctime_r(_timep,_buffer)
 #endif
 
 
@@ -84,12 +88,8 @@ struct CPPUTILS_DLL_PRIVATE SMemoryLeakAnalyseItem{
 };
 
 static int s_nInitializationTimeNotPassed = 1;
-static struct timeval       s_initTime;
-#ifdef MEM_LEAK_ANALYZE_USE_STD_MUTEX
-static MemLeakAnMutex*       s_pMutexForHashes = CPPUTILS_NULL;
-#else
-static pthread_mutex_t      s_mutexForHashes;
-#endif
+static time_t               s_initTimeSec = 0;
+static MemLeakAnMutex*      s_pMutexForHashes = CPPUTILS_NULL;
 static CinternalLHash_t     s_hashByAddress = CPPUTILS_NULL;
 static CinternalLHash_t     s_hashByStack   = CPPUTILS_NULL;
 
@@ -133,10 +133,28 @@ static void MemoryLeakAnalyzeFree(void* a_ptr)
 
 static __thread int s_nIgnoreForThisThread = 0;
 
+
+#ifdef MEM_HANDLER_MMAP_NEEDED
+
+static void* MemoryLeakAnalyzeMmap(void* a_addr, size_t a_len, int a_prot, int a_flags,int a_fildes, off_t a_off)
+{
+    void* pRet;
+    ++s_nIgnoreForThisThread;
+    pRet = MemoryHandlerCLibMmap(a_addr,a_len,a_prot,a_flags,a_fildes,a_off);
+    printf("mmap called!\n");
+    fflush(stdout);
+    //return MemoryLeakAnalyzerAddAllocedMem(1,pRet);
+    --s_nIgnoreForThisThread;
+    return pRet;
+}
+
+#endif  //  #ifdef MEM_HANDLER_MMAP_NEEDED
+
+
 class Reseter{
 public:
     ~Reseter(){
-        s_nIgnoreForThisThread = 0;
+        --s_nIgnoreForThisThread;
     }
 };
 
@@ -145,19 +163,19 @@ static void* MemoryLeakAnalyzerAddAllocedMem(int a_goBackInTheStackCalc, void* a
 {
     size_t unMaxValue = 0;
 
-    if(s_nIgnoreForThisThread){
+    if(s_nIgnoreForThisThread>0){
         return a_ptr;
     }
     else {
-        s_nIgnoreForThisThread = 1;
+        ++s_nIgnoreForThisThread;
         if(s_nInitializationTimeNotPassed){
-            struct timeval currentTime;
-            gettimeofday(&currentTime,CPPUTILS_NULL);
-            if((currentTime.tv_sec-s_initTime.tv_sec)>MEMORY_LEAK_ANALYZE_INIT_TIME_SEC){
+            time_t currentTime;
+            currentTime = time(&currentTime);
+            if((currentTime - s_initTimeSec)>MEMORY_LEAK_ANALYZE_INIT_TIME_SEC){
                 s_nInitializationTimeNotPassed = 0;
             }
             else{
-                s_nIgnoreForThisThread = 0;
+                --s_nIgnoreForThisThread;
                 return a_ptr;
             }
         }
@@ -176,26 +194,35 @@ static void* MemoryLeakAnalyzerAddAllocedMem(int a_goBackInTheStackCalc, void* a
         if(!pCurStack){
             //MemoryHandlerCLibFree(pItem);
             MemoryHandlerCLibFree(a_ptr);
-            s_nIgnoreForThisThread = 0;
             return CPPUTILS_NULL;
         }
 
         {  // mutex lock region
-#ifdef MEM_LEAK_ANALYZE_USE_STD_MUTEX
             ::std::lock_guard<MemLeakAnMutex> aGuard(*s_pMutexForHashes);
-#else
-            pthread_mutex_lock(&s_mutexForHashes);
-#endif
+
             hashIterStack = CInternalLHashFindEx(s_hashByStack,CInternalSmallIntHPair(pCurStack),&unHashStack);
             if(hashIterStack){
                 StackInvestFreeBacktraceData(pCurStack);
                 pItem = (struct SMemoryLeakAnalyseItem*)(hashIterStack->data);
                 if((++(pItem->countForThisStack))>MEMORY_LEAK_ANALYZE_MAX_ALLOC){
-#ifndef MEM_LEAK_ANALYZE_USE_STD_MUTEX
-                    pthread_mutex_unlock(&s_mutexForHashes);
-#endif
-                    fprintf(stderr,"!!!!!!!!!!!!!!!!!!!!!!!!!! possible memory leak!!!!!\n");
-                    s_nIgnoreForThisThread = 0;
+                    char* pcTemp;
+                    char vcCurTimeStr[128];
+                    time_t currentTime;
+
+                    currentTime = time(&currentTime);
+                    ctime_s_t(&currentTime,vcCurTimeStr,127);
+                    pcTemp = strchr(vcCurTimeStr,'\n');
+                    if(pcTemp){
+                        *pcTemp = 0;
+                        fprintf(stderr,"!!! %s",vcCurTimeStr);
+                    }
+                    else{
+                        fprintf(stderr,"!!!!!!!");
+                    }
+
+                    fprintf(stderr,"  possible memory leak!!!!!\n");
+                    fflush(stderr);
+                    //StackInvestPrintTrace();
                     exit(1);
                 }
                 else if(pItem->countForThisStack>s_unMaxValue){
@@ -205,12 +232,8 @@ static void* MemoryLeakAnalyzerAddAllocedMem(int a_goBackInTheStackCalc, void* a
             else{
                 pItem = (struct SMemoryLeakAnalyseItem*)MemoryHandlerCLibMalloc(sizeof(struct SMemoryLeakAnalyseItem));
                 if(!pItem){
-#ifndef MEM_LEAK_ANALYZE_USE_STD_MUTEX
-                    pthread_mutex_unlock(&s_mutexForHashes);
-#endif
                     StackInvestFreeBacktraceData(pCurStack);
                     MemoryHandlerCLibFree(a_ptr);
-                    s_nIgnoreForThisThread = 0;
                     return CPPUTILS_NULL;
                 }
                 pItem->pStack = pCurStack;
@@ -221,9 +244,6 @@ static void* MemoryLeakAnalyzerAddAllocedMem(int a_goBackInTheStackCalc, void* a
             hashIterAdr = CInternalLHashFindEx(s_hashByAddress,CInternalSmallIntHPair(a_ptr),&unHashAdr);
             assert(hashIterAdr==CPPUTILS_NULL);
             CInternalLHashAddDataWithKnownHash(s_hashByAddress,pItem,CInternalSmallIntHPair(a_ptr),unHashAdr);
-#ifndef MEM_LEAK_ANALYZE_USE_STD_MUTEX
-            pthread_mutex_unlock(&s_mutexForHashes);
-#endif
 
         }  // end mutex lock region
 
@@ -231,17 +251,23 @@ static void* MemoryLeakAnalyzerAddAllocedMem(int a_goBackInTheStackCalc, void* a
 
 
     if(unMaxValue>0){
-        printf("!!!!!!!!!!! new max =>  %d\n",(int)unMaxValue);
-    }
-
-    {
-        static int nCounter = 0;
-        if((nCounter++ % 100000) == 0){
-            printf("nCounter = %d\n",nCounter);
+        char* pcTemp;
+        char vcCurTimeStr[128];
+        time_t currentTime;
+        currentTime = time(&currentTime);
+        ctime_s_t(&currentTime,vcCurTimeStr,127);
+        pcTemp = strchr(vcCurTimeStr,'\n');
+        if(pcTemp){
+            *pcTemp = 0;
+            printf("!!! %s",vcCurTimeStr);
         }
+        else{
+            printf("!!!!!!!");
+        }
+        printf(" new max =>  %d\n",(int)unMaxValue);
+        fflush(stdout);
+        //StackInvestPrintTrace();
     }
-
-    s_nIgnoreForThisThread = 0;
 
     return a_ptr;
 }
@@ -253,19 +279,15 @@ static void MemoryLeakAnalyzerRemoveMemForFreeing(void* a_ptr)
         CInternalLHashIterator hashIterAdr;
         size_t unHashAdr;
 
-        if(!s_nIgnoreForThisThread){
+        ++s_nIgnoreForThisThread;
+        Reseter aReseter;
 
-#ifdef MEM_LEAK_ANALYZE_USE_STD_MUTEX
-            //::std::lock_guard<MemLeakAnMutex> aGuard(*s_pMutexForHashes);
-            s_pMutexForHashes->lock();
-#else
-            pthread_mutex_lock(&s_mutexForHashes);
-#endif
+        ::std::lock_guard<MemLeakAnMutex> aGuard(*s_pMutexForHashes);
 
-        }
         hashIterAdr = CInternalLHashFindEx(s_hashByAddress,CInternalSmallIntHPair(a_ptr),&unHashAdr);
         // assert(hashIterAdr);
-        // `assert` is not ok, because of initialization time, some memories are not here
+        // `assert` is not ok, because of initialization time, some memories are not here  // this is not correct
+        // some memories are not here because when locking done with s_nIgnoreForThisThread, then it is not inserted
         if(hashIterAdr){
             struct SMemoryLeakAnalyseItem* pItem;
 
@@ -278,13 +300,11 @@ static void MemoryLeakAnalyzerRemoveMemForFreeing(void* a_ptr)
                 StackInvestFreeBacktraceData(pStack);
             }
         }  //  if(hashIterAdr){
-
-        if(!s_nIgnoreForThisThread){
-#ifdef MEM_LEAK_ANALYZE_USE_STD_MUTEX
-            s_pMutexForHashes->unlock();
-#else
-            pthread_mutex_unlock(&s_mutexForHashes);
-#endif
+        else{
+            if(!s_nInitializationTimeNotPassed){
+                //printf("No memory found for the pointer %p\n",a_ptr);
+                //fflush(stdout);
+            }
         }
 
     }  //  if(a_ptr){
@@ -311,29 +331,14 @@ static bool IsTheSameStack(const void* a_key1, size_t a_keySize1, const void* a_
 
 
 CPPUTILS_CODE_INITIALIZER(MemoryHandlerInit){
-#ifndef MEM_LEAK_ANALYZE_USE_STD_MUTEX
-    int nRet;
-#endif
-
     s_nInitializationTimeNotPassed = 1;
-    gettimeofday(&s_initTime,CPPUTILS_NULL);
+    s_initTimeSec = time(&s_initTimeSec);
 
-#ifdef MEM_LEAK_ANALYZE_USE_STD_MUTEX
     s_pMutexForHashes = new MemLeakAnMutex();
-#else
-    nRet = pthread_mutex_init(&s_mutexForHashes,CPPUTILS_NULL);
-    if(nRet){
-        exit(1);
-    }
-#endif
 
     s_hashByAddress = CInternalLHashCreateExSmlInt(MEM_LEAK_ANALYZE_HASH_BY_ADR_BASKETS,&MemoryHandlerCLibMalloc,&MemoryHandlerCLibFree);
     if(!s_hashByAddress){
-#ifdef MEM_LEAK_ANALYZE_USE_STD_MUTEX
         delete s_pMutexForHashes;
-#else
-        pthread_mutex_destroy(&s_mutexForHashes);
-#endif
         exit(1);
     }
 
@@ -343,11 +348,7 @@ CPPUTILS_CODE_INITIALIZER(MemoryHandlerInit){
                                                        &MemoryHandlerCLibMalloc,&MemoryHandlerCLibFree);
     if(!s_hashByStack){
         CInternalLHashDestroy(s_hashByAddress);
-#ifdef MEM_LEAK_ANALYZE_USE_STD_MUTEX
         delete s_pMutexForHashes;
-#else
-        pthread_mutex_destroy(&s_mutexForHashes);
-#endif
         exit(1);
     }
 
@@ -355,6 +356,9 @@ CPPUTILS_CODE_INITIALIZER(MemoryHandlerInit){
     MemoryHandlerSetCallocFnc(&MemoryLeakAnalyzeCalloc);
     MemoryHandlerSetReallocFnc(&MemoryLeakAnalyzeRealloc);
     MemoryHandlerSetFreeFnc(&MemoryLeakAnalyzeFree);
+#ifdef MEM_HANDLER_MMAP_NEEDED
+    MemoryHandlerSetMmapFnc(&MemoryLeakAnalyzeMmap);
+#endif
 
     // todo: use atexit family to regiter cleaner
 }

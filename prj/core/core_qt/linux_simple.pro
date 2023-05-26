@@ -9,6 +9,8 @@
 
 TEMPLATE = lib
 
+DEFINES += MEM_HANDLER_MMAP_NEEDED
+
 linux {
         # case of Linux
         message ("!!!!!!!!!! linux")

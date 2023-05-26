@@ -15,7 +15,7 @@ CONFIG += ordered
 
 SUBDIRS		+=	"$${repositoryRoot}/prj/core/core_qt/linux_simple.pro"
 #SUBDIRS		+=	"$${repositoryRoot}/prj/tests/any_test_qt/any_test.pro"
-#SUBDIRS         +=      $${repositoryRoot}/../.pitz/daq/prj/server/requestreplydaq_qt/requestreplydaq.pro
+SUBDIRS         +=      $${repositoryRoot}/../.pitz/daq/prj/server/requestreplydaq_qt/requestreplydaq.pro
 
 wcsServer {
 	SUBDIRS		+=	"$${repositoryRoot}/prj/crash_investigations/wcs_server_qt/wcs_server.pro"
