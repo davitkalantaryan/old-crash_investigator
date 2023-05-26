@@ -21,10 +21,15 @@ set (
 
 add_library(${PROJECT_NAME} SHARED ${SOURCES})
 
+# For shared library type targets VERSION specifies build version and SOVERTION specifies SONAME.
+# When building or installing appropriate symlinks are created if the platform supports
+# symlinks and the linker supports so-names.
+# If only one of both is specified the missing is assumed to have the same version number.
+# For executables VERSION can be used to specify the build version.
+# When building or installing appropriate symlinks are created if the platform supports symlinks.
 set_target_properties(
 	${PROJECT_NAME} PROPERTIES
 	VERSION ${CMAKE_PROJECT_VERSION}
-	SOVERSION ${CMAKE_PROJECT_VERSION}
 )
 
 # include directories
