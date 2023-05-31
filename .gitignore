@@ -85,3 +85,8 @@ out
 
 prj/tests/googletest_mult/Makefile.googletest_getter
 ~$*
+
+out/*
+.vs/
+!.vs/*.json
+
