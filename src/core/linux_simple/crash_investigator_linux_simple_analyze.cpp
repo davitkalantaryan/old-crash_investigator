@@ -208,6 +208,7 @@ static void* MemoryLeakAnalyzerAddAllocedMem(int a_goBackInTheStackCalc, void* a
                     char* pcTemp;
                     char vcCurTimeStr[128];
                     time_t currentTime;
+                    struct StackInvestStackItem*const pStackItems = (struct StackInvestStackItem*)MemoryHandlerCLibMalloc(((size_t)(pItem->pStack->stackDeepness))*sizeof(struct StackInvestStackItem));
 
                     currentTime = time(&currentTime);
                     ctime_s_t(&currentTime,vcCurTimeStr,127);
@@ -219,6 +220,20 @@ static void* MemoryLeakAnalyzerAddAllocedMem(int a_goBackInTheStackCalc, void* a
                     else{
                         fprintf(stderr,"!!!!!!!");
                     }
+
+                    if(pStackItems){
+                        if(!StackInvestConvertBacktraceToNames(pItem->pStack,pStackItems)){
+                            int i=0;
+                            for(;i<pItem->pStack->stackDeepness;++i){
+                                if(pStackItems[i].line>=0){
+                                    fprintf(stderr,"bin: %s, %s(%d), fn:%s\n",pStackItems[i].binFile, pStackItems[i].sourceFile, pStackItems[i].line, pStackItems[i].funcName);
+                                }
+                                else{
+                                    fprintf(stderr,"%s\n",pStackItems[i].binFile);
+                                }
+                            }  //  for(;i<pItem->pStack->stackDeepness;++i){
+                        }  //  if(!StackInvestConvertBacktraceToNames(pItem->pStack,pStackItems)){
+                    }  //  if(pStackItems){
 
                     fprintf(stderr,"  possible memory leak!!!!!\n");
                     fflush(stderr);
@@ -309,6 +324,47 @@ static void MemoryLeakAnalyzerRemoveMemForFreeing(void* a_ptr)
 
     }  //  if(a_ptr){
 }
+
+#ifndef _WIN32
+
+
+CPPUTILS_BEGIN_C
+
+
+CPPUTILS_DLL_PRIVATE void* STACK_INVEST_RW_MUTEX_CREATE_function(void){
+    return (void*)1;
+}
+
+
+CPPUTILS_DLL_PRIVATE void STACK_INVEST_RW_MUTEX_DESTROY_function(void* a_pRwMutex){
+    CPPUTILS_STATIC_CAST(void,a_pRwMutex);
+}
+
+
+CPPUTILS_DLL_PRIVATE void STACK_INVEST_RW_MUTEX_RD_LOCK_function(void* a_pRwMutex){
+    CPPUTILS_STATIC_CAST(void,a_pRwMutex);
+}
+
+
+CPPUTILS_DLL_PRIVATE void STACK_INVEST_RW_MUTEX_WR_LOCK_function(void* a_pRwMutex){
+    CPPUTILS_STATIC_CAST(void,a_pRwMutex);
+}
+
+
+CPPUTILS_DLL_PRIVATE void STACK_INVEST_RW_MUTEX_RD_UNLOCK_function(void* a_pRwMutex){
+    CPPUTILS_STATIC_CAST(void,a_pRwMutex);
+}
+
+
+CPPUTILS_DLL_PRIVATE void STACK_INVEST_RW_MUTEX_WR_UNLOCK_function(void* a_pRwMutex){
+    CPPUTILS_STATIC_CAST(void,a_pRwMutex);
+}
+
+
+CPPUTILS_END_C
+
+
+#endif  //  #ifndef _WIN32
 
 
 
