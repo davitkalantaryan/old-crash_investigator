@@ -9,8 +9,6 @@
 
 TEMPLATE = lib
 
-DEFINES += MEM_HANDLER_MMAP_NEEDED
-
 linux {
         # case of Linux
         message ("!!!!!!!!!! linux")
@@ -39,6 +37,7 @@ INCLUDEPATH += "$${cinternalRepoRoot}/include"
 INCLUDEPATH += "$${repositoryRoot}/contrib/stack_investigator/include"
 
 
+#DEFINES += MEM_HANDLER_MMAP_NEEDED
 DEFINES += CRASH_INVEST_COMPILING_SHARED_LIB
 DEFINES += STACK_INVEST_ANY_ALLOC=MemoryHandlerCLibMalloc
 DEFINES += STACK_INVEST_ANY_FREE=MemoryHandlerCLibFree
@@ -50,7 +49,7 @@ QT -= widgets
 CONFIG -= qt
 
 SOURCES += $$files($${repositoryRoot}/src/core/linux_simple/*.c*,true)
-SOURCES += $${cinternalRepoRoot}/src/core/cinternal_core_hash_lhash.c
+SOURCES += $${cinternalRepoRoot}/src/core/cinternal_core_hash_dllhash.c
 SOURCES += $${repositoryRoot}/contrib/stack_investigator/src/core/stack_investigator_backtrace_unix.c
 SOURCES += $${repositoryRoot}/contrib/stack_investigator/src/core/stack_investigator_backtrace_common.c
 

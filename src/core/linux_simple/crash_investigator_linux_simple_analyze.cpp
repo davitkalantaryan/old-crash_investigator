@@ -6,14 +6,14 @@
 //
 
 
-#define MEMORY_LEAK_ANALYZE_INIT_TIME_SEC   100
+#define MEMORY_LEAK_ANALYZE_INIT_TIME_SEC   20
 #define MEMORY_LEAK_ANALYZE_MAX_ALLOC       300
 
 
 #define MEM_LEAK_ANALYZE_USE_STD_MUTEX
 
 #include <crash_investigator/alloc_free.h>
-#include <cinternal/hash/lhash.h>
+#include <cinternal/hash/dllhash.h>
 #include <stack_investigator/investigator.h>
 #include <mutex>
 #include <stdlib.h>
@@ -84,14 +84,14 @@ static size_t s_unMaxValue = 0;
 struct CPPUTILS_DLL_PRIVATE SMemoryLeakAnalyseItem{
     struct StackInvestBacktrace*    pStack;
     size_t                          countForThisStack;
-    CInternalLHashIterator          hashByStackIter;
+    CinternalDLLHashItem_t          hashByStackIter;
 };
 
 static int s_nInitializationTimeNotPassed = 1;
 static time_t               s_initTimeSec = 0;
 static MemLeakAnMutex*      s_pMutexForHashes = CPPUTILS_NULL;
-static CinternalLHash_t     s_hashByAddress = CPPUTILS_NULL;
-static CinternalLHash_t     s_hashByStack   = CPPUTILS_NULL;
+static CinternalDLLHash_t   s_hashByAddress = CPPUTILS_NULL;
+static CinternalDLLHash_t   s_hashByStack   = CPPUTILS_NULL;
 
 static void* MemoryLeakAnalyzerAddAllocedMem(int a_goBackInTheStackCalc, void* a_ptr);
 static void MemoryLeakAnalyzerRemoveMemForFreeing(void* a_ptr);
@@ -185,7 +185,7 @@ static void* MemoryLeakAnalyzerAddAllocedMem(int a_goBackInTheStackCalc, void* a
 
 
     if(a_ptr){
-        CInternalLHashIterator hashIterAdr, hashIterStack;
+        CinternalDLLHashItem_t hashIterAdr, hashIterStack;
         size_t unHashAdr, unHashStack;
         struct StackInvestBacktrace* pCurStack;
         struct SMemoryLeakAnalyseItem* pItem;
@@ -200,7 +200,7 @@ static void* MemoryLeakAnalyzerAddAllocedMem(int a_goBackInTheStackCalc, void* a
         {  // mutex lock region
             ::std::lock_guard<MemLeakAnMutex> aGuard(*s_pMutexForHashes);
 
-            hashIterStack = CInternalLHashFindEx(s_hashByStack,CInternalSmallIntHPair(pCurStack),&unHashStack);
+            hashIterStack = CInternalDLLHashFindEx(s_hashByStack,pCurStack,0,&unHashStack);
             if(hashIterStack){
                 StackInvestFreeBacktraceData(pCurStack);
                 pItem = (struct SMemoryLeakAnalyseItem*)(hashIterStack->data);
@@ -238,12 +238,12 @@ static void* MemoryLeakAnalyzerAddAllocedMem(int a_goBackInTheStackCalc, void* a
                 }
                 pItem->pStack = pCurStack;
                 pItem->countForThisStack = 1;
-                pItem->hashByStackIter = CInternalLHashAddDataWithKnownHash(s_hashByStack,pItem,CInternalSmallIntHPair(pCurStack),unHashStack);
+                pItem->hashByStackIter = CInternalDLLHashAddDataWithKnownHash(s_hashByStack,pItem,pCurStack,0,unHashStack);
             }
 
-            hashIterAdr = CInternalLHashFindEx(s_hashByAddress,CInternalSmallIntHPair(a_ptr),&unHashAdr);
+            hashIterAdr = CInternalDLLHashFindEx(s_hashByAddress,CInternalSmallIntHPairFn(a_ptr),&unHashAdr);
             assert(hashIterAdr==CPPUTILS_NULL);
-            CInternalLHashAddDataWithKnownHash(s_hashByAddress,pItem,CInternalSmallIntHPair(a_ptr),unHashAdr);
+            CInternalDLLHashAddDataWithKnownHash(s_hashByAddress,pItem,CInternalSmallIntHPairFn(a_ptr),unHashAdr);
 
         }  // end mutex lock region
 
@@ -276,7 +276,7 @@ static void* MemoryLeakAnalyzerAddAllocedMem(int a_goBackInTheStackCalc, void* a
 static void MemoryLeakAnalyzerRemoveMemForFreeing(void* a_ptr)
 {
     if(a_ptr){
-        CInternalLHashIterator hashIterAdr;
+        CinternalDLLHashItem_t hashIterAdr;
         size_t unHashAdr;
 
         ++s_nIgnoreForThisThread;
@@ -284,7 +284,7 @@ static void MemoryLeakAnalyzerRemoveMemForFreeing(void* a_ptr)
 
         ::std::lock_guard<MemLeakAnMutex> aGuard(*s_pMutexForHashes);
 
-        hashIterAdr = CInternalLHashFindEx(s_hashByAddress,CInternalSmallIntHPair(a_ptr),&unHashAdr);
+        hashIterAdr = CInternalDLLHashFindEx(s_hashByAddress,CInternalSmallIntHPairFn(a_ptr),&unHashAdr);
         // assert(hashIterAdr);
         // `assert` is not ok, because of initialization time, some memories are not here  // this is not correct
         // some memories are not here because when locking done with s_nIgnoreForThisThread, then it is not inserted
@@ -292,11 +292,11 @@ static void MemoryLeakAnalyzerRemoveMemForFreeing(void* a_ptr)
             struct SMemoryLeakAnalyseItem* pItem;
 
             pItem = (struct SMemoryLeakAnalyseItem*)(hashIterAdr->data);
-            CInternalLHashRemoveDataEx(s_hashByAddress,hashIterAdr);
+            CInternalDLLHashRemoveDataEx(s_hashByAddress,hashIterAdr);
             assert((pItem->countForThisStack)>0);
             if((--(pItem->countForThisStack))==0){
                 struct StackInvestBacktrace*const pStack = pItem->pStack;
-                CInternalLHashRemoveDataEx(s_hashByStack,pItem->hashByStackIter);
+                CInternalDLLHashRemoveDataEx(s_hashByStack,pItem->hashByStackIter);
                 StackInvestFreeBacktraceData(pStack);
             }
         }  //  if(hashIterAdr){
@@ -312,7 +312,7 @@ static void MemoryLeakAnalyzerRemoveMemForFreeing(void* a_ptr)
 
 
 
-static size_t HashByStackHasher(const void* a_key, size_t a_keySize)
+static size_t HashByStackHasher(const void* a_key, size_t a_keySize) CPPUTILS_NOEXCEPT
 {
     (void)a_keySize;
     StackInvestBacktrace*const pStack = (StackInvestBacktrace*)a_key;
@@ -320,13 +320,31 @@ static size_t HashByStackHasher(const void* a_key, size_t a_keySize)
 }
 
 
-static bool IsTheSameStack(const void* a_key1, size_t a_keySize1, const void* a_key2, size_t a_keySize2)
+static bool IsTheSameStack(const void* a_key1, size_t a_keySize1, const void* a_key2, size_t a_keySize2) CPPUTILS_NOEXCEPT
 {
-    (void)a_keySize1;
-    (void)a_keySize2;
+    CPPUTILS_STATIC_CAST(void, a_keySize1);
+    CPPUTILS_STATIC_CAST(void, a_keySize2);
     const StackInvestBacktrace*const pStack1 = (const StackInvestBacktrace*)a_key1;
     const StackInvestBacktrace*const pStack2 = (const StackInvestBacktrace*)a_key2;
     return StackInvestIsTheSameStack(pStack1,pStack2);
+}
+
+
+static bool StoreStackHashKey(TypeCinternalAllocator a_allocator, void** a_pKeyStore, size_t* a_pKeySizeStore, const void* a_key, size_t a_keySize) CPPUTILS_NOEXCEPT
+{
+    CPPUTILS_STATIC_CAST(void, a_allocator);
+    CPPUTILS_STATIC_CAST(void, a_keySize);
+    CPPUTILS_STATIC_CAST(void, a_pKeySizeStore);
+    *a_pKeyStore = CPPUTILS_CONST_CAST(void*,a_key);
+    return true;
+}
+
+
+static void UnstoreStackHashKey(TypeCinternalDeallocator a_deallocator, void* a_key, size_t a_keySize) CPPUTILS_NOEXCEPT
+{
+    CPPUTILS_STATIC_CAST(void, a_deallocator);
+    CPPUTILS_STATIC_CAST(void, a_key);
+    CPPUTILS_STATIC_CAST(void, a_keySize);
 }
 
 
@@ -336,18 +354,16 @@ CPPUTILS_CODE_INITIALIZER(MemoryHandlerInit){
 
     s_pMutexForHashes = new MemLeakAnMutex();
 
-    s_hashByAddress = CInternalLHashCreateExSmlInt(MEM_LEAK_ANALYZE_HASH_BY_ADR_BASKETS,&MemoryHandlerCLibMalloc,&MemoryHandlerCLibFree);
+    s_hashByAddress = CInternalDLLHashCreateExSmlInt(MEM_LEAK_ANALYZE_HASH_BY_ADR_BASKETS,&MemoryHandlerCLibMalloc,&MemoryHandlerCLibFree);
     if(!s_hashByAddress){
         delete s_pMutexForHashes;
         exit(1);
     }
 
-    s_hashByStack = CInternalLHashCreateExAnyDefSmlInt(MEM_LEAK_ANALYZE_HASH_BY_ADR_BASKETS,
-                                                       &HashByStackHasher,&IsTheSameStack,
-                                                       CPPUTILS_NULL,CPPUTILS_NULL,
-                                                       &MemoryHandlerCLibMalloc,&MemoryHandlerCLibFree);
+    s_hashByStack = CInternalDLLHashCreateExAny(MEM_LEAK_ANALYZE_HASH_BY_ADR_BASKETS,&HashByStackHasher,&IsTheSameStack,
+                                                &StoreStackHashKey,&UnstoreStackHashKey,&MemoryHandlerCLibMalloc,&MemoryHandlerCLibFree);
     if(!s_hashByStack){
-        CInternalLHashDestroy(s_hashByAddress);
+        CInternalDLLHashDestroy(s_hashByAddress);
         delete s_pMutexForHashes;
         exit(1);
     }
