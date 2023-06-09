@@ -208,7 +208,9 @@ static void* MemoryLeakAnalyzerAddAllocedMem(int a_goBackInTheStackCalc, void* a
                     char* pcTemp;
                     char vcCurTimeStr[128];
                     time_t currentTime;
+#ifdef STACK_ITEM_CALC_ENABLED
                     struct StackInvestStackItem*const pStackItems = (struct StackInvestStackItem*)MemoryHandlerCLibMalloc(((size_t)(pItem->pStack->stackDeepness))*sizeof(struct StackInvestStackItem));
+#endif
 
                     currentTime = time(&currentTime);
                     ctime_s_t(&currentTime,vcCurTimeStr,127);
@@ -221,6 +223,7 @@ static void* MemoryLeakAnalyzerAddAllocedMem(int a_goBackInTheStackCalc, void* a
                         fprintf(stderr,"!!!!!!!");
                     }
 
+#ifdef STACK_ITEM_CALC_ENABLED
                     if(pStackItems){
                         if(!StackInvestConvertBacktraceToNames(pItem->pStack,pStackItems)){
                             int i=0;
@@ -234,6 +237,7 @@ static void* MemoryLeakAnalyzerAddAllocedMem(int a_goBackInTheStackCalc, void* a
                             }  //  for(;i<pItem->pStack->stackDeepness;++i){
                         }  //  if(!StackInvestConvertBacktraceToNames(pItem->pStack,pStackItems)){
                     }  //  if(pStackItems){
+#endif  //  #ifdef STACK_ITEM_CALC_ENABLED
 
                     fprintf(stderr,"  possible memory leak!!!!!\n");
                     fflush(stderr);

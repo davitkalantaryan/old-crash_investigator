@@ -52,7 +52,7 @@ SOURCES += $$files($${repositoryRoot}/src/core/linux_simple/*.c*,true)
 SOURCES += $${cinternalRepoRoot}/src/core/cinternal_core_hash_dllhash.c
 SOURCES += $${repositoryRoot}/contrib/stack_investigator/src/core/stack_investigator_backtrace_unix.c
 SOURCES += $${repositoryRoot}/contrib/stack_investigator/src/core/stack_investigator_backtrace_common.c
-SOURCES += $${repositoryRoot}/contrib/stack_investigator/src/core/stack_investigator_backtrace_addr_to_details_unix_dwarf.c
+#SOURCES += $${repositoryRoot}/contrib/stack_investigator/src/core/stack_investigator_backtrace_addr_to_details_unix_dwarf.c
 
 
 HEADERS += $$files($${repositoryRoot}/include/*.h,true)
