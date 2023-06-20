@@ -139,7 +139,7 @@ CPPUTILS_DLL_PRIVATE void STACK_INVEST_RW_MUTEX_WR_UNLOCK_function(void* a_pRwMu
 
 static void crash_investigator_linux_simple_analyze_clean(void){
 
-    s_nIgnoreForThisThread = 1;
+    ++s_nIgnoreForThisThread;
     MemoryHandlerSetMallocFnc(&MemoryHandlerCLibMalloc);
     MemoryHandlerSetCallocFnc(&MemoryHandlerCLibCalloc);
     MemoryHandlerSetReallocFnc(&MemoryHandlerCLibRealloc);
@@ -149,6 +149,7 @@ static void crash_investigator_linux_simple_analyze_clean(void){
 #endif
 
     CrashInvestAnalyzeLeakingClean(&s_analyzeData);
+    --s_nIgnoreForThisThread;
 
 }
 

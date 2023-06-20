@@ -28,7 +28,7 @@ CPPUTILS_BEGIN_C
 
 #define MEM_LEAK_ANALYZE_HASH_BY_ADR_BASKETS        131072
 #define MEM_LEAK_ANALYZE_HASH_BY_STACK_BASKETS      8192
-#define MEMORY_LEAK_ANALYZE_INIT_TIME_SEC_DEFAULT   20
+#define MEMORY_LEAK_ANALYZE_INIT_TIME_SEC_DEFAULT   8
 #define MEMORY_LEAK_ANALYZE_MAX_ALLOC_DEFAULT       300
 
 
@@ -59,6 +59,9 @@ static inline long int GetIntFromVariableInline(const char* a_cpcVariableName){
 #endif
 
     if(pcEnvValue){
+        long int lnVal = strtol(pcEnvValue,CPPUTILS_NULL,10);
+        printf("!!!! %s = %ld\n",a_cpcVariableName,lnVal);
+        fflush(stdout);
         return strtol(pcEnvValue,CPPUTILS_NULL,10);
     }
     return -1;
@@ -114,7 +117,7 @@ CRASH_INVEST_EXPORT int CrashInvestAnalyzeLeakingInitialize(struct SCrInvAnalyze
                                                             const char* a_cpcStartTimeEnv, const char* a_cpcMaxForStackEnv)
 {
     int nRet;
-    int deltaTimeToStartAnalyze;
+    long int deltaTimeToStartAnalyze;
     int maxForStack;
 
     nRet = cinternal_lw_recursive_mutex_create(&(a_pTables->mutexForHashes));
