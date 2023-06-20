@@ -41,9 +41,7 @@ static struct SCrInvAnalyzeLeakingData   s_analyzeData;
 static void* MemoryLeakAnalyzeMalloc(size_t a_size)
 {
     void*const pRet = MemoryHandlerCLibMalloc(a_size);
-    if(pRet){
-        CrashInvestAnalyzeLeakingAddAllocedItem(1,pRet,&s_analyzeData);
-    }
+    CrashInvestAnalyzeLeakingAddAllocedItem(1,pRet,&s_analyzeData);
     return pRet;
 }
 
@@ -51,9 +49,7 @@ static void* MemoryLeakAnalyzeMalloc(size_t a_size)
 static void* MemoryLeakAnalyzeCalloc(size_t a_nmemb, size_t a_size)
 {
     void*const pRet = MemoryHandlerCLibCalloc(a_nmemb,a_size);
-    if(pRet){
-        CrashInvestAnalyzeLeakingAddAllocedItem(1,pRet,&s_analyzeData);
-    }
+    CrashInvestAnalyzeLeakingAddAllocedItem(1,pRet,&s_analyzeData);
     return pRet;
 }
 
@@ -62,11 +58,10 @@ static void* MemoryLeakAnalyzeRealloc(void* a_ptr, size_t a_size)
 {
     void*const pRet = MemoryHandlerCLibRealloc(a_ptr,a_size);
     if(a_size){
-        if(pRet && (pRet!=a_ptr)){
+        if(pRet!=a_ptr){
             CrashInvestAnalyzeLeakingRemoveAllocedItem(a_ptr,&s_analyzeData);
             CrashInvestAnalyzeLeakingAddAllocedItem(1,pRet,&s_analyzeData);
         }
-        return pRet;
     }
     else{
         CrashInvestAnalyzeLeakingRemoveAllocedItem(a_ptr,&s_analyzeData);

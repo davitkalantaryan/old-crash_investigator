@@ -255,6 +255,8 @@ static inline void CrashInvestAnalyzeLeakingRemoveAllocedItemNoLockInline(void* 
     CinternalDLLHashItem_t hashIterAdr;
     size_t unHashAdr;
 
+    if(!a_ptr){return;}
+
     hashIterAdr = CInternalDLLHashFindEx(a_pTables->hashByAddress,a_ptr,0,&unHashAdr);
     // assert(hashIterAdr);
     // `assert` is not ok, because of initialization time, some memories are not here  // this is not correct
@@ -283,6 +285,7 @@ CRASH_INVEST_EXPORT int  CrashInvestAnalyzeLeakingAddAllocedItem(int a_goBackInT
         return 0;
     }
     else {
+        if(!a_ptr){return 0;}
         ++(*(a_pTables->pnIgnoreForThisThread));
         if(a_pTables->bInitializationTimeNotPassed){
             time_t currentTime;
