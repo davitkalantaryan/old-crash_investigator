@@ -38,8 +38,6 @@ INCLUDEPATH += "$${repositoryRoot}/contrib/stack_investigator/include"
 
 # todo: delete below 2 lines
 INCLUDEPATH += $${repositoryRoot}/contrib/cpputils/include
-SOURCES += $${repositoryRoot}/contrib/cpputils/src/core/cpputils_mutex_ml.cpp
-SOURCES += $${repositoryRoot}/contrib/cpputils/src/core/cpputils_thread_local.cpp
 
 
 #DEFINES += MEM_HANDLER_MMAP_NEEDED
@@ -57,7 +55,7 @@ LIBS += -pthread
 SOURCES += $$files($${repositoryRoot}/src/core/linux_simple/*.c*,true)
 SOURCES += $${cinternalRepoRoot}/src/core/cinternal_core_hash_dllhash.c
 SOURCES += $${cinternalRepoRoot}/src/core/cinternal_core_lw_mutex_recursive.c
-SOURCES += $${repositoryRoot}/contrib/stack_investigator/src/core/stack_investigator_backtrace_unix.cpp
+SOURCES += $${repositoryRoot}/contrib/stack_investigator/src/core/stack_investigator_backtrace_unix.c
 SOURCES += $${repositoryRoot}/contrib/stack_investigator/src/core/stack_investigator_backtrace_common.c
 SOURCES += $${repositoryRoot}/contrib/stack_investigator/src/core/stack_investigator_backtrace_addr_to_details_unix_dwarf.c
 SOURCES += $${repositoryRoot}/src/core/crash_investigator_analyze_leaking.c
