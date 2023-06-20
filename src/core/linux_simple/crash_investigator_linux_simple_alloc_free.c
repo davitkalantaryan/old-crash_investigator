@@ -5,7 +5,6 @@
 // created by:		Davit Kalantaryan (davit.kalantaryan@desy.de)
 //
 
-
 #include <cinternal/internal_header.h>
 
 #if defined(__linux__) || defined(__linux)
@@ -14,7 +13,6 @@
 
 
 CPPUTILS_BEGIN_C
-
 
 extern CPPUTILS_DLL_PRIVATE TypeMemoryHandlerMalloc  g_malloc;
 extern CPPUTILS_DLL_PRIVATE TypeMemoryHandlerCalloc  g_calloc;

@@ -7,6 +7,7 @@
 
 
 //#define MEMORY_HANDLE_WAIT_FOR_DEBUGGER
+//#define ANALIZE_ALLOC_FREE_COUNT    1
 
 #include <cinternal/internal_header.h>
 
@@ -24,6 +25,9 @@
 #define __USE_GNU
 #endif
 #include <dlfcn.h>
+#ifdef ANALIZE_ALLOC_FREE_COUNT
+#include <crash_investigator/analyze_leaking.h>
+#endif
 
 
 #define MEMORY_HANDLER_INIT_MEM_SIZE    16384
@@ -33,6 +37,16 @@ CPPUTILS_BEGIN_C
 
 #pragma GCC diagnostic ignored "-Wattributes"
 
+static int s_nLibraryInited = 0;
+
+
+#ifdef ANALIZE_ALLOC_FREE_COUNT
+
+static __thread int s_nIgnoreForThisThread = 0;
+static struct SCrInvAnalyzeLeakingData   s_analyzeData;
+
+#endif  //  #ifdef ANALIZE_ALLOC_FREE_COUNT
+
 struct CPPUTILS_DLL_PRIVATE SMemoryHandlerInitMemData{
     size_t      totalSize;
     char        reserved[16-sizeof(size_t)];
@@ -40,7 +54,6 @@ struct CPPUTILS_DLL_PRIVATE SMemoryHandlerInitMemData{
 
 
 static int s_nStartedInitLibrary = 0;
-static int s_nLibraryInited = 0;
 
 static void* MemoryHandlerMallocInitialStatic(size_t a_size);
 static void* MemoryHandlerCallocInitialStatic(size_t a_nmemb, size_t a_size);
@@ -139,24 +152,61 @@ MEM_HANDLE_EXPORT void MemoryHandlerSetMmapFnc(TypeMemoryHandlerMmap a_mmap)
 
 MEM_HANDLE_EXPORT void* MemoryHandlerCLibMalloc(size_t a_size)
 {
+#ifdef ANALIZE_ALLOC_FREE_COUNT
+    void*const pRet = (*s_malloc_c_lib)(a_size);
+    if(pRet){
+        CrashInvestAnalyzeLeakingAddAllocedItem(1,pRet,&s_analyzeData);
+    }
+    return pRet;
+#else
     return (*s_malloc_c_lib)(a_size);
+#endif
 }
 
 
 MEM_HANDLE_EXPORT void* MemoryHandlerCLibCalloc(size_t a_nmemb, size_t a_size)
 {
-    return (*s_calloc_c_lib)(a_nmemb,a_size);
+#ifdef ANALIZE_ALLOC_FREE_COUNT
+    void*const pRet = (*s_calloc_c_lib)(a_nmemb,a_size);
+    if(pRet){
+        CrashInvestAnalyzeLeakingAddAllocedItem(1,pRet,&s_analyzeData);
+    }
+    return pRet;
+#else
+    return (*s_calloc_c_lib)(a_nmemb,a_size);    
+#endif
 }
 
 
 MEM_HANDLE_EXPORT void* MemoryHandlerCLibRealloc(void* a_ptr, size_t a_size)
 {
-    return (*s_realloc_c_lib)(a_ptr,a_size);
+#ifdef ANALIZE_ALLOC_FREE_COUNT
+    void*const pRet = MemoryHandlerCLibRealloc(a_ptr,a_size);
+    if(a_size){
+        if(pRet && (pRet!=a_ptr)){
+            CrashInvestAnalyzeLeakingRemoveAllocedItem(a_ptr,&s_analyzeData);
+            CrashInvestAnalyzeLeakingAddAllocedItem(1,pRet,&s_analyzeData);
+        }
+        return pRet;
+    }
+    else{
+        CrashInvestAnalyzeLeakingRemoveAllocedItem(a_ptr,&s_analyzeData);
+    }
+
+    return pRet;
+#else
+    return (*s_realloc_c_lib)(a_ptr,a_size);    
+#endif
 }
 
 
 MEM_HANDLE_EXPORT void MemoryHandlerCLibFree(void* a_ptr)
 {
+#ifdef ANALIZE_ALLOC_FREE_COUNT
+    if(a_ptr){
+        CrashInvestAnalyzeLeakingRemoveAllocedItem(a_ptr,&s_analyzeData);
+    }
+#endif
     (*s_free_c_lib)(a_ptr);
     //(*s_free_c_lib)(a_ptr);
 }
@@ -182,6 +232,20 @@ static inline size_t MemoryHandlerCalculateRoundedMemorySizeInline(size_t a_init
         return ((a_initialSize>>3)+1)<<3;
     }
     return a_initialSize;
+}
+
+
+static void crash_investigator_linux_simple_alloc_free_inc_clean(void){
+
+    g_malloc  = s_malloc_c_lib;
+    g_calloc  = s_calloc_c_lib;
+    g_realloc = s_realloc_c_lib;
+    g_free    = s_free_c_lib;
+
+#ifdef ANALIZE_ALLOC_FREE_COUNT
+    CrashInvestAnalyzeLeakingClean(&s_analyzeData);
+#endif
+
 }
 
 
@@ -217,13 +281,28 @@ static inline void InitLibraryInline(void){
         g_realloc = s_realloc_tmp?s_realloc_tmp:s_realloc_c_lib;
         g_free    = s_free_tmp?s_free_tmp:s_free_c_lib;
 
+#ifdef ANALIZE_ALLOC_FREE_COUNT
+
+        if(CrashInvestAnalyzeLeakingInitialize(&s_analyzeData,&s_nIgnoreForThisThread,"MEMORY_LEAK_ANALYZE_INIT_TIME_SEC_DEFAULT","MEMORY_LEAK_ANALYZE_MAX_ALLOC_DEFAULT")){
+            g_malloc  = s_malloc_c_lib;
+            g_calloc  = s_calloc_c_lib;
+            g_realloc = s_realloc_c_lib;
+            g_free    = s_free_c_lib;
+            exit(1);
+        }
+
+#endif  //  #ifdef ANALIZE_ALLOC_FREE_COUNT
+
         s_nLibraryInited = 1;
+
+        atexit(&crash_investigator_linux_simple_alloc_free_inc_clean);
 
 #ifdef MEMORY_HANDLE_WAIT_FOR_DEBUGGER
         fprintf(stdout,"Press any key then press enter to continue "); fflush(stdout);
         getchar();
 #endif
-    }
+
+    }  //  if(!s_nStartedInitLibrary){
 }
 
 
@@ -398,7 +477,7 @@ CPPUTILS_DLL_PRIVATE void MemoryHandlerFree(void* a_ptr)
 
 
 //
-CPPUTILS_CODE_INITIALIZER(MemoryHandlerInit){
+CPPUTILS_C_CODE_INITIALIZER(MemoryHandlerInit){
     InitLibraryInline();
 }
 
